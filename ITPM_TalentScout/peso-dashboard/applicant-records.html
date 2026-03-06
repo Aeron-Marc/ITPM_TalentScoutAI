@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Applicant Records — TalentScout AI</title>
+    <link rel="stylesheet" href="../styles/global.css" />
+    <style>
+      body {
+        background: #f0f4f1;
+      }
+      .admin-wrapper {
+        display: flex;
+        min-height: calc(100vh - var(--nav-height));
+      }
+      .admin-sidebar {
+        width: 240px;
+        background: var(--primary-darker);
+        padding: 1.5rem 0;
+        position: sticky;
+        top: var(--nav-height);
+        height: calc(100vh - var(--nav-height));
+        overflow-y: auto;
+      }
+      .sidebar-menu-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        color: rgba(255, 255, 255, 0.45);
+        padding: 0 1.25rem;
+        margin: 1.25rem 0 0.5rem;
+      }
+      .sidebar-menu-label:first-child {
+        margin-top: 0;
+      }
+      .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.7rem 1.25rem;
+        font-size: 0.88rem;
+        color: rgba(255, 255, 255, 0.72);
+        text-decoration: none;
+      }
+      .sidebar-link:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+      }
+      .sidebar-link.active {
+        background: rgba(173, 235, 179, 0.15);
+        color: #adebb3;
+        font-weight: 600;
+        border-right: 3px solid #adebb3;
+      }
+      .sidebar-divider {
+        border: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        margin: 0.75rem 1.25rem;
+      }
+      .admin-content {
+        flex: 1;
+        padding: 2rem;
+      }
+      .table-wrap {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .table th,
+      .table td {
+        padding: 0.82rem 1rem;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        font-size: 0.84rem;
+      }
+      .table th {
+        background: var(--bg-light);
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        color: var(--text-mid);
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <a href="../index.html" class="nav-logo"
+        ><div class="nav-logo-icon">TS</div>
+        <span class="nav-logo-text">Talent<span>Scout</span> AI</span></a
+      >
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="../job-postings/">Job Postings</a></li>
+        <li><a href="../ai-matching/">AI Matching</a></li>
+        <li><a href="../skill-gap-analysis/">Skill Gap</a></li>
+        <li><a href="../blind-hiring/">Blind Hiring</a></li>
+        <li><a href="./index.html" class="active">Dashboard</a></li>
+        <li><a href="../applicant-tracking/">Tracking</a></li>
+      </ul>
+      <div class="nav-actions">
+        <span style="font-size: 0.85rem; color: var(--text-mid)"
+          >Admin: Maria Reyes</span
+        ><a href="../index.html" class="btn btn-outline">Logout</a>
+      </div>
+    </nav>
+    <div class="admin-wrapper">
+      <aside class="admin-sidebar">
+        <div class="sidebar-menu-label">Overview</div>
+        <a href="./index.html" class="sidebar-link"
+          ><span class="icon">🏠</span> Dashboard</a
+        ><a href="./analytics.html" class="sidebar-link"
+          ><span class="icon">📊</span> Analytics</a
+        ><a href="./barangay-map.html" class="sidebar-link"
+          ><span class="icon">🗺️</span> Barangay Map</a
+        >
+        <div class="sidebar-menu-label">Recruitment</div>
+        <a href="./job-postings.html" class="sidebar-link"
+          ><span class="icon">📋</span> Job Postings</a
+        ><a href="./applicant-tracking.html" class="sidebar-link"
+          ><span class="icon">🔖</span> Applicant Tracking</a
+        ><a href="./ai-matching.html" class="sidebar-link"
+          ><span class="icon">🤖</span> AI Matching</a
+        ><a href="./blind-hiring.html" class="sidebar-link"
+          ><span class="icon">🫥</span> Blind Hiring</a
+        >
+        <div class="sidebar-menu-label">Tools</div>
+        <a href="./skill-gap-reports.html" class="sidebar-link"
+          ><span class="icon">📊</span> Skill Gap Reports</a
+        ><a href="./applicant-records.html" class="sidebar-link active"
+          ><span class="icon">📁</span> Applicant Records</a
+        ><a href="./export-reports.html" class="sidebar-link"
+          ><span class="icon">📤</span> Export Reports</a
+        >
+        <hr class="sidebar-divider" />
+        <div class="sidebar-menu-label">Admin</div>
+        <a href="./settings.html" class="sidebar-link"
+          ><span class="icon">⚙️</span> Settings</a
+        ><a href="./staff-accounts.html" class="sidebar-link"
+          ><span class="icon">👥</span> Staff Accounts</a
+        ><a href="../index.html" class="sidebar-link"
+          ><span class="icon">🔒</span> Logout</a
+        >
+      </aside>
+      <main class="admin-content">
+        <h1 class="admin-page-title">Applicant Records</h1>
+        <p class="admin-page-sub">
+          Master list of candidate profiles and statuses.
+        </p>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Barangay</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Juan Santos</td>
+                <td>Warehouse Staff</td>
+                <td>Kaylaway</td>
+                <td><span class="badge badge-blue">Interview</span></td>
+              </tr>
+              <tr>
+                <td>Maria Dela Cruz</td>
+                <td>Accounting Assistant</td>
+                <td>Bucana</td>
+                <td><span class="badge badge-green">Hired</span></td>
+              </tr>
+              <tr>
+                <td>Paolo Reyes</td>
+                <td>Helper</td>
+                <td>Natipuan</td>
+                <td><span class="badge badge-yellow">Matched</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
