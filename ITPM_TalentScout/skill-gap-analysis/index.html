@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skill Gap Analysis — TalentScout AI</title>
+  <link rel="stylesheet" href="../styles/global.css">
+  <style>
+    .gap-layout {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2.5rem;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    /* Summary banner */
+    .summary-banner {
+      background: linear-gradient(135deg, #E8F5E9, #F2FCF3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    .summary-score {
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .score-ring {
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      background: conic-gradient(var(--primary-dark) 0% 68%, var(--border) 68% 100%);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 0.5rem;
+    }
+    .score-inner {
+      width: 76px; height: 76px;
+      background: white;
+      border-radius: 50%;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .score-val { font-size: 1.3rem; font-weight: 800; color: var(--primary-darker); line-height: 1; }
+    .score-lbl { font-size: 0.68rem; color: var(--text-light); }
+    .summary-info h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .summary-info p { font-size: 0.9rem; color: var(--text-light); line-height: 1.6; }
+    .summary-pills { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
+    .summary-pill {
+      padding: 0.3rem 0.8rem;
+      border-radius: 100px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .pill-green { background: #D4EDDA; color: #155724; }
+    .pill-red   { background: #F8D7DA; color: #721c24; }
+    .pill-yellow{ background: #FFF3CD; color: #856404; }
+
+    /* Skill Sections */
+    .skill-section {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .skill-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+    .skill-section-title { font-size: 1rem; font-weight: 700; color: var(--text-dark); }
+    .skill-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .skill-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
+    .skill-name { font-size: 0.88rem; font-weight: 500; color: var(--text-dark); }
+    .skill-pct { font-size: 0.82rem; font-weight: 700; }
+    .skill-pct.good { color: var(--primary-darker); }
+    .skill-pct.warn { color: #856404; }
+    .skill-pct.bad  { color: #721c24; }
+
+    /* Gap Tags */
+    .gap-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin: 0.3rem;
+    }
+    .gap-tag.missing { background: #F8D7DA; color: #721c24; border: 1px solid #F1AEB5; }
+    .gap-tag.partial { background: #FFF3CD; color: #856404; border: 1px solid #FFD77A; }
+
+    /* Courses */
+    .course-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 1rem;
+      transition: all 0.2s;
+    }
+    .course-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+    .course-banner { height: 8px; }
+    .course-body { padding: 1.25rem; }
+    .course-provider { font-size: 0.78rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.35rem; }
+    .course-title { font-size: 0.97rem; font-weight: 700; color: var(--text-dark); margin-bottom: 0.5rem; }
+    .course-meta { display: flex; gap: 0.75rem; font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.75rem; }
+    .course-skills { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
+    .course-footer { display: flex; justify-content: space-between; align-items: center; }
+    .course-price { font-weight: 700; color: var(--primary-darker); font-size: 0.92rem; }
+
+    /* Sidebar */
+    .side-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    .side-card-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-light);
+      margin-bottom: 1rem;
+    }
+    .career-path {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .path-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding-bottom: 1.25rem;
+      position: relative;
+    }
+    .path-step:last-child { padding-bottom: 0; }
+    .path-step::before {
+      content: '';
+      position: absolute;
+      left: 14px;
+      top: 28px;
+      bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+    .path-step:last-child::before { display: none; }
+    .path-dot {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+    .path-dot.done { background: var(--primary-dark); color: white; }
+    .path-dot.current { background: var(--primary); color: var(--primary-darker); border: 2px solid var(--primary-dark); }
+    .path-dot.next { background: var(--border); color: var(--text-light); }
+    .path-info { padding-top: 0.15rem; }
+    .path-title { font-size: 0.9rem; font-weight: 600; color: var(--text-dark); }
+    .path-sub { font-size: 0.78rem; color: var(--text-light); margin-top: 0.15rem; }
+
+    /* Progress summary */
+    .micro-stat { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid var(--border); font-size: 0.87rem; }
+    .micro-stat:last-child { border-bottom: none; }
+    .micro-val { font-weight: 700; color: var(--primary-darker); }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="../index.html" class="nav-logo">
+    <div class="nav-logo-icon">TS</div>
+    <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="../job-postings/">Job Postings</a></li>
+    <li><a href="../ai-matching/">AI Matching</a></li>
+    <li><a href="../skill-gap-analysis/" class="active">Skill Gap</a></li>
+    <li><a href="../blind-hiring/">Blind Hiring</a></li>
+    <li><a href="../peso-dashboard/">Dashboard</a></li>
+    <li><a href="../applicant-tracking/">Tracking</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="#" class="btn btn-outline">Login</a>
+    <a href="#" class="btn btn-primary">Get Started</a>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="page-header-inner">
+    <div class="breadcrumb"><a href="../index.html">Home</a> / Skill Gap Analysis</div>
+    <h1>📊 Skill Gap Analysis</h1>
+    <p>Discover which skills you already have, identify gaps, and get personalized upskilling recommendations to boost your employability.</p>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="gap-layout">
+  <div>
+
+    <!-- SUMMARY BANNER -->
+    <div class="summary-banner">
+      <div class="summary-score">
+        <div class="score-ring">
+          <div class="score-inner">
+            <div class="score-val">68%</div>
+            <div class="score-lbl">Readiness</div>
+          </div>
+        </div>
+        <div style="font-size:0.78rem;color:var(--text-light);">Juan Santos</div>
+      </div>
+      <div class="summary-info">
+        <h3>Your Employability Score: 68 / 100</h3>
+        <p>You have strong foundations in Front-End Development but are missing key skills demanded by Nasugbu tech employers. Closing 3 skill gaps could raise your score to <strong>89%</strong>.</p>
+        <div class="summary-pills">
+          <span class="summary-pill pill-green">✓ 7 Verified Skills</span>
+          <span class="summary-pill pill-red">✗ 3 Critical Gaps</span>
+          <span class="summary-pill pill-yellow">⚠ 2 Partial Skills</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CURRENT SKILLS -->
+    <div class="skill-section">
+      <div class="skill-section-header">
+        <div class="skill-section-title">✅ Current Skills</div>
+        <span class="badge badge-green">7 Verified</span>
+      </div>
+      <div class="skill-grid">
+        <div class="skill-item">
+          <div class="skill-label-row"><span class="skill-name">React.js</span><span class="skill-pct good">90%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:90%;"></div></div>
+        </div>
+        <div class="skill-item">
+          <div class="skill-label-row"><span class="skill-name">JavaScript (ES6+)</span><span class="skill-pct good">85%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:85%;"></div></div>
+        </div>
+        <div class="skill-item">
+          <div class="skill-label-row"><span class="skill-name">HTML / CSS</span><span class="skill-pct good">95%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:95%;"></div></div>
+        </div>
+        <div class="skill-item">
+          <div class="skill-label-row"><span class="skill-name">Git / Version Control</span><span class="skill-pct good">80%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:80%;"></div></div>
+        </div>
+        <div class="skill-item">
+          <div class="skill-label-row"><span class="skill-name">Figma (UI Design)</span><span class="skill-pct good">75%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:75%;"></div></div>
+        </div>
+        <div class="skill-item">
+          <div class="skill-label-row"><span class="skill-name">Node.js (Basic)</span><span class="skill-pct warn">55%</span></div>
+          <div class="progress-bar"><div class="progress-fill warn" style="width:55%;"></div></div>
+        </div>
+        <div class="skill-item">
+          <div class="skill-label-row"><span class="skill-name">REST APIs</span><span class="skill-pct warn">60%</span></div>
+          <div class="progress-bar"><div class="progress-fill warn" style="width:60%;"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SKILL GAPS -->
+    <div class="skill-section">
+      <div class="skill-section-header">
+        <div class="skill-section-title">❌ Identified Skill Gaps</div>
+        <span class="badge badge-red">3 Critical</span>
+      </div>
+      <p style="font-size:0.87rem;color:var(--text-light);margin-bottom:1.25rem;">These skills are in demand across 42+ job postings in Nasugbu but are missing from your profile.</p>
+      <div class="skill-grid">
+        <div class="skill-item">
+          <div class="skill-label-row"><span class="skill-name">TypeScript</span><span class="skill-pct bad">0%</span></div>
+          <div class="progress-bar"><div class="progress-fill gap" style="width:5%;"></div></div>
+          <div style="font-size:0.78rem;color:#856404;margin-top:0.3rem;">Required by 28 jobs</div>
+        </div>
+        <div class="skill-item">
+          <div class="skill-label-row"><span class="skill-name">Python (Basic)</span><span class="skill-pct bad">0%</span></div>
+          <div class="progress-bar"><div class="progress-fill gap" style="width:5%;"></div></div>
+          <div style="font-size:0.78rem;color:#856404;margin-top:0.3rem;">Required by 19 jobs</div>
+        </div>
+        <div class="skill-item">
+          <div class="skill-label-row"><span class="skill-name">Docker / DevOps</span><span class="skill-pct bad">10%</span></div>
+          <div class="progress-bar"><div class="progress-fill gap" style="width:10%;"></div></div>
+          <div style="font-size:0.78rem;color:#856404;margin-top:0.3rem;">Required by 15 jobs</div>
+        </div>
+        <div class="skill-item">
+          <div class="skill-label-row"><span class="skill-name">SQL / Database</span><span class="skill-pct warn">25%</span></div>
+          <div class="progress-bar"><div class="progress-fill warn" style="width:25%;"></div></div>
+          <div style="font-size:0.78rem;color:#856404;margin-top:0.3rem;">Required by 35 jobs</div>
+        </div>
+      </div>
+      <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border);">
+        <div style="font-size:0.87rem;font-weight:600;color:var(--text-dark);margin-bottom:0.5rem;">All Gap Tags</div>
+        <div>
+          <span class="gap-tag missing">✗ TypeScript</span>
+          <span class="gap-tag missing">✗ Python</span>
+          <span class="gap-tag missing">✗ Docker</span>
+          <span class="gap-tag partial">⚠ SQL (Partial)</span>
+          <span class="gap-tag partial">⚠ Node.js (Partial)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECOMMENDED COURSES -->
+    <div style="margin-bottom:1.5rem;">
+      <div class="section-label">Upskilling Recommendations</div>
+      <h2 class="section-title" style="font-size:1.5rem;">Recommended Courses for You</h2>
+      <p style="color:var(--text-light);font-size:0.9rem;margin-top:0.3rem;">Curated free and paid courses aligned to your skill gaps and Nasugbu job market demand.</p>
+    </div>
+
+    <div class="course-card">
+      <div class="course-banner" style="background:linear-gradient(90deg,#3b82f6,#60a5fa);"></div>
+      <div class="course-body">
+        <div class="course-provider">Udemy / Online</div>
+        <div class="course-title">TypeScript: Complete Developer Guide</div>
+        <div class="course-meta">
+          <span>⏱ 27 hours</span>
+          <span>🎯 Beginner–Intermediate</span>
+          <span>⭐ 4.8 (12,400 reviews)</span>
+        </div>
+        <div class="course-skills">
+          <span class="chip">TypeScript</span>
+          <span class="chip">OOP Concepts</span>
+          <span class="chip">React + TS</span>
+        </div>
+        <div class="course-footer">
+          <span class="course-price">₱499 (Sale)</span>
+          <a href="#" class="btn btn-primary">Enroll Now</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="course-card">
+      <div class="course-banner" style="background:linear-gradient(90deg,#16a34a,#4ade80);"></div>
+      <div class="course-body">
+        <div class="course-provider">freeCodeCamp / Free</div>
+        <div class="course-title">Python for Beginners — Full Course</div>
+        <div class="course-meta">
+          <span>⏱ 12 hours</span>
+          <span>🎯 Beginner</span>
+          <span>⭐ 4.9 (8,200 reviews)</span>
+        </div>
+        <div class="course-skills">
+          <span class="chip">Python Basics</span>
+          <span class="chip">Scripting</span>
+          <span class="chip">Data Handling</span>
+        </div>
+        <div class="course-footer">
+          <span class="course-price" style="color:#155724;">FREE</span>
+          <a href="#" class="btn btn-primary">Start Learning</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="course-card">
+      <div class="course-banner" style="background:linear-gradient(90deg,#f59e0b,#fbbf24);"></div>
+      <div class="course-body">
+        <div class="course-provider">Coursera / Google</div>
+        <div class="course-title">SQL for Data Analysis — Google Certificate</div>
+        <div class="course-meta">
+          <span>⏱ 18 hours</span>
+          <span>🎯 Beginner</span>
+          <span>⭐ 4.7 (5,600 reviews)</span>
+        </div>
+        <div class="course-skills">
+          <span class="chip">SQL Basics</span>
+          <span class="chip">Database Design</span>
+          <span class="chip">Queries</span>
+        </div>
+        <div class="course-footer">
+          <span class="course-price">₱0 (Audit Free)</span>
+          <a href="#" class="btn btn-primary">Enroll Free</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside>
+    <div class="side-card">
+      <div class="side-card-title">Your Progress</div>
+      <div class="micro-stat"><span>Skills Have</span><span class="micro-val">7</span></div>
+      <div class="micro-stat"><span>Skills Missing</span><span class="micro-val" style="color:#721c24;">3</span></div>
+      <div class="micro-stat"><span>Partial Skills</span><span class="micro-val" style="color:#856404;">2</span></div>
+      <div class="micro-stat"><span>Courses Enrolled</span><span class="micro-val">1</span></div>
+      <div class="micro-stat"><span>Employability Score</span><span class="micro-val">68%</span></div>
+      <div class="micro-stat"><span>Potential Score</span><span class="micro-val" style="color:var(--primary-dark);">89%</span></div>
+    </div>
+
+    <div class="side-card">
+      <div class="side-card-title">Career Path</div>
+      <div class="career-path">
+        <div class="path-step">
+          <div class="path-dot done">✓</div>
+          <div class="path-info">
+            <div class="path-title">Junior Developer</div>
+            <div class="path-sub">Current level • Achieved</div>
+          </div>
+        </div>
+        <div class="path-step">
+          <div class="path-dot current">→</div>
+          <div class="path-info">
+            <div class="path-title">Mid-Level Developer</div>
+            <div class="path-sub">In progress • +3 skills needed</div>
+          </div>
+        </div>
+        <div class="path-step">
+          <div class="path-dot next">3</div>
+          <div class="path-info">
+            <div class="path-title">Senior Developer</div>
+            <div class="path-sub">Future goal • 2–3 years</div>
+          </div>
+        </div>
+        <div class="path-step">
+          <div class="path-dot next">4</div>
+          <div class="path-info">
+            <div class="path-title">Tech Lead / Architect</div>
+            <div class="path-sub">Long-term target</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-card">
+      <div class="side-card-title">Job Market Demand</div>
+      <div style="font-size:0.82rem;color:var(--text-light);margin-bottom:1rem;">Most requested skills in Nasugbu tech jobs right now:</div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>JavaScript</span><span>94%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:94%;"></div></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>React / Vue</span><span>78%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:78%;"></div></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>TypeScript</span><span>72%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:72%;"></div></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>SQL</span><span>65%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:65%;"></div></div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label"><span>Python</span><span>58%</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:58%;"></div></div>
+      </div>
+    </div>
+
+    <div class="side-card">
+      <div class="side-card-title">Quick Actions</div>
+      <div style="display:flex;flex-direction:column;gap:0.6rem;">
+        <a href="../ai-matching/" class="btn btn-primary" style="justify-content:center;">🤖 View Job Matches</a>
+        <a href="../job-postings/" class="btn btn-light" style="justify-content:center;">📋 Browse Jobs</a>
+        <a href="../blind-hiring/" class="btn btn-outline" style="justify-content:center;">🫥 Apply (Blind Hiring)</a>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <h3>TalentScout AI</h3>
+        <p>Smart AI-powered recruitment platform for PESO Nasugbu, Batangas. Connecting local talent with local opportunities through fair, intelligent hiring.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Features</h4>
+        <ul>
+          <li><a href="../job-postings/">Job Postings</a></li>
+          <li><a href="../ai-matching/">AI Matching</a></li>
+          <li><a href="../skill-gap-analysis/">Skill Gap Analysis</a></li>
+          <li><a href="../blind-hiring/">Blind Hiring</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Admin</h4>
+        <ul>
+          <li><a href="../peso-dashboard/">PESO Dashboard</a></li>
+          <li><a href="../applicant-tracking/">Applicant Tracking</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>PESO Nasugbu</h4>
+        <ul>
+          <li><a href="#">Nasugbu, Batangas</a></li>
+          <li><a href="#">About PESO</a></li>
+          <li><a href="#">Contact Us</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 TalentScout AI — PESO Nasugbu, Batangas</span>
+      <span>Built for Local Employment</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
