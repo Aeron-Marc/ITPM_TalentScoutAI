@@ -1,0 +1,1396 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resume Builder | Job Seekers - TalentScout AI</title>
+    <link rel="stylesheet" href="../../../styles/global.css" />
+    <link rel="stylesheet" href="../../../styles/page-layout.css" />
+    <style>
+      .builder-shell {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      .builder-header h1 {
+        font-size: 2rem;
+        color: var(--text-dark);
+      }
+
+      .builder-header p {
+        color: var(--text-light);
+        margin-top: 0.35rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .builder-grid {
+        display: grid;
+        grid-template-columns: minmax(360px, 1fr) minmax(420px, 1fr);
+        gap: 1.2rem;
+        align-items: start;
+      }
+
+      .panel {
+        background: white;
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .panel-head {
+        padding: 0.9rem 1rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.7rem;
+      }
+
+      .panel-title {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .template-chip {
+        font-size: 0.75rem;
+        color: var(--primary-dark);
+        font-weight: 700;
+        background: var(--bg-lighter);
+        border: 1px solid var(--primary-light);
+        padding: 0.25rem 0.55rem;
+        border-radius: 999px;
+      }
+
+      .preview-wrap {
+        padding: 1rem;
+        position: sticky;
+        top: calc(var(--nav-height) + 0.9rem);
+        max-height: calc(100vh - var(--nav-height) - 1.8rem);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .resume-preview {
+        border: 1px solid #d3dce0;
+        border-radius: 6px;
+        padding: 1.25rem;
+        color: #2b2b2b;
+        background: #fefefe;
+        font-family: "Segoe UI", Arial, sans-serif;
+        line-height: 1.32;
+        overflow-y: auto;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .rp-head {
+        display: grid;
+        grid-template-columns: 80px 1fr;
+        gap: 0.95rem;
+        align-items: start;
+      }
+
+      .rp-photo {
+        width: 80px;
+        height: 95px;
+        border: 1px solid #cfd8dc;
+        border-radius: 2px;
+        object-fit: cover;
+        background: #eef2f3;
+      }
+
+      .rp-name {
+        margin: 0;
+        color: #0f3a5e;
+        font-size: 1.65rem;
+        font-weight: 800;
+        line-height: 1.1;
+        text-transform: uppercase;
+      }
+
+      .rp-contact {
+        margin-top: 0.3rem;
+        font-size: 0.8rem;
+      }
+
+      .rp-contact b {
+        color: #18242f;
+        margin-right: 0.25rem;
+      }
+
+      .rp-section {
+        margin-top: 0.9rem;
+      }
+
+      .rp-title {
+        color: #0f3a5e;
+        font-size: 0.92rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        border-bottom: 1px solid #8da3b3;
+        padding-bottom: 0.14rem;
+        margin-bottom: 0.35rem;
+      }
+
+      .rp-text {
+        font-size: 0.79rem;
+      }
+
+      .rp-job {
+        margin-bottom: 0.55rem;
+      }
+
+      .rp-job-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.7rem;
+        font-size: 0.79rem;
+      }
+
+      .rp-job-title {
+        font-weight: 700;
+      }
+
+      .rp-date {
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .rp-company {
+        font-size: 0.77rem;
+        color: #555;
+      }
+
+      .rp-list {
+        margin: 0.2rem 0 0.1rem 1rem;
+        font-size: 0.76rem;
+      }
+
+      .rp-additional-list {
+        margin: 0.2rem 0 0.1rem 1rem;
+        font-size: 0.76rem;
+      }
+
+      .form-wrap {
+        padding: 1rem;
+      }
+
+      .resume-form {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .group {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.85rem;
+        background: #fcfefe;
+      }
+
+      .group h3 {
+        font-size: 0.9rem;
+        color: var(--text-dark);
+        margin-bottom: 0.55rem;
+      }
+
+      .group-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.7rem;
+        margin-bottom: 0.55rem;
+      }
+
+      .group-head h3 {
+        margin-bottom: 0;
+      }
+
+      .add-btn {
+        border: 1px solid var(--primary-light);
+        color: var(--primary-dark);
+        background: var(--bg-lighter);
+        font-size: 0.76rem;
+        font-weight: 700;
+        border-radius: 999px;
+        padding: 0.35rem 0.6rem;
+        cursor: pointer;
+      }
+
+      .entry-card {
+        border: 1px dashed var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.75rem;
+        margin-bottom: 0.7rem;
+        background: white;
+      }
+
+      .entry-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.7rem;
+        margin-bottom: 0.45rem;
+      }
+
+      .entry-title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--text-mid);
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+      }
+
+      .remove-btn {
+        border: 1px solid #efc2c2;
+        background: #fff6f6;
+        color: #aa4f4f;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 0.2rem 0.5rem;
+        cursor: pointer;
+      }
+
+      .field-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.7rem;
+      }
+
+      .resume-form label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--text-mid);
+      }
+
+      .resume-form input,
+      .resume-form textarea {
+        width: 100%;
+        margin-top: 0.3rem;
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.66rem 0.72rem;
+        font-size: 0.88rem;
+        font-family: inherit;
+        background: white;
+      }
+
+      .resume-form textarea {
+        min-height: 78px;
+        resize: vertical;
+      }
+
+      .helper {
+        margin-top: 0.25rem;
+        font-size: 0.73rem;
+        color: var(--text-muted);
+      }
+
+      .resume-actions {
+        display: flex;
+        gap: 0.7rem;
+        flex-wrap: wrap;
+      }
+
+      .helper-note {
+        font-size: 0.8rem;
+        color: var(--text-light);
+      }
+
+      @media (max-width: 1200px) {
+        .builder-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .preview-wrap {
+          position: static;
+        }
+      }
+
+      @media (max-width: 700px) {
+        .builder-shell {
+          padding: 1rem;
+        }
+
+        .field-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .rp-head {
+          grid-template-columns: 66px 1fr;
+        }
+
+        .rp-photo {
+          width: 66px;
+          height: 78px;
+        }
+
+        .rp-name {
+          font-size: 1.25rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <a href="../../index.html" class="nav-logo">
+        <div class="nav-logo-icon">TS</div>
+        <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="../../index.html">Home</a></li>
+        <li><a href="../job-postings/">Browse Jobs</a></li>
+        <li><a href="../ai-matching/">AI Matching</a></li>
+        <li><a href="../skill-gap-analysis/">Skills</a></li>
+        <li><a href="../applicant-tracking/">Applications</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="../../login.html" class="btn btn-outline">Login</a>
+        <a href="../../signup.html" class="btn btn-primary">Get Started</a>
+      </div>
+    </nav>
+
+    <main class="builder-shell">
+      <div class="builder-header">
+        <h1>Resume Builder</h1>
+        <p>
+          Standard template only. Fill the fields and see your resume update in
+          real time.
+        </p>
+      </div>
+
+      <div class="builder-grid">
+        <section class="panel preview-wrap">
+          <div class="panel-head">
+            <span class="panel-title">Live Preview</span>
+            <span class="template-chip">Standard Template</span>
+          </div>
+
+          <article class="resume-preview" id="resumePreview">
+            <div class="rp-head">
+              <img
+                class="rp-photo"
+                id="previewPhoto"
+                src="https://via.placeholder.com/80x95.png?text=Photo"
+                alt="Profile Photo"
+              />
+              <div>
+                <h2 class="rp-name" id="previewName">YOUR NAME</h2>
+                <div class="rp-contact">
+                  <div>
+                    <b>Address:</b>
+                    <span id="previewAddress">Your Address</span>
+                  </div>
+                  <div>
+                    <b>Phone:</b>
+                    <span id="previewPhone">+63 XXX XXX XXXX</span>
+                  </div>
+                  <div>
+                    <b>Email:</b> <span id="previewEmail">you@email.com</span>
+                  </div>
+                  <div>
+                    <b>Website:</b>
+                    <span id="previewWebsite">linkedin.com/in/you</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <section class="rp-section">
+              <div class="rp-title">Summary</div>
+              <p class="rp-text" id="previewSummary">
+                Results-oriented professional with practical experience and
+                strong problem solving skills.
+              </p>
+            </section>
+
+            <section class="rp-section">
+              <div class="rp-title">Work Experience</div>
+              <div id="previewWorkList"></div>
+            </section>
+
+            <section class="rp-section">
+              <div class="rp-title">Education</div>
+              <div id="previewEducationList"></div>
+            </section>
+
+            <section class="rp-section">
+              <div class="rp-title">Skills</div>
+              <ul class="rp-additional-list" id="previewSkills">
+                <li>List your key technical and soft skills.</li>
+              </ul>
+            </section>
+
+            <section class="rp-section">
+              <div class="rp-title">Additional Information</div>
+              <ul class="rp-additional-list" id="previewAdditional">
+                <li>Certifications, awards, languages, and other info.</li>
+              </ul>
+            </section>
+          </article>
+        </section>
+
+        <section class="panel form-wrap">
+          <div class="panel-head">
+            <span class="panel-title">Resume Fields</span>
+            <span class="template-chip">Edit Here</span>
+          </div>
+
+          <form class="resume-form" id="resumeForm" action="#" method="post">
+            <div class="group">
+              <h3>Personal Information</h3>
+              <div class="field-grid">
+                <label>
+                  Full Name
+                  <input
+                    id="fullName"
+                    type="text"
+                    placeholder="Benjamin Shah"
+                  />
+                </label>
+                <label>
+                  Profile Photo (Optional)
+                  <input id="photoFile" type="file" accept="image/*" />
+                </label>
+                <label>
+                  Address
+                  <input
+                    id="address"
+                    type="text"
+                    placeholder="123 Anywhere St., Any City"
+                  />
+                </label>
+                <label>
+                  Phone
+                  <input id="phone" type="text" placeholder="123-456-7890" />
+                </label>
+                <label>
+                  Email
+                  <input
+                    id="email"
+                    type="email"
+                    placeholder="hello@example.com"
+                  />
+                </label>
+                <label>
+                  Website / Portfolio
+                  <input
+                    id="website"
+                    type="text"
+                    placeholder="linkedin.com/in/yourname"
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div class="group">
+              <h3>Summary</h3>
+              <label>
+                Professional Summary
+                <textarea
+                  id="summary"
+                  placeholder="Write a 2-4 sentence summary of your profile."
+                ></textarea>
+              </label>
+            </div>
+
+            <div class="group">
+              <div class="group-head">
+                <h3>Work Experience</h3>
+                <button type="button" class="add-btn" id="addWorkBtn">
+                  + Add Work Experience
+                </button>
+              </div>
+              <div id="workFieldsContainer"></div>
+            </div>
+
+            <div class="group">
+              <div class="group-head">
+                <h3>Education</h3>
+                <button type="button" class="add-btn" id="addEducationBtn">
+                  + Add Education
+                </button>
+              </div>
+              <div id="educationFieldsContainer"></div>
+            </div>
+
+            <div class="group">
+              <div class="group-head">
+                <h3>Skills</h3>
+                <button type="button" class="add-btn" id="addSkillBtn">
+                  + Add Skill
+                </button>
+              </div>
+              <div id="skillFieldsContainer"></div>
+              <p class="helper">
+                Add one skill per field so each skill can be analyzed
+                separately.
+              </p>
+            </div>
+
+            <div class="group">
+              <h3>Additional Information</h3>
+              <label>
+                Certifications, Awards, Languages, Others
+                <textarea
+                  id="additional"
+                  placeholder="Certifications: Professional Engineer (PE)&#10;Awards: Employee of the Year&#10;Languages: English, Filipino"
+                ></textarea>
+              </label>
+              <p class="helper">
+                Tip: Use labels like "Certifications:" and "Awards:" to keep
+                this section organized.
+              </p>
+              <p class="helper">
+                Put one item per line. Example: "Technical Skills: ..." then
+                press Enter for next line.
+              </p>
+            </div>
+
+            <div class="resume-actions">
+              <button type="submit" class="btn btn-primary">Save Resume</button>
+              <button type="button" class="btn btn-primary" id="downloadPdfBtn">&#8595; Download PDF</button>
+              <button type="button" class="btn btn-outline" id="fillSampleBtn">
+                Fill Sample Data
+              </button>
+              <a href="../job-postings/" class="btn btn-outline"
+                >Browse Matching Jobs</a
+              >
+            </div>
+
+            <p class="helper-note">
+              Resume is saved in browser storage for now. You can connect this
+              to your backend later.
+            </p>
+          </form>
+        </section>
+      </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="../../employee-auth.js"></script>
+    <script>
+      const STORAGE_KEY = "tsEmployeeResumeData";
+
+      const baseFields = {
+        fullName: document.getElementById("fullName"),
+        photoFile: document.getElementById("photoFile"),
+        address: document.getElementById("address"),
+        phone: document.getElementById("phone"),
+        email: document.getElementById("email"),
+        website: document.getElementById("website"),
+        summary: document.getElementById("summary"),
+        additional: document.getElementById("additional"),
+      };
+
+      let selectedPhotoDataUrl = "";
+
+      const preview = {
+        photo: document.getElementById("previewPhoto"),
+        name: document.getElementById("previewName"),
+        address: document.getElementById("previewAddress"),
+        phone: document.getElementById("previewPhone"),
+        email: document.getElementById("previewEmail"),
+        website: document.getElementById("previewWebsite"),
+        summary: document.getElementById("previewSummary"),
+        workList: document.getElementById("previewWorkList"),
+        educationList: document.getElementById("previewEducationList"),
+        skills: document.getElementById("previewSkills"),
+        additional: document.getElementById("previewAdditional"),
+      };
+
+      const workFieldsContainer = document.getElementById(
+        "workFieldsContainer",
+      );
+      const educationFieldsContainer = document.getElementById(
+        "educationFieldsContainer",
+      );
+      const skillFieldsContainer = document.getElementById(
+        "skillFieldsContainer",
+      );
+      const resumeForm = document.getElementById("resumeForm");
+
+      function oneLine(value, fallback) {
+        const clean = (value || "").trim();
+        return clean || fallback;
+      }
+
+      function listFromTextarea(textareaValue, fallbackText) {
+        const lines = (textareaValue || "")
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean);
+
+        if (!lines.length) {
+          return [fallbackText];
+        }
+
+        return lines;
+      }
+
+      function createWorkEntry(data = {}) {
+        const index = workFieldsContainer.children.length + 1;
+        const card = document.createElement("div");
+        card.className = "entry-card work-entry";
+        card.innerHTML = `
+          <div class="entry-head">
+            <span class="entry-title">Work Entry ${index}</span>
+            <button type="button" class="remove-btn">Remove</button>
+          </div>
+          <div class="field-grid">
+            <label>
+              Job Title
+              <input class="work-title" type="text" placeholder="Mechatronics Engineer" value="${(data.title || "").replace(/"/g, "&quot;")}" />
+            </label>
+            <label>
+              Start Date
+              <input class="work-start-date" type="month" value="${(data.startDate || "").replace(/"/g, "&quot;")}" />
+            </label>
+          </div>
+          <div class="field-grid">
+            <label>
+              End Date
+              <input class="work-end-date" type="month" value="${(data.endDate || "").replace(/"/g, "&quot;")}" />
+            </label>
+            <label>
+              &nbsp;
+              <div class="helper">Leave end date blank to show "Present".</div>
+            </label>
+          </div>
+          <label>
+            Company
+            <input class="work-company" type="text" placeholder="Borcelle Technologies" value="${(data.company || "").replace(/"/g, "&quot;")}" />
+          </label>
+          <label>
+            Achievements (one bullet per line)
+            <textarea class="work-bullets" placeholder="Led development...&#10;Reduced costs...">${data.bullets || ""}</textarea>
+          </label>
+        `;
+
+        card
+          .querySelector(".remove-btn")
+          .addEventListener("click", function () {
+            if (workFieldsContainer.children.length === 1) {
+              return;
+            }
+            card.remove();
+            renumberEntries(workFieldsContainer, "Work Entry");
+            updatePreview();
+          });
+
+        workFieldsContainer.appendChild(card);
+      }
+
+      function createEducationEntry(data = {}) {
+        const index = educationFieldsContainer.children.length + 1;
+        const card = document.createElement("div");
+        card.className = "entry-card education-entry";
+        card.innerHTML = `
+          <div class="entry-head">
+            <span class="entry-title">Education Entry ${index}</span>
+            <button type="button" class="remove-btn">Remove</button>
+          </div>
+          <div class="field-grid">
+            <label>
+              Degree / Program
+              <input class="edu-degree" type="text" placeholder="Bachelor of Mechanical Engineering" value="${(data.degree || "").replace(/"/g, "&quot;")}" />
+            </label>
+            <label>
+              Start Date
+              <input class="edu-start-date" type="month" value="${(data.startDate || "").replace(/"/g, "&quot;")}" />
+            </label>
+          </div>
+          <div class="field-grid">
+            <label>
+              End Date
+              <input class="edu-end-date" type="month" value="${(data.endDate || "").replace(/"/g, "&quot;")}" />
+            </label>
+            <label>
+              &nbsp;
+              <div class="helper">Leave end date blank if still studying.</div>
+            </label>
+          </div>
+          <label>
+            School
+            <input class="edu-school" type="text" placeholder="Engineering University" value="${(data.school || "").replace(/"/g, "&quot;")}" />
+          </label>
+          <label>
+            Details
+            <textarea class="edu-details" placeholder="Honors, thesis, or key coursework.">${data.details || ""}</textarea>
+          </label>
+        `;
+
+        card
+          .querySelector(".remove-btn")
+          .addEventListener("click", function () {
+            if (educationFieldsContainer.children.length === 1) {
+              return;
+            }
+            card.remove();
+            renumberEntries(educationFieldsContainer, "Education Entry");
+            updatePreview();
+          });
+
+        educationFieldsContainer.appendChild(card);
+      }
+
+      function createSkillEntry(value = "") {
+        const index = skillFieldsContainer.children.length + 1;
+        const card = document.createElement("div");
+        card.className = "entry-card skill-entry";
+        card.innerHTML = `
+          <div class="entry-head">
+            <span class="entry-title">Skill ${index}</span>
+            <button type="button" class="remove-btn">Remove</button>
+          </div>
+          <label>
+            Skill Name
+            <input class="skill-name" type="text" placeholder="Robotics and Automation" value="${value.replace(/"/g, "&quot;")}" />
+          </label>
+        `;
+
+        card
+          .querySelector(".remove-btn")
+          .addEventListener("click", function () {
+            if (skillFieldsContainer.children.length === 1) {
+              return;
+            }
+            card.remove();
+            renumberEntries(skillFieldsContainer, "Skill");
+            updatePreview();
+          });
+
+        skillFieldsContainer.appendChild(card);
+      }
+
+      function renumberEntries(container, prefix) {
+        Array.from(container.children).forEach((entry, idx) => {
+          const title = entry.querySelector(".entry-title");
+          if (title) {
+            title.textContent = `${prefix} ${idx + 1}`;
+          }
+        });
+      }
+
+      function readWorkEntries() {
+        return Array.from(
+          workFieldsContainer.querySelectorAll(".work-entry"),
+        ).map((entry) => ({
+          title: entry.querySelector(".work-title").value,
+          startDate: entry.querySelector(".work-start-date").value,
+          endDate: entry.querySelector(".work-end-date").value,
+          company: entry.querySelector(".work-company").value,
+          bullets: entry.querySelector(".work-bullets").value,
+        }));
+      }
+
+      function readEducationEntries() {
+        return Array.from(
+          educationFieldsContainer.querySelectorAll(".education-entry"),
+        ).map((entry) => ({
+          degree: entry.querySelector(".edu-degree").value,
+          startDate: entry.querySelector(".edu-start-date").value,
+          endDate: entry.querySelector(".edu-end-date").value,
+          school: entry.querySelector(".edu-school").value,
+          details: entry.querySelector(".edu-details").value,
+        }));
+      }
+
+      function readSkillEntries() {
+        return Array.from(skillFieldsContainer.querySelectorAll(".skill-entry"))
+          .map((entry) => entry.querySelector(".skill-name").value.trim())
+          .filter(Boolean);
+      }
+
+      function formatMonthValue(monthValue) {
+        if (!monthValue || !/^\d{4}-\d{2}$/.test(monthValue)) {
+          return "";
+        }
+
+        const [year, month] = monthValue.split("-");
+        const monthIndex = Number(month) - 1;
+        const monthNames = [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
+        ];
+        if (monthIndex < 0 || monthIndex > 11) {
+          return "";
+        }
+
+        return `${monthNames[monthIndex]} ${year}`;
+      }
+
+      function formatDateRange(startDate, endDate, legacyDate) {
+        const start = formatMonthValue(startDate);
+        const end = formatMonthValue(endDate);
+
+        if (start && end) {
+          return `${start} - ${end}`;
+        }
+        if (start && !end) {
+          return `${start} - Present`;
+        }
+        if (!start && end) {
+          return end;
+        }
+        if (legacyDate) {
+          return legacyDate;
+        }
+
+        return "Date Range";
+      }
+
+      function renderWorkPreview(entries) {
+        preview.workList.innerHTML = "";
+        const safeEntries = entries.length
+          ? entries
+          : [
+              {
+                title: "Role / Position",
+                startDate: "",
+                endDate: "",
+                company: "Company Name",
+                bullets: "Add accomplishments as bullet points.",
+              },
+            ];
+
+        safeEntries.forEach((entry) => {
+          const wrap = document.createElement("div");
+          wrap.className = "rp-job";
+
+          const bullets = listFromTextarea(
+            entry.bullets,
+            "Add accomplishments as bullet points.",
+          );
+          const bulletMarkup = bullets.map((b) => `<li>${b}</li>`).join("");
+
+          wrap.innerHTML = `
+            <div class="rp-job-head">
+              <span class="rp-job-title">${oneLine(entry.title, "Role / Position")}</span>
+              <span class="rp-date">${formatDateRange(entry.startDate, entry.endDate, entry.date)}</span>
+            </div>
+            <div class="rp-company">${oneLine(entry.company, "Company Name")}</div>
+            <ul class="rp-list">${bulletMarkup}</ul>
+          `;
+          preview.workList.appendChild(wrap);
+        });
+      }
+
+      function renderEducationPreview(entries) {
+        preview.educationList.innerHTML = "";
+        const safeEntries = entries.length
+          ? entries
+          : [
+              {
+                degree: "Degree / Program",
+                startDate: "",
+                endDate: "",
+                school: "School Name",
+                details: "Optional education highlights.",
+              },
+            ];
+
+        safeEntries.forEach((entry) => {
+          const wrap = document.createElement("div");
+          wrap.className = "rp-job";
+          wrap.innerHTML = `
+            <div class="rp-job-head">
+              <span class="rp-job-title">${oneLine(entry.degree, "Degree / Program")}</span>
+              <span class="rp-date">${formatDateRange(entry.startDate, entry.endDate, entry.date)}</span>
+            </div>
+            <div class="rp-company">${oneLine(entry.school, "School Name")}</div>
+            <p class="rp-text">${oneLine(entry.details, "Optional education highlights.")}</p>
+          `;
+          preview.educationList.appendChild(wrap);
+        });
+      }
+
+      function renderAdditionalPreview(value) {
+        const lines = (value || "")
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .map((line) => line.replace(/^[-*•]\s*/, ""));
+
+        preview.additional.innerHTML = "";
+
+        const safeLines = lines.length
+          ? lines
+          : ["Certifications, awards, languages, and other info."];
+
+        safeLines.forEach((line) => {
+          const li = document.createElement("li");
+          li.textContent = line;
+          preview.additional.appendChild(li);
+        });
+      }
+
+      function renderSkillsPreview(items) {
+        preview.skills.innerHTML = "";
+
+        const safeLines = items.length
+          ? items
+          : ["List your key technical and soft skills."];
+
+        safeLines.forEach((line) => {
+          const li = document.createElement("li");
+          li.textContent = line;
+          preview.skills.appendChild(li);
+        });
+      }
+
+      function updatePreview() {
+        preview.name.textContent = oneLine(
+          baseFields.fullName.value,
+          "YOUR NAME",
+        );
+        preview.address.textContent = oneLine(
+          baseFields.address.value,
+          "Your Address",
+        );
+        preview.phone.textContent = oneLine(
+          baseFields.phone.value,
+          "+63 XXX XXX XXXX",
+        );
+        preview.email.textContent = oneLine(
+          baseFields.email.value,
+          "you@email.com",
+        );
+        preview.website.textContent = oneLine(
+          baseFields.website.value,
+          "linkedin.com/in/you",
+        );
+        preview.summary.textContent = oneLine(
+          baseFields.summary.value,
+          "Results-oriented professional with practical experience and strong problem solving skills.",
+        );
+
+        renderWorkPreview(readWorkEntries());
+        renderEducationPreview(readEducationEntries());
+
+        renderSkillsPreview(readSkillEntries());
+        renderAdditionalPreview(baseFields.additional.value);
+
+        preview.photo.src =
+          selectedPhotoDataUrl ||
+          "https://via.placeholder.com/80x95.png?text=Photo";
+      }
+
+      function collectData() {
+        return {
+          fullName: baseFields.fullName.value || "",
+          photoDataUrl: selectedPhotoDataUrl || "",
+          address: baseFields.address.value || "",
+          phone: baseFields.phone.value || "",
+          email: baseFields.email.value || "",
+          website: baseFields.website.value || "",
+          summary: baseFields.summary.value || "",
+          skills: readSkillEntries(),
+          additional: baseFields.additional.value || "",
+          workExperience: readWorkEntries(),
+          education: readEducationEntries(),
+        };
+      }
+
+      function applyData(data) {
+        baseFields.fullName.value = data.fullName || "";
+        selectedPhotoDataUrl = data.photoDataUrl || data.photoUrl || "";
+        baseFields.photoFile.value = "";
+        baseFields.address.value = data.address || "";
+        baseFields.phone.value = data.phone || "";
+        baseFields.email.value = data.email || "";
+        baseFields.website.value = data.website || "";
+        baseFields.summary.value = data.summary || "";
+        baseFields.additional.value = data.additional || "";
+
+        workFieldsContainer.innerHTML = "";
+        educationFieldsContainer.innerHTML = "";
+        skillFieldsContainer.innerHTML = "";
+
+        const workItems = Array.isArray(data.workExperience)
+          ? data.workExperience
+          : [];
+        const educationItems = Array.isArray(data.education)
+          ? data.education
+          : [];
+        const skillItems = Array.isArray(data.skills) ? data.skills : [];
+
+        if (workItems.length) {
+          workItems.forEach((item) => createWorkEntry(item));
+        } else {
+          createWorkEntry();
+        }
+
+        if (educationItems.length) {
+          educationItems.forEach((item) => createEducationEntry(item));
+        } else {
+          createEducationEntry();
+        }
+
+        if (skillItems.length) {
+          skillItems.forEach((item) => createSkillEntry(item));
+        } else {
+          createSkillEntry();
+        }
+
+        renumberEntries(workFieldsContainer, "Work Entry");
+        renumberEntries(educationFieldsContainer, "Education Entry");
+        renumberEntries(skillFieldsContainer, "Skill");
+        updatePreview();
+      }
+
+      function normalizeLegacyData(parsed) {
+        function parseMonthLabel(label) {
+          const clean = (label || "").trim();
+          const match = clean.match(
+            /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})$/i,
+          );
+          if (!match) {
+            return "";
+          }
+
+          const monthMap = {
+            jan: "01",
+            feb: "02",
+            mar: "03",
+            apr: "04",
+            may: "05",
+            jun: "06",
+            jul: "07",
+            aug: "08",
+            sep: "09",
+            oct: "10",
+            nov: "11",
+            dec: "12",
+          };
+
+          const month = monthMap[match[1].toLowerCase()] || "";
+          const year = match[2];
+          return month ? `${year}-${month}` : "";
+        }
+
+        function parseLegacyRange(rangeText) {
+          const text = (rangeText || "").trim();
+          if (!text) {
+            return { startDate: "", endDate: "" };
+          }
+
+          const parts = text.split("-").map((part) => part.trim());
+          if (parts.length >= 2) {
+            const startDate = parseMonthLabel(parts[0]);
+            const endPart = parts.slice(1).join("-").trim();
+            const endDate = /present/i.test(endPart)
+              ? ""
+              : parseMonthLabel(endPart);
+            return { startDate, endDate };
+          }
+
+          return { startDate: parseMonthLabel(text), endDate: "" };
+        }
+
+        const normalized = {
+          fullName: parsed.fullName || "",
+          photoDataUrl: parsed.photoDataUrl || parsed.photoUrl || "",
+          address: parsed.address || "",
+          phone: parsed.phone || "",
+          email: parsed.email || "",
+          website: parsed.website || "",
+          summary: parsed.summary || "",
+          skills: Array.isArray(parsed.skills) ? parsed.skills : [],
+          additional: parsed.additional || "",
+          workExperience: [],
+          education: [],
+        };
+
+        if (!normalized.skills.length && typeof parsed.skills === "string") {
+          normalized.skills = parsed.skills
+            .split("\n")
+            .map((line) => line.trim())
+            .filter(Boolean)
+            .map((line) => line.replace(/^[-*•]\s*/, ""));
+        }
+
+        if (!normalized.skills.length && normalized.additional) {
+          const lines = normalized.additional
+            .split("\n")
+            .map((line) => line.trim())
+            .filter(Boolean);
+
+          const skillLines = lines.filter(
+            (line) =>
+              /^skills?:/i.test(line) || /^technical skills?:/i.test(line),
+          );
+          if (skillLines.length) {
+            normalized.skills = skillLines
+              .map((line) =>
+                line
+                  .replace(/^technical skills?:/i, "")
+                  .replace(/^skills?:/i, "")
+                  .trim(),
+              )
+              .flatMap((line) => line.split(",").map((part) => part.trim()))
+              .filter(Boolean)
+              .map((line) => line.replace(/^[-*•]\s*/, ""));
+
+            normalized.additional = lines
+              .filter(
+                (line) =>
+                  !/^skills?:/i.test(line) &&
+                  !/^technical skills?:/i.test(line),
+              )
+              .join("\n");
+          }
+        }
+
+        if (Array.isArray(parsed.workExperience)) {
+          normalized.workExperience = parsed.workExperience.map((item) => {
+            if (item.startDate || item.endDate) {
+              return item;
+            }
+
+            const converted = parseLegacyRange(item.date || "");
+            return {
+              ...item,
+              startDate: converted.startDate,
+              endDate: converted.endDate,
+            };
+          });
+        } else {
+          if (
+            parsed.work1Title ||
+            parsed.work1Company ||
+            parsed.work1Bullets ||
+            parsed.work1Date
+          ) {
+            const converted = parseLegacyRange(parsed.work1Date || "");
+            normalized.workExperience.push({
+              title: parsed.work1Title || "",
+              startDate: converted.startDate,
+              endDate: converted.endDate,
+              company: parsed.work1Company || "",
+              bullets: parsed.work1Bullets || "",
+            });
+          }
+          if (
+            parsed.work2Title ||
+            parsed.work2Company ||
+            parsed.work2Bullets ||
+            parsed.work2Date
+          ) {
+            const converted = parseLegacyRange(parsed.work2Date || "");
+            normalized.workExperience.push({
+              title: parsed.work2Title || "",
+              startDate: converted.startDate,
+              endDate: converted.endDate,
+              company: parsed.work2Company || "",
+              bullets: parsed.work2Bullets || "",
+            });
+          }
+        }
+
+        if (Array.isArray(parsed.education)) {
+          normalized.education = parsed.education.map((item) => {
+            if (item.startDate || item.endDate) {
+              return item;
+            }
+
+            const converted = parseLegacyRange(item.date || "");
+            return {
+              ...item,
+              startDate: converted.startDate,
+              endDate: converted.endDate,
+            };
+          });
+        } else if (
+          parsed.eduDegree ||
+          parsed.eduSchool ||
+          parsed.eduDate ||
+          parsed.eduDetails
+        ) {
+          const converted = parseLegacyRange(parsed.eduDate || "");
+          normalized.education.push({
+            degree: parsed.eduDegree || "",
+            startDate: converted.startDate,
+            endDate: converted.endDate,
+            school: parsed.eduSchool || "",
+            details: parsed.eduDetails || "",
+          });
+        }
+
+        return normalized;
+      }
+
+      function loadSavedResume() {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          applyData({});
+          return;
+        }
+
+        try {
+          const parsed = JSON.parse(raw);
+          applyData(normalizeLegacyData(parsed));
+        } catch (error) {
+          applyData({});
+        }
+      }
+
+      document
+        .getElementById("addWorkBtn")
+        .addEventListener("click", function () {
+          createWorkEntry();
+          renumberEntries(workFieldsContainer, "Work Entry");
+          updatePreview();
+        });
+
+      document
+        .getElementById("addEducationBtn")
+        .addEventListener("click", function () {
+          createEducationEntry();
+          renumberEntries(educationFieldsContainer, "Education Entry");
+          updatePreview();
+        });
+
+      document
+        .getElementById("addSkillBtn")
+        .addEventListener("click", function () {
+          createSkillEntry();
+          renumberEntries(skillFieldsContainer, "Skill");
+          updatePreview();
+        });
+
+      baseFields.photoFile.addEventListener("change", function () {
+        const file =
+          baseFields.photoFile.files && baseFields.photoFile.files[0];
+
+        if (!file) {
+          selectedPhotoDataUrl = "";
+          updatePreview();
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          selectedPhotoDataUrl = (event.target && event.target.result) || "";
+          updatePreview();
+        };
+        reader.readAsDataURL(file);
+      });
+
+      resumeForm.addEventListener("input", updatePreview);
+
+      resumeForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(collectData()));
+        alert("Resume saved successfully.");
+      });
+
+      document
+        .getElementById("fillSampleBtn")
+        .addEventListener("click", function () {
+          applyData({
+            fullName: "Benjamin Shah",
+            address: "123 Anywhere St., Any City",
+            phone: "123-456-7890",
+            email: "hello@reallygreatsite.com",
+            website: "www.reallygreatsite.com",
+            summary:
+              "Results-oriented Mechanical and Mechatronics Engineer seeking a challenging role to apply expertise in designing and implementing innovative solutions for complex engineering challenges.",
+            skills: [
+              "Mechatronics System Integration",
+              "Automotive Engineering Technology",
+              "Robotics and Automation",
+              "CAD for Mechatronics",
+              "Project Management",
+            ],
+            workExperience: [
+              {
+                title: "Mechatronics Engineer",
+                startDate: "2023-01",
+                endDate: "",
+                company: "Borcelle Technologies",
+                bullets:
+                  "Led development of an advanced automation system, achieving a 15% increase in operational efficiency.\nStreamlined manufacturing processes, reducing production costs by 10%.\nImplemented preventive maintenance strategies, resulting in a 20% decrease in equipment downtime.",
+              },
+              {
+                title: "System Engineer",
+                startDate: "2021-02",
+                endDate: "2022-12",
+                company: "Arrowai Industries",
+                bullets:
+                  "Designed and optimized a robotic control system, realizing a 12% performance improvement.\nCoordinated testing and validation, ensuring compliance with industry standards.\nProvided technical expertise, contributing to a 15% reduction in system failures.",
+              },
+            ],
+            education: [
+              {
+                degree: "Bachelor of Mechanical Engineering with Honors",
+                startDate: "2016-08",
+                endDate: "2019-10",
+                school: "University of Engineering Excellence",
+                details:
+                  "Major in Automotive Technology. Thesis on technological advancements in mechatronics.",
+              },
+            ],
+            additional:
+              "Certifications: Professional Engineer (PE), PMP\nAwards: Active participant in engineering community projects.",
+          });
+        });
+
+      preview.photo.addEventListener("error", function () {
+        preview.photo.src = "https://via.placeholder.com/80x95.png?text=Photo";
+      });
+
+      document
+        .getElementById("downloadPdfBtn")
+        .addEventListener("click", function () {
+          const element = document.getElementById("resumePreview");
+          const rawName = (baseFields.fullName.value || "resume").trim();
+          const safeName = rawName.replace(/[^a-z0-9_\-\s]/gi, "").replace(/\s+/g, "_") || "resume";
+
+          const btn = document.getElementById("downloadPdfBtn");
+          btn.disabled = true;
+          btn.textContent = "Generating…";
+
+          const opt = {
+            margin: [0.45, 0.45, 0.45, 0.45],
+            filename: safeName + "_resume.pdf",
+            image: { type: "jpeg", quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, logging: false },
+            jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+          };
+
+          html2pdf()
+            .set(opt)
+            .from(element)
+            .save()
+            .then(function () {
+              btn.disabled = false;
+              btn.innerHTML = "&#8595; Download PDF";
+            })
+            .catch(function () {
+              btn.disabled = false;
+              btn.innerHTML = "&#8595; Download PDF";
+              alert("Could not generate PDF. Please try again.");
+            });
+        });
+
+      loadSavedResume();
+    </script>
+  </body>
+</html>

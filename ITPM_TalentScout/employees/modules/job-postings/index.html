@@ -1,266 +1,325 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Browse Job Postings | Job Seekers - TalentScout AI</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
-    
-    /* Navbar */
-    .navbar {
-      background: white;
-      border-bottom: 1px solid #e0e0e0;
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .nav-logo {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #1a1a1a;
-      text-decoration: none;
-    }
-    .nav-logo span { color: #98FBCB; }
-    .nav-links { list-style: none; display: flex; gap: 2rem; }
-    .nav-links a { text-decoration: none; color: #666; font-weight: 500; }
-    .nav-links a:hover { color: #98FBCB; }
-    
-    /* Main Content */
-    .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-    
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-    }
-    .header h1 { font-size: 2rem; color: #1a1a1a; }
-    .header-subtitle { color: #666; margin-top: 0.5rem; }
-    
-    .search-bar {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-    .search-bar input {
-      flex: 1;
-      padding: 0.75rem 1rem;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 0.95rem;
-    }
-    .search-bar button {
-      padding: 0.75rem 2rem;
-      background: #98FBCB;
-      color: #1a1a1a;
-      border: none;
-      border-radius: 4px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .search-bar button:hover { background: #7af0b1; }
-    
-    /* Job Cards Grid */
-    .jobs-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 1.5rem;
-    }
-    
-    .job-card {
-      background: white;
-      border-left: 4px solid #98FBCB;
-      border-radius: 4px;
-      padding: 1.5rem;
-      cursor: pointer;
-      transition: box-shadow 0.2s, transform 0.2s;
-    }
-    .job-card:hover {
-      box-shadow: 0 4px 12px rgba(152, 251, 203, 0.2);
-      transform: translateY(-2px);
-    }
-    
-    .job-title { font-size: 1.1rem; font-weight: 700; color: #1a1a1a; margin-bottom: 0.5rem; }
-    .job-company { color: #98FBCB; font-weight: 600; margin-bottom: 0.5rem; }
-    .job-location { color: #666; font-size: 0.9rem; margin-bottom: 1rem; }
-    .job-description { color: #777; font-size: 0.9rem; line-height: 1.5; margin-bottom: 1rem; }
-    
-    .job-meta {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 1rem;
-      flex-wrap: wrap;
-    }
-    .job-tag {
-      background: #f0f0f0;
-      color: #666;
-      padding: 0.25rem 0.75rem;
-      border-radius: 20px;
-      font-size: 0.8rem;
-    }
-    
-    .job-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-top: 1rem;
-      border-top: 1px solid #f0f0f0;
-    }
-    .job-salary { color: #98FBCB; font-weight: 700; }
-    .apply-btn {
-      background: #98FBCB;
-      color: #1a1a1a;
-      border: none;
-      padding: 0.5rem 1.5rem;
-      border-radius: 4px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .apply-btn:hover { background: #7af0b1; }
-    
-    /* Footer */
-    .footer {
-      background: #1a1a1a;
-      color: white;
-      padding: 2rem;
-      margin-top: 3rem;
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <!-- Navbar -->
-  <nav class="navbar">
-    <a href="../../index.html" class="nav-logo">Talent<span>Scout</span> AI</a>
-    <ul class="nav-links">
-      <li><a href="../../index.html">Home</a></li>
-      <li><a href="./" style="color: #98FBCB; font-weight: 700;">Browse Jobs</a></li>
-      <li><a href="../ai-matching/">AI Matching</a></li>
-      <li><a href="../skill-gap-analysis/">Skills</a></li>
-      <li><a href="../applicant-tracking/">Applications</a></li>
-    </ul>
-  </nav>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Browse Job Postings | Job Seekers - TalentScout AI</title>
+    <link rel="stylesheet" href="../../../styles/global.css" />
+    <link rel="stylesheet" href="../../../styles/page-layout.css" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #f5f5f5;
+        color: #333;
+      }
 
-  <!-- Main Content -->
-  <div class="container">
-    <div class="header">
-      <div>
-        <h1>📋 Browse Job Postings</h1>
-        <p class="header-subtitle">Explore opportunities in Nasugbu, matched to your skills</p>
+      /* Main Content */
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+      }
+      .header h1 {
+        font-size: 2rem;
+        color: #1a1a1a;
+      }
+      .header-subtitle {
+        color: #666;
+        margin-top: 0.5rem;
+      }
+
+      .search-bar {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+      .search-bar input {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 0.95rem;
+      }
+      .search-bar button {
+        padding: 0.75rem 2rem;
+        background: #98fbcb;
+        color: #1a1a1a;
+        border: none;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .search-bar button:hover {
+        background: #7af0b1;
+      }
+
+      /* Job Cards Grid */
+      .jobs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+      }
+
+      .job-card {
+        background: white;
+        border-left: 4px solid #98fbcb;
+        border-radius: 4px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition:
+          box-shadow 0.2s,
+          transform 0.2s;
+      }
+      .job-card:hover {
+        box-shadow: 0 4px 12px rgba(152, 251, 203, 0.2);
+        transform: translateY(-2px);
+      }
+
+      .job-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+      }
+      .job-company {
+        color: #98fbcb;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+      .job-location {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+      }
+      .job-description {
+        color: #777;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+      }
+
+      .job-meta {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+      }
+      .job-tag {
+        background: #f0f0f0;
+        color: #666;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+      }
+
+      .job-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid #f0f0f0;
+      }
+      .job-salary {
+        color: #98fbcb;
+        font-weight: 700;
+      }
+      .apply-btn {
+        background: #98fbcb;
+        color: #1a1a1a;
+        border: none;
+        padding: 0.5rem 1.5rem;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .apply-btn:hover {
+        background: #7af0b1;
+      }
+
+      /* Footer */
+      .footer {
+        background: #1a1a1a;
+        color: white;
+        padding: 2rem;
+        margin-top: 3rem;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <a href="../../index.html" class="nav-logo">
+        <div class="nav-logo-icon">TS</div>
+        <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="../../index.html">Home</a></li>
+        <li><a href="./" class="active">Browse Jobs</a></li>
+        <li><a href="../ai-matching/">AI Matching</a></li>
+        <li><a href="../skill-gap-analysis/">Skills</a></li>
+        <li><a href="../applicant-tracking/">Applications</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="../../login.html" class="btn btn-outline">Login</a>
+        <a href="../../signup.html" class="btn btn-primary">Get Started</a>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+      <div class="header">
+        <div>
+          <h1>📋 Browse Job Postings</h1>
+          <p class="header-subtitle">
+            Explore opportunities in Nasugbu, matched to your skills
+          </p>
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <input
+          type="text"
+          placeholder="Search by job title, skills, or company..."
+        />
+        <button>Search</button>
+      </div>
+
+      <div class="jobs-grid">
+        <!-- Sample Job Cards -->
+        <div class="job-card">
+          <div class="job-title">Senior React Developer</div>
+          <div class="job-company">Tech Solutions PH</div>
+          <div class="job-location">📍 Barangay Kaylaway, Nasugbu</div>
+          <div class="job-description">
+            Looking for an experienced React developer to build modern web
+            applications...
+          </div>
+          <div class="job-meta">
+            <span class="job-tag">React</span>
+            <span class="job-tag">TypeScript</span>
+            <span class="job-tag">Node.js</span>
+          </div>
+          <div class="job-footer">
+            <div class="job-salary">₱50,000 - ₱70,000/month</div>
+            <button class="apply-btn">Apply Now</button>
+          </div>
+        </div>
+
+        <div class="job-card">
+          <div class="job-title">UI/UX Designer</div>
+          <div class="job-company">Creative Studio Inc</div>
+          <div class="job-location">📍 Barangay Candasngan, Nasugbu</div>
+          <div class="job-description">
+            Design beautiful and intuitive user interfaces for our product
+            suite...
+          </div>
+          <div class="job-meta">
+            <span class="job-tag">Figma</span>
+            <span class="job-tag">UI Design</span>
+            <span class="job-tag">Adobe XD</span>
+          </div>
+          <div class="job-footer">
+            <div class="job-salary">₱35,000 - ₱50,000/month</div>
+            <button class="apply-btn">Apply Now</button>
+          </div>
+        </div>
+
+        <div class="job-card">
+          <div class="job-title">Data Analyst</div>
+          <div class="job-company">Analytics Pro</div>
+          <div class="job-location">📍 Barangay Poblacion, Nasugbu</div>
+          <div class="job-description">
+            Analyze data and create insights to drive business decisions...
+          </div>
+          <div class="job-meta">
+            <span class="job-tag">SQL</span>
+            <span class="job-tag">Power BI</span>
+            <span class="job-tag">Python</span>
+          </div>
+          <div class="job-footer">
+            <div class="job-salary">₱40,000 - ₱60,000/month</div>
+            <button class="apply-btn">Apply Now</button>
+          </div>
+        </div>
+
+        <div class="job-card">
+          <div class="job-title">Customer Service Manager</div>
+          <div class="job-company">Service Excellence Ltd</div>
+          <div class="job-location">📍 Barangay Talahib, Nasugbu</div>
+          <div class="job-description">
+            Lead a team of customer service representatives and ensure excellent
+            service...
+          </div>
+          <div class="job-meta">
+            <span class="job-tag">Leadership</span>
+            <span class="job-tag">Communication</span>
+            <span class="job-tag">Management</span>
+          </div>
+          <div class="job-footer">
+            <div class="job-salary">₱45,000 - ₱65,000/month</div>
+            <button class="apply-btn">Apply Now</button>
+          </div>
+        </div>
+
+        <div class="job-card">
+          <div class="job-title">Full Stack Developer</div>
+          <div class="job-company">WebDev Studios</div>
+          <div class="job-location">📍 Barangay Barahan, Nasugbu</div>
+          <div class="job-description">
+            Build end-to-end web solutions using modern tech stacks...
+          </div>
+          <div class="job-meta">
+            <span class="job-tag">JavaScript</span>
+            <span class="job-tag">React</span>
+            <span class="job-tag">Node.js</span>
+          </div>
+          <div class="job-footer">
+            <div class="job-salary">₱55,000 - ₱75,000/month</div>
+            <button class="apply-btn">Apply Now</button>
+          </div>
+        </div>
+
+        <div class="job-card">
+          <div class="job-title">Marketing Specialist</div>
+          <div class="job-company">Growth Marketing Co</div>
+          <div class="job-location">📍 Barangay Kaylaway, Nasugbu</div>
+          <div class="job-description">
+            Develop and execute marketing strategies to drive business growth...
+          </div>
+          <div class="job-meta">
+            <span class="job-tag">Digital Marketing</span>
+            <span class="job-tag">SEO</span>
+            <span class="job-tag">Social Media</span>
+          </div>
+          <div class="job-footer">
+            <div class="job-salary">₱32,000 - ₱48,000/month</div>
+            <button class="apply-btn">Apply Now</button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="search-bar">
-      <input type="text" placeholder="Search by job title, skills, or company...">
-      <button>Search</button>
-    </div>
-
-    <div class="jobs-grid">
-      <!-- Sample Job Cards -->
-      <div class="job-card">
-        <div class="job-title">Senior React Developer</div>
-        <div class="job-company">Tech Solutions PH</div>
-        <div class="job-location">📍 Barangay Kaylaway, Nasugbu</div>
-        <div class="job-description">Looking for an experienced React developer to build modern web applications...</div>
-        <div class="job-meta">
-          <span class="job-tag">React</span>
-          <span class="job-tag">TypeScript</span>
-          <span class="job-tag">Node.js</span>
-        </div>
-        <div class="job-footer">
-          <div class="job-salary">₱50,000 - ₱70,000/month</div>
-          <button class="apply-btn">Apply Now</button>
-        </div>
-      </div>
-
-      <div class="job-card">
-        <div class="job-title">UI/UX Designer</div>
-        <div class="job-company">Creative Studio Inc</div>
-        <div class="job-location">📍 Barangay Candasngan, Nasugbu</div>
-        <div class="job-description">Design beautiful and intuitive user interfaces for our product suite...</div>
-        <div class="job-meta">
-          <span class="job-tag">Figma</span>
-          <span class="job-tag">UI Design</span>
-          <span class="job-tag">Adobe XD</span>
-        </div>
-        <div class="job-footer">
-          <div class="job-salary">₱35,000 - ₱50,000/month</div>
-          <button class="apply-btn">Apply Now</button>
-        </div>
-      </div>
-
-      <div class="job-card">
-        <div class="job-title">Data Analyst</div>
-        <div class="job-company">Analytics Pro</div>
-        <div class="job-location">📍 Barangay Poblacion, Nasugbu</div>
-        <div class="job-description">Analyze data and create insights to drive business decisions...</div>
-        <div class="job-meta">
-          <span class="job-tag">SQL</span>
-          <span class="job-tag">Power BI</span>
-          <span class="job-tag">Python</span>
-        </div>
-        <div class="job-footer">
-          <div class="job-salary">₱40,000 - ₱60,000/month</div>
-          <button class="apply-btn">Apply Now</button>
-        </div>
-      </div>
-
-      <div class="job-card">
-        <div class="job-title">Customer Service Manager</div>
-        <div class="job-company">Service Excellence Ltd</div>
-        <div class="job-location">📍 Barangay Talahib, Nasugbu</div>
-        <div class="job-description">Lead a team of customer service representatives and ensure excellent service...</div>
-        <div class="job-meta">
-          <span class="job-tag">Leadership</span>
-          <span class="job-tag">Communication</span>
-          <span class="job-tag">Management</span>
-        </div>
-        <div class="job-footer">
-          <div class="job-salary">₱45,000 - ₱65,000/month</div>
-          <button class="apply-btn">Apply Now</button>
-        </div>
-      </div>
-
-      <div class="job-card">
-        <div class="job-title">Full Stack Developer</div>
-        <div class="job-company">WebDev Studios</div>
-        <div class="job-location">📍 Barangay Barahan, Nasugbu</div>
-        <div class="job-description">Build end-to-end web solutions using modern tech stacks...</div>
-        <div class="job-meta">
-          <span class="job-tag">JavaScript</span>
-          <span class="job-tag">React</span>
-          <span class="job-tag">Node.js</span>
-        </div>
-        <div class="job-footer">
-          <div class="job-salary">₱55,000 - ₱75,000/month</div>
-          <button class="apply-btn">Apply Now</button>
-        </div>
-      </div>
-
-      <div class="job-card">
-        <div class="job-title">Marketing Specialist</div>
-        <div class="job-company">Growth Marketing Co</div>
-        <div class="job-location">📍 Barangay Kaylaway, Nasugbu</div>
-        <div class="job-description">Develop and execute marketing strategies to drive business growth...</div>
-        <div class="job-meta">
-          <span class="job-tag">Digital Marketing</span>
-          <span class="job-tag">SEO</span>
-          <span class="job-tag">Social Media</span>
-        </div>
-        <div class="job-footer">
-          <div class="job-salary">₱32,000 - ₱48,000/month</div>
-          <button class="apply-btn">Apply Now</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Footer -->
-  <footer class="footer">
-    <p>&copy; 2026 TalentScout AI — PESO Nasugbu, Batangas. Connecting talent with opportunity.</p>
-  </footer>
-</body>
+    <!-- Footer -->
+    <footer class="footer">
+      <p>
+        &copy; 2026 TalentScout AI — PESO Nasugbu, Batangas. Connecting talent
+        with opportunity.
+      </p>
+    </footer>
+    <script src="../../employee-auth.js"></script>
+  </body>
 </html>

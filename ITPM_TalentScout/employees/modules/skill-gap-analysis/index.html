@@ -1,240 +1,327 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Skill Gap Analysis | Job Seekers - TalentScout AI</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
-    
-    .navbar { background: white; border-bottom: 1px solid #e0e0e0; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-    .nav-logo { font-size: 1.25rem; font-weight: 700; color: #1a1a1a; text-decoration: none; }
-    .nav-logo span { color: #98FBCB; }
-    .nav-links { list-style: none; display: flex; gap: 2rem; }
-    .nav-links a { text-decoration: none; color: #666; font-weight: 500; }
-    .nav-links a:hover { color: #98FBCB; }
-    
-    .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-    
-    .header { margin-bottom: 2rem; }
-    .header h1 { font-size: 2rem; color: #1a1a1a; }
-    .header-subtitle { color: #666; margin-top: 0.5rem; }
-    
-    .skill-section {
-      background: white;
-      border-radius: 4px;
-      padding: 2rem;
-      margin-bottom: 2rem;
-      border-left: 4px solid #98FBCB;
-    }
-    
-    .skill-bar {
-      margin-bottom: 1.5rem;
-    }
-    
-    .skill-header { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
-    .skill-name { font-weight: 600; color: #1a1a1a; }
-    .skill-level { color: #98FBCB; font-weight: 700; }
-    
-    .progress-bar {
-      width: 100%;
-      height: 8px;
-      background: #e0e0e0;
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #98FBCB, #63e6b3);
-      border-radius: 4px;
-    }
-    
-    .gap-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-      margin-top: 2rem;
-    }
-    
-    .gap-card {
-      background: white;
-      border-radius: 4px;
-      padding: 1.5rem;
-      border: 1px solid #e0e0e0;
-    }
-    
-    .gap-title { font-weight: 700; color: #1a1a1a; margin-bottom: 0.5rem; }
-    .gap-importance { color: #98FBCB; font-size: 0.85rem; font-weight: 600; margin-bottom: 1rem; }
-    .gap-description { color: #666; font-size: 0.9rem; margin-bottom: 1rem; }
-    
-    .courses {
-      background: #f9f9f9;
-      border-radius: 4px;
-      padding: 1rem;
-      margin-top: 1rem;
-    }
-    
-    .course-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.5rem 0;
-      border-bottom: 1px solid #e0e0e0;
-    }
-    
-    .course-item:last-child { border-bottom: none; }
-    .course-name { color: #666; font-size: 0.9rem; }
-    .course-duration { color: #999; font-size: 0.85rem; }
-    
-    .enroll-btn {
-      background: #98FBCB;
-      color: #1a1a1a;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      font-weight: 600;
-      cursor: pointer;
-      font-size: 0.85rem;
-    }
-    .enroll-btn:hover { background: #7af0b1; }
-    
-    .footer { background: #1a1a1a; color: white; padding: 2rem; margin-top: 3rem; text-align: center; }
-  </style>
-</head>
-<body>
-  <nav class="navbar">
-    <a href="../../index.html" class="nav-logo">Talent<span>Scout</span> AI</a>
-    <ul class="nav-links">
-      <li><a href="../../index.html">Home</a></li>
-      <li><a href="../job-postings/">Browse Jobs</a></li>
-      <li><a href="../ai-matching/">AI Matching</a></li>
-      <li><a href="./" style="color: #98FBCB; font-weight: 700;">Skills</a></li>
-      <li><a href="../applicant-tracking/">Applications</a></li>
-    </ul>
-  </nav>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Skill Gap Analysis | Job Seekers - TalentScout AI</title>
+    <link rel="stylesheet" href="../../../styles/global.css" />
+    <link rel="stylesheet" href="../../../styles/page-layout.css" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #f5f5f5;
+        color: #333;
+      }
 
-  <div class="container">
-    <div class="header">
-      <h1>📊 Skill Gap Analysis</h1>
-      <p class="header-subtitle">Discover skills you need to unlock more opportunities</p>
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      .header {
+        margin-bottom: 2rem;
+      }
+      .header h1 {
+        font-size: 2rem;
+        color: #1a1a1a;
+      }
+      .header-subtitle {
+        color: #666;
+        margin-top: 0.5rem;
+      }
+
+      .skill-section {
+        background: white;
+        border-radius: 4px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border-left: 4px solid #98fbcb;
+      }
+
+      .skill-bar {
+        margin-bottom: 1.5rem;
+      }
+
+      .skill-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+      }
+      .skill-name {
+        font-weight: 600;
+        color: #1a1a1a;
+      }
+      .skill-level {
+        color: #98fbcb;
+        font-weight: 700;
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: #e0e0e0;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #98fbcb, #63e6b3);
+        border-radius: 4px;
+      }
+
+      .gap-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+      }
+
+      .gap-card {
+        background: white;
+        border-radius: 4px;
+        padding: 1.5rem;
+        border: 1px solid #e0e0e0;
+      }
+
+      .gap-title {
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+      }
+      .gap-importance {
+        color: #98fbcb;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+      }
+      .gap-description {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+      }
+
+      .courses {
+        background: #f9f9f9;
+        border-radius: 4px;
+        padding: 1rem;
+        margin-top: 1rem;
+      }
+
+      .course-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .course-item:last-child {
+        border-bottom: none;
+      }
+      .course-name {
+        color: #666;
+        font-size: 0.9rem;
+      }
+      .course-duration {
+        color: #999;
+        font-size: 0.85rem;
+      }
+
+      .enroll-btn {
+        background: #98fbcb;
+        color: #1a1a1a;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 0.85rem;
+      }
+      .enroll-btn:hover {
+        background: #7af0b1;
+      }
+
+      .footer {
+        background: #1a1a1a;
+        color: white;
+        padding: 2rem;
+        margin-top: 3rem;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <a href="../../index.html" class="nav-logo">
+        <div class="nav-logo-icon">TS</div>
+        <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="../../index.html">Home</a></li>
+        <li><a href="../job-postings/">Browse Jobs</a></li>
+        <li><a href="../ai-matching/">AI Matching</a></li>
+        <li><a href="./" class="active">Skills</a></li>
+        <li><a href="../applicant-tracking/">Applications</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="../../login.html" class="btn btn-outline">Login</a>
+        <a href="../../signup.html" class="btn btn-primary">Get Started</a>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="header">
+        <h1>📊 Skill Gap Analysis</h1>
+        <p class="header-subtitle">
+          Discover skills you need to unlock more opportunities
+        </p>
+      </div>
+
+      <div class="skill-section">
+        <h2>Your Current Skills</h2>
+
+        <div class="skill-bar">
+          <div class="skill-header">
+            <span class="skill-name">React</span>
+            <span class="skill-level">Advanced (8/10)</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 80%"></div>
+          </div>
+        </div>
+
+        <div class="skill-bar">
+          <div class="skill-header">
+            <span class="skill-name">JavaScript</span>
+            <span class="skill-level">Advanced (9/10)</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 90%"></div>
+          </div>
+        </div>
+
+        <div class="skill-bar">
+          <div class="skill-header">
+            <span class="skill-name">TypeScript</span>
+            <span class="skill-level">Intermediate (6/10)</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 60%"></div>
+          </div>
+        </div>
+
+        <div class="skill-bar">
+          <div class="skill-header">
+            <span class="skill-name">Node.js</span>
+            <span class="skill-level">Intermediate (7/10)</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 70%"></div>
+          </div>
+        </div>
+
+        <div class="skill-bar">
+          <div class="skill-header">
+            <span class="skill-name">MongoDB</span>
+            <span class="skill-level">Beginner (4/10)</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 40%"></div>
+          </div>
+        </div>
+      </div>
+
+      <h2>Skills in Demand (Gap Analysis)</h2>
+      <div class="gap-cards">
+        <div class="gap-card">
+          <div class="gap-title">System Design</div>
+          <div class="gap-importance">
+            High Priority - Senior roles require this
+          </div>
+          <div class="gap-description">
+            Learn how to design scalable distributed systems.
+          </div>
+          <div class="courses">
+            <div class="course-item">
+              <span class="course-name">System Design Masterclass</span>
+              <button class="enroll-btn">Enroll</button>
+            </div>
+            <div class="course-item">
+              <span class="course-name">Designing Data-Intensive Apps</span>
+              <button class="enroll-btn">Enroll</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="gap-card">
+          <div class="gap-title">DevOps & Docker</div>
+          <div class="gap-importance">High Priority - 80% of tech jobs</div>
+          <div class="gap-description">
+            containerization and deployment knowledge.
+          </div>
+          <div class="courses">
+            <div class="course-item">
+              <span class="course-name">Docker & Kubernetes Essentials</span>
+              <button class="enroll-btn">Enroll</button>
+            </div>
+            <div class="course-item">
+              <span class="course-name">CI/CD Pipeline Development</span>
+              <button class="enroll-btn">Enroll</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="gap-card">
+          <div class="gap-title">GraphQL</div>
+          <div class="gap-importance">Medium Priority - Growing in demand</div>
+          <div class="gap-description">
+            Modern API architecture and query language.
+          </div>
+          <div class="courses">
+            <div class="course-item">
+              <span class="course-name">GraphQL Complete Guide</span>
+              <button class="enroll-btn">Enroll</button>
+            </div>
+            <div class="course-item">
+              <span class="course-name">GraphQL with Apollo</span>
+              <button class="enroll-btn">Enroll</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="gap-card">
+          <div class="gap-title">Cloud Platforms (AWS/GCP)</div>
+          <div class="gap-importance">High Priority - Industry standard</div>
+          <div class="gap-description">
+            Deploy and manage applications on cloud.
+          </div>
+          <div class="courses">
+            <div class="course-item">
+              <span class="course-name">AWS Solutions Architect</span>
+              <button class="enroll-btn">Enroll</button>
+            </div>
+            <div class="course-item">
+              <span class="course-name">Google Cloud Platform Essentials</span>
+              <button class="enroll-btn">Enroll</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="skill-section">
-      <h2>Your Current Skills</h2>
-      
-      <div class="skill-bar">
-        <div class="skill-header">
-          <span class="skill-name">React</span>
-          <span class="skill-level">Advanced (8/10)</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill" style="width: 80%;"></div></div>
-      </div>
-
-      <div class="skill-bar">
-        <div class="skill-header">
-          <span class="skill-name">JavaScript</span>
-          <span class="skill-level">Advanced (9/10)</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill" style="width: 90%;"></div></div>
-      </div>
-
-      <div class="skill-bar">
-        <div class="skill-header">
-          <span class="skill-name">TypeScript</span>
-          <span class="skill-level">Intermediate (6/10)</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill" style="width: 60%;"></div></div>
-      </div>
-
-      <div class="skill-bar">
-        <div class="skill-header">
-          <span class="skill-name">Node.js</span>
-          <span class="skill-level">Intermediate (7/10)</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill" style="width: 70%;"></div></div>
-      </div>
-
-      <div class="skill-bar">
-        <div class="skill-header">
-          <span class="skill-name">MongoDB</span>
-          <span class="skill-level">Beginner (4/10)</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill" style="width: 40%;"></div></div>
-      </div>
-    </div>
-
-    <h2>Skills in Demand (Gap Analysis)</h2>
-    <div class="gap-cards">
-      <div class="gap-card">
-        <div class="gap-title">System Design</div>
-        <div class="gap-importance">High Priority - Senior roles require this</div>
-        <div class="gap-description">Learn how to design scalable distributed systems.</div>
-        <div class="courses">
-          <div class="course-item">
-            <span class="course-name">System Design Masterclass</span>
-            <button class="enroll-btn">Enroll</button>
-          </div>
-          <div class="course-item">
-            <span class="course-name">Designing Data-Intensive Apps</span>
-            <button class="enroll-btn">Enroll</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="gap-card">
-        <div class="gap-title">DevOps & Docker</div>
-        <div class="gap-importance">High Priority - 80% of tech jobs</div>
-        <div class="gap-description">containerization and deployment knowledge.</div>
-        <div class="courses">
-          <div class="course-item">
-            <span class="course-name">Docker & Kubernetes Essentials</span>
-            <button class="enroll-btn">Enroll</button>
-          </div>
-          <div class="course-item">
-            <span class="course-name">CI/CD Pipeline Development</span>
-            <button class="enroll-btn">Enroll</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="gap-card">
-        <div class="gap-title">GraphQL</div>
-        <div class="gap-importance">Medium Priority - Growing in demand</div>
-        <div class="gap-description">Modern API architecture and query language.</div>
-        <div class="courses">
-          <div class="course-item">
-            <span class="course-name">GraphQL Complete Guide</span>
-            <button class="enroll-btn">Enroll</button>
-          </div>
-          <div class="course-item">
-            <span class="course-name">GraphQL with Apollo</span>
-            <button class="enroll-btn">Enroll</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="gap-card">
-        <div class="gap-title">Cloud Platforms (AWS/GCP)</div>
-        <div class="gap-importance">High Priority - Industry standard</div>
-        <div class="gap-description">Deploy and manage applications on cloud.</div>
-        <div class="courses">
-          <div class="course-item">
-            <span class="course-name">AWS Solutions Architect</span>
-            <button class="enroll-btn">Enroll</button>
-          </div>
-          <div class="course-item">
-            <span class="course-name">Google Cloud Platform Essentials</span>
-            <button class="enroll-btn">Enroll</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <footer class="footer">
-    <p>&copy; 2026 TalentScout AI — PESO Nasugbu, Batangas. Skills for success.</p>
-  </footer>
-</body>
+    <footer class="footer">
+      <p>
+        &copy; 2026 TalentScout AI — PESO Nasugbu, Batangas. Skills for success.
+      </p>
+    </footer>
+    <script src="../../employee-auth.js"></script>
+  </body>
 </html>
