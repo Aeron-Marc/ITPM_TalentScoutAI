@@ -1,0 +1,451 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Job Matching â€” TalentScout AI</title>
+  <link rel="stylesheet" href="../styles/global.css">
+  <style>
+    .match-layout {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2.5rem;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    /* Profile Panel */
+    .profile-panel { position: sticky; top: calc(var(--nav-height) + 1rem); }
+    .profile-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .profile-header {
+      background: linear-gradient(135deg, var(--primary-darker), var(--primary-dark));
+      padding: 1.75rem;
+      text-align: center;
+      color: white;
+    }
+    .profile-avatar {
+      width: 72px; height: 72px;
+      background: rgba(255,255,255,0.2);
+      border: 3px solid rgba(255,255,255,0.4);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; font-weight: 800;
+      margin: 0 auto 0.75rem;
+      color: white;
+    }
+    .profile-name { font-size: 1.1rem; font-weight: 700; }
+    .profile-loc { font-size: 0.85rem; opacity: 0.78; margin-top: 0.2rem; }
+    .profile-body { padding: 1.25rem; }
+    .profile-section { margin-bottom: 1.25rem; }
+    .profile-section-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: var(--text-light);
+      margin-bottom: 0.75rem;
+    }
+    .skills-grid { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .profile-info-row { display: flex; justify-content: space-between; font-size: 0.87rem; padding: 0.4rem 0; border-bottom: 1px solid var(--border); }
+    .profile-info-row:last-child { border-bottom: none; }
+    .profile-info-label { color: var(--text-light); }
+    .profile-info-val { font-weight: 600; color: var(--text-dark); }
+    .match-score-ring {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      background: conic-gradient(var(--primary-dark) 0% 87%, var(--border) 87% 100%);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 0.5rem;
+      position: relative;
+    }
+    .match-score-inner {
+      width: 68px; height: 68px;
+      background: white;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; font-weight: 800;
+      color: var(--primary-darker);
+    }
+
+    /* Matches Column */
+    .matches-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .matches-tabs { display: flex; gap: 0.25rem; background: var(--bg-light); border-radius: var(--radius-sm); padding: 0.3rem; border: 1px solid var(--border); }
+    .tab-btn {
+      padding: 0.45rem 1rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-mid);
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      font-family: inherit;
+    }
+    .tab-btn.active { background: white; color: var(--primary-darker); font-weight: 700; box-shadow: var(--shadow-sm); }
+
+    .match-card {
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      transition: all 0.2s;
+    }
+    .match-card:hover { border-color: var(--primary-dark); box-shadow: var(--shadow); }
+    .match-card-top { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; }
+    .match-logo {
+      width: 48px; height: 48px;
+      border-radius: 10px;
+      font-weight: 800; font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .match-info { flex: 1; }
+    .match-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .match-company { font-size: 0.87rem; color: var(--text-mid); }
+    .match-pct {
+      background: var(--primary);
+      color: var(--primary-darker);
+      padding: 0.35rem 0.8rem;
+      border-radius: 100px;
+      font-weight: 800;
+      font-size: 0.88rem;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .match-pct.high { background: #D4EDDA; color: #155724; }
+    .match-pct.mid  { background: #E4FBF3; color: #0F6E5E; }
+    .match-meta { display: flex; gap: 1.2rem; font-size: 0.83rem; color: var(--text-light); margin-bottom: 0.75rem; flex-wrap: wrap; }
+    .match-bars { background: var(--bg-light); border-radius: var(--radius-sm); padding: 1rem; margin-top: 0.75rem; }
+    .match-bar-row { margin-bottom: 0.6rem; }
+    .match-bar-row:last-child { margin-bottom: 0; }
+    .match-bar-label { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 500; color: var(--text-mid); margin-bottom: 0.3rem; }
+
+    /* How it Works */
+    .how-section {
+      background: white;
+      margin: 2rem auto;
+      max-width: 1200px;
+      padding: 0 2.5rem 3rem;
+    }
+    .how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 2rem; }
+    .how-card {
+      background: var(--bg-light);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .how-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+    .how-title { font-weight: 700; margin-bottom: 0.5rem; }
+    .how-desc { font-size: 0.87rem; color: var(--text-light); line-height: 1.65; }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="../index.html" class="nav-logo">
+    <div class="nav-logo-icon">TS</div>
+    <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="../job-postings/">Job Postings</a></li>
+    <li><a href="../ai-matching/" class="active">AI Matching</a></li>
+    <li><a href="../skill-gap-analysis/">Skill Gap</a></li>
+    <li><a href="../blind-hiring/">Blind Hiring</a></li>
+    <li><a href="../peso-dashboard/">Dashboard</a></li>
+    <li><a href="../applicant-tracking/">Tracking</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="#" class="btn btn-outline">Login</a>
+    <a href="#" class="btn btn-primary">Get Started</a>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="page-header-inner">
+    <div class="breadcrumb"><a href="../index.html">Home</a> / AI Job Matching</div>
+    <h1>ðŸ¤– AI Job Matching</h1>
+    <p>Our AI engine analyzes your skills and barangay location to surface the most relevant job opportunities â€” ranked by match percentage.</p>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="match-layout">
+
+  <!-- PROFILE PANEL -->
+  <aside class="profile-panel">
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="profile-avatar">JS</div>
+        <div class="profile-name">Juan Santos</div>
+        <div class="profile-loc">ðŸ“ Barangay Kaylaway, Nasugbu</div>
+      </div>
+      <div class="profile-body">
+        <div class="profile-section">
+          <div style="text-align:center; margin-bottom:0.6rem;">
+            <div class="match-score-ring">
+              <div class="match-score-inner">87%</div>
+            </div>
+            <div style="font-size:0.82rem; color:var(--text-light);">Overall Profile Score</div>
+          </div>
+        </div>
+
+        <div class="profile-section">
+          <div class="profile-section-title">Skills</div>
+          <div class="skills-grid">
+            <span class="chip">React</span>
+            <span class="chip">JavaScript</span>
+            <span class="chip">HTML/CSS</span>
+            <span class="chip">Node.js</span>
+            <span class="chip">Git</span>
+            <span class="chip">Figma</span>
+            <span class="chip-outline">TypeScript</span>
+          </div>
+        </div>
+
+        <div class="profile-section">
+          <div class="profile-section-title">Profile Info</div>
+          <div class="profile-info-row"><span class="profile-info-label">Experience</span><span class="profile-info-val">2 Years</span></div>
+          <div class="profile-info-row"><span class="profile-info-label">Education</span><span class="profile-info-val">BS IT</span></div>
+          <div class="profile-info-row"><span class="profile-info-label">Preferred Setup</span><span class="profile-info-val">Remote / Hybrid</span></div>
+          <div class="profile-info-row"><span class="profile-info-label">Barangay</span><span class="profile-info-val">Kaylaway</span></div>
+          <div class="profile-info-row"><span class="profile-info-label">Expected Salary</span><span class="profile-info-val">â‚±25Kâ€“â‚±35K</span></div>
+        </div>
+
+        <a href="../skill-gap-analysis/" class="btn btn-light" style="width:100%; justify-content:center;">ðŸ“Š View Skill Gap Analysis</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MATCHES -->
+  <main>
+    <div class="matches-header">
+      <div>
+        <div style="font-size:1rem;font-weight:700;color:var(--text-dark);">Your AI-Generated Matches</div>
+        <div style="font-size:0.85rem;color:var(--text-light);margin-top:0.2rem;">12 jobs matched to your profile today</div>
+      </div>
+      <div style="display:flex;gap:0.75rem;align-items:center;">
+        <select class="input select" style="width:175px;">
+          <option>All Barangays</option>
+          <option>Barangay Kaylaway</option>
+          <option>Barangay Natipuan</option>
+          <option>Barangay Bucana</option>
+        </select>
+        <div class="matches-tabs">
+          <button class="tab-btn active">All</button>
+          <button class="tab-btn">90%+</button>
+          <button class="tab-btn">Remote</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Match Card 1 -->
+    <div class="match-card">
+      <div class="match-card-top">
+        <div class="match-logo" style="background:#E4FBF3;color:#0F6E5E;">TS</div>
+        <div class="match-info">
+          <div class="match-title">Front-End Developer</div>
+          <div class="match-company">Tech Solutions PH &bull; Barangay Kaylaway</div>
+        </div>
+        <span class="match-pct high">94% Match</span>
+      </div>
+      <div class="match-meta">
+        <span>ðŸ“ Same Barangay</span>
+        <span>ðŸ’¼ Full-time</span>
+        <span>ðŸŒ Remote-OK</span>
+        <span>â‚±25,000 â€“ â‚±35,000</span>
+      </div>
+      <div class="job-skills">
+        <span class="chip">React</span>
+        <span class="chip">JavaScript</span>
+        <span class="chip">HTML/CSS</span>
+        <span class="chip-outline">TypeScript â† Missing</span>
+      </div>
+      <div class="match-bars">
+        <div style="font-size:0.8rem;font-weight:700;color:var(--text-mid);margin-bottom:0.6rem;">Match Breakdown</div>
+        <div class="match-bar-row">
+          <div class="match-bar-label"><span>Skills Match</span><span>96%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:96%;"></div></div>
+        </div>
+        <div class="match-bar-row">
+          <div class="match-bar-label"><span>Location Match</span><span>100%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:100%;"></div></div>
+        </div>
+        <div class="match-bar-row">
+          <div class="match-bar-label"><span>Experience Match</span><span>85%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:85%;"></div></div>
+        </div>
+      </div>
+      <div style="margin-top:1rem;display:flex;gap:0.75rem;">
+        <a href="#" class="btn btn-primary">Apply via Blind Hiring</a>
+        <a href="#" class="btn btn-outline">View Full Posting</a>
+      </div>
+    </div>
+
+    <!-- Match Card 2 -->
+    <div class="match-card">
+      <div class="match-card-top">
+        <div class="match-logo" style="background:#E4FBF3;color:#0F6E5E;">WD</div>
+        <div class="match-info">
+          <div class="match-title">UI/UX Designer + Developer</div>
+          <div class="match-company">WebDev Studio &bull; Barangay Natipuan</div>
+        </div>
+        <span class="match-pct high">89% Match</span>
+      </div>
+      <div class="match-meta">
+        <span>ðŸ“ 3.2km away</span>
+        <span>ðŸ’¼ Full-time</span>
+        <span>ðŸ¢ On-site</span>
+        <span>â‚±28,000 â€“ â‚±38,000</span>
+      </div>
+      <div class="job-skills">
+        <span class="chip">Figma</span>
+        <span class="chip">HTML/CSS</span>
+        <span class="chip">JavaScript</span>
+        <span class="chip-outline">Vue.js â† Missing</span>
+      </div>
+      <div class="match-bars">
+        <div style="font-size:0.8rem;font-weight:700;color:var(--text-mid);margin-bottom:0.6rem;">Match Breakdown</div>
+        <div class="match-bar-row">
+          <div class="match-bar-label"><span>Skills Match</span><span>88%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:88%;"></div></div>
+        </div>
+        <div class="match-bar-row">
+          <div class="match-bar-label"><span>Location Match</span><span>90%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:90%;"></div></div>
+        </div>
+        <div class="match-bar-row">
+          <div class="match-bar-label"><span>Experience Match</span><span>90%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:90%;"></div></div>
+        </div>
+      </div>
+      <div style="margin-top:1rem;display:flex;gap:0.75rem;">
+        <a href="#" class="btn btn-primary">Apply via Blind Hiring</a>
+        <a href="#" class="btn btn-outline">View Full Posting</a>
+      </div>
+    </div>
+
+    <!-- Match Card 3 -->
+    <div class="match-card">
+      <div class="match-card-top">
+        <div class="match-logo" style="background:#E4FBF3;color:#0F6E5E;">SF</div>
+        <div class="match-info">
+          <div class="match-title">Junior Software Developer</div>
+          <div class="match-company">SoftForge Inc. &bull; Barangay Bucana</div>
+        </div>
+        <span class="match-pct mid">76% Match</span>
+      </div>
+      <div class="match-meta">
+        <span>ðŸ“ 5.8km away</span>
+        <span>ðŸ’¼ Full-time</span>
+        <span>ðŸŒ Remote</span>
+        <span>â‚±22,000 â€“ â‚±30,000</span>
+      </div>
+      <div class="job-skills">
+        <span class="chip">JavaScript</span>
+        <span class="chip">Node.js</span>
+        <span class="chip-outline">Python â† Missing</span>
+        <span class="chip-outline">AWS â† Missing</span>
+      </div>
+      <div class="match-bars">
+        <div style="font-size:0.8rem;font-weight:700;color:var(--text-mid);margin-bottom:0.6rem;">Match Breakdown</div>
+        <div class="match-bar-row">
+          <div class="match-bar-label"><span>Skills Match</span><span>70%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:70%;"></div></div>
+        </div>
+        <div class="match-bar-row">
+          <div class="match-bar-label"><span>Location Match</span><span>80%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:80%;"></div></div>
+        </div>
+        <div class="match-bar-row">
+          <div class="match-bar-label"><span>Experience Match</span><span>80%</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:80%;"></div></div>
+        </div>
+      </div>
+      <div style="margin-top:1rem;display:flex;gap:0.75rem;">
+        <a href="#" class="btn btn-primary">Apply via Blind Hiring</a>
+        <a href="#" class="btn btn-outline">View Full Posting</a>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="how-section">
+  <div class="section-label">Behind the AI</div>
+  <h2 class="section-title">How AI Matching Works</h2>
+  <div class="how-grid">
+    <div class="how-card">
+      <div class="how-icon">ðŸ§ </div>
+      <div class="how-title">Skills Analysis</div>
+      <p class="how-desc">The AI maps your listed skills against job requirements, identifying exact, partial, and missing skill matches with weighted scoring.</p>
+    </div>
+    <div class="how-card">
+      <div class="how-icon">ðŸ“</div>
+      <div class="how-title">Barangay Targeting</div>
+      <p class="how-desc">Location matching uses barangay-level data within Nasugbu, prioritizing nearby jobs while still surfacing high-quality remote options.</p>
+    </div>
+    <div class="how-card">
+      <div class="how-icon">âš–ï¸</div>
+      <div class="how-title">Weighted Scoring</div>
+      <p class="how-desc">Skills (50%), Location (30%), and Experience (20%) are weighted and combined to produce a single reliable match percentage score.</p>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <h3>TalentScout AI</h3>
+        <p>Smart AI-powered recruitment platform for PESO Nasugbu, Batangas. Connecting local talent with local opportunities through fair, intelligent hiring.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Features</h4>
+        <ul>
+          <li><a href="../job-postings/">Job Postings</a></li>
+          <li><a href="../ai-matching/">AI Matching</a></li>
+          <li><a href="../skill-gap-analysis/">Skill Gap Analysis</a></li>
+          <li><a href="../blind-hiring/">Blind Hiring</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Admin</h4>
+        <ul>
+          <li><a href="../peso-dashboard/">PESO Dashboard</a></li>
+          <li><a href="../applicant-tracking/">Applicant Tracking</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>PESO Nasugbu</h4>
+        <ul>
+          <li><a href="#">Nasugbu, Batangas</a></li>
+          <li><a href="#">About PESO</a></li>
+          <li><a href="#">Contact Us</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>Â© 2026 TalentScout AI â€” PESO Nasugbu, Batangas</span>
+      <span>Built for Local Employment</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
+
+
