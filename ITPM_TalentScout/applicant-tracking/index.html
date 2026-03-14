@@ -1,12 +1,12 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Applicant Tracking — TalentScout AI</title>
+  <title>Applicant Tracking â€” TalentScout AI</title>
   <link rel="stylesheet" href="../styles/global.css">
   <style>
-    body { background: #F0F4F1; }
+    body { background: #EEFFF9; }
 
     /* Top Controls */
     .tracking-controls {
@@ -135,15 +135,15 @@
     .k-btn-primary:hover { background: var(--primary-darker); }
 
     /* Column themes */
-    .col-pending  .col-dot { background: #6c757d; }
+    .col-pending  .col-dot { background: #3A5C3F; }
     .col-matched  .col-dot { background: var(--primary-dark); }
-    .col-interview .col-dot { background: #f59e0b; }
-    .col-hired    .col-dot { background: #8b5cf6; }
+    .col-interview .col-dot { background: #63E6B3; }
+    .col-hired    .col-dot { background: #1E9E86; }
 
-    .col-pending  .k-card { border-left: 3px solid #6c757d; }
+    .col-pending  .k-card { border-left: 3px solid #3A5C3F; }
     .col-matched  .k-card { border-left: 3px solid var(--primary-dark); }
-    .col-interview .k-card { border-left: 3px solid #f59e0b; }
-    .col-hired    .k-card { border-left: 3px solid #8b5cf6; }
+    .col-interview .k-card { border-left: 3px solid #63E6B3; }
+    .col-hired    .k-card { border-left: 3px solid #1E9E86; }
 
     /* Add card placeholder */
     .add-card-btn {
@@ -157,7 +157,7 @@
       background: transparent;
       transition: all 0.2s;
     }
-    .add-card-btn:hover { border-color: var(--primary-dark); color: var(--primary-dark); background: #F9FFF9; }
+    .add-card-btn:hover { border-color: var(--primary-dark); color: var(--primary-dark); background: #EEFFF9; }
 
     /* Detail panel */
     .detail-hint {
@@ -212,8 +212,8 @@
 <div class="page-header">
   <div class="page-header-inner">
     <div class="breadcrumb"><a href="../index.html">Home</a> / Applicant Tracking</div>
-    <h1>🔖 Applicant Status Tracking</h1>
-    <p>Monitor every applicant in real-time across all hiring stages — Pending, Matched, Interview, and Hired.</p>
+    <h1>ðŸ”– Applicant Status Tracking</h1>
+    <p>Monitor every applicant in real-time across all hiring stages â€” Pending, Matched, Interview, and Hired.</p>
   </div>
 </div>
 
@@ -221,7 +221,7 @@
 <div class="tracking-controls">
   <div class="controls-inner">
     <div class="search-rel">
-      <span class="s-icon">🔍</span>
+      <span class="s-icon">ðŸ”</span>
       <input type="text" class="input" placeholder="Search applicant or company...">
     </div>
     <select class="input select" style="width:170px;">
@@ -247,8 +247,8 @@
       <option>This Month</option>
     </select>
     <div style="margin-left:auto;display:flex;gap:0.5rem;">
-      <a href="../peso-dashboard/" class="btn btn-outline">← Back to Dashboard</a>
-      <a href="#" class="btn btn-primary">📤 Export</a>
+      <a href="../peso-dashboard/" class="btn btn-outline">â† Back to Dashboard</a>
+      <a href="#" class="btn btn-primary">ðŸ“¤ Export</a>
     </div>
   </div>
 </div>
@@ -257,7 +257,7 @@
 <div class="status-ribbon">
   <div class="ribbon-inner">
     <div class="ribbon-stat">
-      <div class="ribbon-dot" style="background:#6c757d;"></div>
+      <div class="ribbon-dot" style="background:#3A5C3F;"></div>
       <div>
         <div class="ribbon-val">434</div>
         <div class="ribbon-lbl">Pending</div>
@@ -271,14 +271,14 @@
       </div>
     </div>
     <div class="ribbon-stat">
-      <div class="ribbon-dot" style="background:#f59e0b;"></div>
+      <div class="ribbon-dot" style="background:#63E6B3;"></div>
       <div>
         <div class="ribbon-val">224</div>
         <div class="ribbon-lbl">Interview</div>
       </div>
     </div>
     <div class="ribbon-stat">
-      <div class="ribbon-dot" style="background:#8b5cf6;"></div>
+      <div class="ribbon-dot" style="background:#1E9E86;"></div>
       <div>
         <div class="ribbon-val">246</div>
         <div class="ribbon-lbl">Hired</div>
@@ -290,10 +290,10 @@
 <!-- KANBAN BOARD -->
 <div class="kanban-wrap">
   <div class="legend-bar">
-    <span class="leg-item"><span class="leg-dot" style="background:#6c757d;"></span> Pending Review</span>
+    <span class="leg-item"><span class="leg-dot" style="background:#3A5C3F;"></span> Pending Review</span>
     <span class="leg-item"><span class="leg-dot" style="background:var(--primary-dark);"></span> AI Matched</span>
-    <span class="leg-item"><span class="leg-dot" style="background:#f59e0b;"></span> Interview Scheduled</span>
-    <span class="leg-item"><span class="leg-dot" style="background:#8b5cf6;"></span> Successfully Hired</span>
+    <span class="leg-item"><span class="leg-dot" style="background:#63E6B3;"></span> Interview Scheduled</span>
+    <span class="leg-item"><span class="leg-dot" style="background:#1E9E86;"></span> Successfully Hired</span>
   </div>
 
   <div class="kanban-board">
@@ -311,7 +311,7 @@
 
         <div class="k-card">
           <div class="k-card-top">
-            <div class="k-avatar" style="background:#E9ECEF;color:#495057;">PL</div>
+            <div class="k-avatar" style="background:#E4FBF3;color:#3A5C3F;">PL</div>
             <div class="k-info">
               <div class="k-name">Pedro Lim</div>
               <div class="k-role">Customer Service Rep</div>
@@ -319,21 +319,21 @@
             <span class="k-match">76%</span>
           </div>
           <div class="k-meta">
-            <span class="k-meta-row">📍 Barangay Bucana</span>
-            <span class="k-meta-row">🏢 Remote Inc.</span>
+            <span class="k-meta-row">ðŸ“ Barangay Bucana</span>
+            <span class="k-meta-row">ðŸ¢ Remote Inc.</span>
           </div>
           <div class="k-footer">
             <span class="k-date">Applied Mar 6, 2026</span>
             <div class="k-actions">
               <a href="#" class="k-btn">View</a>
-              <a href="#" class="k-btn k-btn-primary">Match →</a>
+              <a href="#" class="k-btn k-btn-primary">Match â†’</a>
             </div>
           </div>
         </div>
 
         <div class="k-card">
           <div class="k-card-top">
-            <div class="k-avatar" style="background:#CCE5FF;color:#004085;">RG</div>
+            <div class="k-avatar" style="background:#E4FBF3;color:#0F6E5E;">RG</div>
             <div class="k-info">
               <div class="k-name">Ramon Garcia</div>
               <div class="k-role">Data Entry Clerk</div>
@@ -341,21 +341,21 @@
             <span class="k-match">79%</span>
           </div>
           <div class="k-meta">
-            <span class="k-meta-row">📍 Barangay Pantalan</span>
-            <span class="k-meta-row">🏢 Data Corp PH</span>
+            <span class="k-meta-row">ðŸ“ Barangay Pantalan</span>
+            <span class="k-meta-row">ðŸ¢ Data Corp PH</span>
           </div>
           <div class="k-footer">
             <span class="k-date">Applied Mar 6, 2026</span>
             <div class="k-actions">
               <a href="#" class="k-btn">View</a>
-              <a href="#" class="k-btn k-btn-primary">Match →</a>
+              <a href="#" class="k-btn k-btn-primary">Match â†’</a>
             </div>
           </div>
         </div>
 
         <div class="k-card">
           <div class="k-card-top">
-            <div class="k-avatar" style="background:#FFF3CD;color:#856404;">KD</div>
+            <div class="k-avatar" style="background:#E4FBF3;color:#0F6E5E;">KD</div>
             <div class="k-info">
               <div class="k-name">Kevin Domingo</div>
               <div class="k-role">Chef / Line Cook</div>
@@ -363,21 +363,21 @@
             <span class="k-match">81%</span>
           </div>
           <div class="k-meta">
-            <span class="k-meta-row">📍 Barangay Wawa</span>
-            <span class="k-meta-row">🏢 Seaside Restaurant</span>
+            <span class="k-meta-row">ðŸ“ Barangay Wawa</span>
+            <span class="k-meta-row">ðŸ¢ Seaside Restaurant</span>
           </div>
           <div class="k-footer">
             <span class="k-date">Applied Mar 5, 2026</span>
             <div class="k-actions">
               <a href="#" class="k-btn">View</a>
-              <a href="#" class="k-btn k-btn-primary">Match →</a>
+              <a href="#" class="k-btn k-btn-primary">Match â†’</a>
             </div>
           </div>
         </div>
 
         <div class="k-card">
           <div class="k-card-top">
-            <div class="k-avatar" style="background:#E2D9F3;color:#5a32a3;">SF</div>
+            <div class="k-avatar" style="background:#E4FBF3;color:#0F6E5E;">SF</div>
             <div class="k-info">
               <div class="k-name">Sofia Flores</div>
               <div class="k-role">Marketing Specialist</div>
@@ -385,14 +385,14 @@
             <span class="k-match">72%</span>
           </div>
           <div class="k-meta">
-            <span class="k-meta-row">📍 Barangay Bolo</span>
-            <span class="k-meta-row">🏢 Local Brand Co.</span>
+            <span class="k-meta-row">ðŸ“ Barangay Bolo</span>
+            <span class="k-meta-row">ðŸ¢ Local Brand Co.</span>
           </div>
           <div class="k-footer">
             <span class="k-date">Applied Mar 6, 2026</span>
             <div class="k-actions">
               <a href="#" class="k-btn">View</a>
-              <a href="#" class="k-btn k-btn-primary">Match →</a>
+              <a href="#" class="k-btn k-btn-primary">Match â†’</a>
             </div>
           </div>
         </div>
@@ -422,14 +422,14 @@
             <span class="k-match">94%</span>
           </div>
           <div class="k-meta">
-            <span class="k-meta-row">📍 Barangay Kaylaway</span>
-            <span class="k-meta-row">🏢 Tech Solutions PH</span>
+            <span class="k-meta-row">ðŸ“ Barangay Kaylaway</span>
+            <span class="k-meta-row">ðŸ¢ Tech Solutions PH</span>
           </div>
           <div class="k-footer">
             <span class="k-date">Matched Mar 6, 2026</span>
             <div class="k-actions">
               <a href="#" class="k-btn">View</a>
-              <a href="#" class="k-btn k-btn-primary">Interview →</a>
+              <a href="#" class="k-btn k-btn-primary">Interview â†’</a>
             </div>
           </div>
         </div>
@@ -444,21 +444,21 @@
             <span class="k-match">82%</span>
           </div>
           <div class="k-meta">
-            <span class="k-meta-row">📍 Barangay Calayo</span>
-            <span class="k-meta-row">🏢 Local Brand Co.</span>
+            <span class="k-meta-row">ðŸ“ Barangay Calayo</span>
+            <span class="k-meta-row">ðŸ¢ Local Brand Co.</span>
           </div>
           <div class="k-footer">
             <span class="k-date">Matched Mar 5, 2026</span>
             <div class="k-actions">
               <a href="#" class="k-btn">View</a>
-              <a href="#" class="k-btn k-btn-primary">Interview →</a>
+              <a href="#" class="k-btn k-btn-primary">Interview â†’</a>
             </div>
           </div>
         </div>
 
         <div class="k-card">
           <div class="k-card-top">
-            <div class="k-avatar" style="background:#CCE5FF;color:#004085;">BO</div>
+            <div class="k-avatar" style="background:#E4FBF3;color:#0F6E5E;">BO</div>
             <div class="k-info">
               <div class="k-name">Ben Ocampo</div>
               <div class="k-role">Accounting Assistant</div>
@@ -466,21 +466,21 @@
             <span class="k-match">86%</span>
           </div>
           <div class="k-meta">
-            <span class="k-meta-row">📍 Barangay Natipuan</span>
-            <span class="k-meta-row">🏢 ABC Enterprises</span>
+            <span class="k-meta-row">ðŸ“ Barangay Natipuan</span>
+            <span class="k-meta-row">ðŸ¢ ABC Enterprises</span>
           </div>
           <div class="k-footer">
             <span class="k-date">Matched Mar 5, 2026</span>
             <div class="k-actions">
               <a href="#" class="k-btn">View</a>
-              <a href="#" class="k-btn k-btn-primary">Interview →</a>
+              <a href="#" class="k-btn k-btn-primary">Interview â†’</a>
             </div>
           </div>
         </div>
 
         <div class="k-card">
           <div class="k-card-top">
-            <div class="k-avatar" style="background:#F3E5F5;color:#6A1B9A;">TM</div>
+            <div class="k-avatar" style="background:#E4FBF3;color:#0F6E5E;">TM</div>
             <div class="k-info">
               <div class="k-name">Tina Mendoza</div>
               <div class="k-role">CSR Representative</div>
@@ -488,14 +488,14 @@
             <span class="k-match">78%</span>
           </div>
           <div class="k-meta">
-            <span class="k-meta-row">📍 Barangay Bucana</span>
-            <span class="k-meta-row">🏢 Remote Inc.</span>
+            <span class="k-meta-row">ðŸ“ Barangay Bucana</span>
+            <span class="k-meta-row">ðŸ¢ Remote Inc.</span>
           </div>
           <div class="k-footer">
             <span class="k-date">Matched Mar 4, 2026</span>
             <div class="k-actions">
               <a href="#" class="k-btn">View</a>
-              <a href="#" class="k-btn k-btn-primary">Interview →</a>
+              <a href="#" class="k-btn k-btn-primary">Interview â†’</a>
             </div>
           </div>
         </div>
@@ -517,7 +517,7 @@
 
         <div class="k-card">
           <div class="k-card-top">
-            <div class="k-avatar" style="background:#CCE5FF;color:#004085;">MR</div>
+            <div class="k-avatar" style="background:#E4FBF3;color:#0F6E5E;">MR</div>
             <div class="k-info">
               <div class="k-name">Maria Reyes</div>
               <div class="k-role">Accounting Assistant</div>
@@ -525,22 +525,22 @@
             <span class="k-match">88%</span>
           </div>
           <div class="k-meta">
-            <span class="k-meta-row">📍 Barangay Natipuan</span>
-            <span class="k-meta-row">🏢 ABC Enterprises</span>
-            <span class="k-meta-row" style="color:#f59e0b;font-weight:500;">📅 Mar 8, 2026 – 2:00 PM</span>
+            <span class="k-meta-row">ðŸ“ Barangay Natipuan</span>
+            <span class="k-meta-row">ðŸ¢ ABC Enterprises</span>
+            <span class="k-meta-row" style="color:#63E6B3;font-weight:500;">ðŸ“… Mar 8, 2026 â€“ 2:00 PM</span>
           </div>
           <div class="k-footer">
             <span class="k-date">Interview Mar 8</span>
             <div class="k-actions">
               <a href="#" class="k-btn">View</a>
-              <a href="#" class="k-btn k-btn-primary">Hire →</a>
+              <a href="#" class="k-btn k-btn-primary">Hire â†’</a>
             </div>
           </div>
         </div>
 
         <div class="k-card">
           <div class="k-card-top">
-            <div class="k-avatar" style="background:#FFE5D0;color:#8B3A00;">NB</div>
+            <div class="k-avatar" style="background:#E4FBF3;color:#0F6E5E;">NB</div>
             <div class="k-info">
               <div class="k-name">Nena Buenaventura</div>
               <div class="k-role">Elementary Teacher</div>
@@ -548,22 +548,22 @@
             <span class="k-match">85%</span>
           </div>
           <div class="k-meta">
-            <span class="k-meta-row">📍 Barangay Lumbangan</span>
-            <span class="k-meta-row">🏢 Learning Hub Academy</span>
-            <span class="k-meta-row" style="color:#f59e0b;font-weight:500;">📅 Mar 7, 2026 – 10:00 AM</span>
+            <span class="k-meta-row">ðŸ“ Barangay Lumbangan</span>
+            <span class="k-meta-row">ðŸ¢ Learning Hub Academy</span>
+            <span class="k-meta-row" style="color:#63E6B3;font-weight:500;">ðŸ“… Mar 7, 2026 â€“ 10:00 AM</span>
           </div>
           <div class="k-footer">
             <span class="k-date">Interview Mar 7</span>
             <div class="k-actions">
               <a href="#" class="k-btn">View</a>
-              <a href="#" class="k-btn k-btn-primary">Hire →</a>
+              <a href="#" class="k-btn k-btn-primary">Hire â†’</a>
             </div>
           </div>
         </div>
 
         <div class="k-card">
           <div class="k-card-top">
-            <div class="k-avatar" style="background:#FFF3CD;color:#856404;">GV</div>
+            <div class="k-avatar" style="background:#E4FBF3;color:#0F6E5E;">GV</div>
             <div class="k-info">
               <div class="k-name">Gina Velarde</div>
               <div class="k-role">Registered Nurse</div>
@@ -571,15 +571,15 @@
             <span class="k-match">91%</span>
           </div>
           <div class="k-meta">
-            <span class="k-meta-row">📍 Barangay Reparo</span>
-            <span class="k-meta-row">🏢 Nasugbu Medical Center</span>
-            <span class="k-meta-row" style="color:#f59e0b;font-weight:500;">📅 Mar 9, 2026 – 9:00 AM</span>
+            <span class="k-meta-row">ðŸ“ Barangay Reparo</span>
+            <span class="k-meta-row">ðŸ¢ Nasugbu Medical Center</span>
+            <span class="k-meta-row" style="color:#63E6B3;font-weight:500;">ðŸ“… Mar 9, 2026 â€“ 9:00 AM</span>
           </div>
           <div class="k-footer">
             <span class="k-date">Interview Mar 9</span>
             <div class="k-actions">
               <a href="#" class="k-btn">View</a>
-              <a href="#" class="k-btn k-btn-primary">Hire →</a>
+              <a href="#" class="k-btn k-btn-primary">Hire â†’</a>
             </div>
           </div>
         </div>
@@ -593,7 +593,7 @@
       <div class="col-header">
         <div class="col-title-wrap">
           <div class="col-dot"></div>
-          <span class="col-title">Hired ✓</span>
+          <span class="col-title">Hired âœ“</span>
         </div>
         <span class="col-count">246</span>
       </div>
@@ -601,7 +601,7 @@
 
         <div class="k-card">
           <div class="k-card-top">
-            <div class="k-avatar" style="background:#E2D9F3;color:#5a32a3;">AC</div>
+            <div class="k-avatar" style="background:#E4FBF3;color:#0F6E5E;">AC</div>
             <div class="k-info">
               <div class="k-name">Ana Cruz</div>
               <div class="k-role">Registered Nurse</div>
@@ -609,15 +609,15 @@
             <span class="k-match">91%</span>
           </div>
           <div class="k-meta">
-            <span class="k-meta-row">📍 Barangay Reparo</span>
-            <span class="k-meta-row">🏢 Nasugbu Medical Center</span>
-            <span class="k-meta-row" style="color:#8b5cf6;font-weight:500;">✓ Started Mar 1, 2026</span>
+            <span class="k-meta-row">ðŸ“ Barangay Reparo</span>
+            <span class="k-meta-row">ðŸ¢ Nasugbu Medical Center</span>
+            <span class="k-meta-row" style="color:#1E9E86;font-weight:500;">âœ“ Started Mar 1, 2026</span>
           </div>
           <div class="k-footer">
             <span class="k-date">Hired Feb 28</span>
             <div class="k-actions">
               <a href="#" class="k-btn">View</a>
-              <a href="#" class="k-btn" style="background:#E2D9F3;color:#5a32a3;border-color:#C9B8F0;">Hired ✓</a>
+              <a href="#" class="k-btn" style="background:#E4FBF3;color:#0F6E5E;border-color:#C8F5E4;">Hired âœ“</a>
             </div>
           </div>
         </div>
@@ -632,22 +632,22 @@
             <span class="k-match">89%</span>
           </div>
           <div class="k-meta">
-            <span class="k-meta-row">📍 Barangay Kaylaway</span>
-            <span class="k-meta-row">🏢 Tech Solutions PH</span>
-            <span class="k-meta-row" style="color:#8b5cf6;font-weight:500;">✓ Started Feb 15, 2026</span>
+            <span class="k-meta-row">ðŸ“ Barangay Kaylaway</span>
+            <span class="k-meta-row">ðŸ¢ Tech Solutions PH</span>
+            <span class="k-meta-row" style="color:#1E9E86;font-weight:500;">âœ“ Started Feb 15, 2026</span>
           </div>
           <div class="k-footer">
             <span class="k-date">Hired Feb 14</span>
             <div class="k-actions">
               <a href="#" class="k-btn">View</a>
-              <a href="#" class="k-btn" style="background:#E2D9F3;color:#5a32a3;border-color:#C9B8F0;">Hired ✓</a>
+              <a href="#" class="k-btn" style="background:#E4FBF3;color:#0F6E5E;border-color:#C8F5E4;">Hired âœ“</a>
             </div>
           </div>
         </div>
 
         <div class="k-card">
           <div class="k-card-top">
-            <div class="k-avatar" style="background:#CCE5FF;color:#004085;">CD</div>
+            <div class="k-avatar" style="background:#E4FBF3;color:#0F6E5E;">CD</div>
             <div class="k-info">
               <div class="k-name">Clara Dela Rosa</div>
               <div class="k-role">Marketing Specialist</div>
@@ -655,22 +655,22 @@
             <span class="k-match">84%</span>
           </div>
           <div class="k-meta">
-            <span class="k-meta-row">📍 Barangay Calayo</span>
-            <span class="k-meta-row">🏢 Local Brand Co.</span>
-            <span class="k-meta-row" style="color:#8b5cf6;font-weight:500;">✓ Started Mar 3, 2026</span>
+            <span class="k-meta-row">ðŸ“ Barangay Calayo</span>
+            <span class="k-meta-row">ðŸ¢ Local Brand Co.</span>
+            <span class="k-meta-row" style="color:#1E9E86;font-weight:500;">âœ“ Started Mar 3, 2026</span>
           </div>
           <div class="k-footer">
             <span class="k-date">Hired Mar 2</span>
             <div class="k-actions">
               <a href="#" class="k-btn">View</a>
-              <a href="#" class="k-btn" style="background:#E2D9F3;color:#5a32a3;border-color:#C9B8F0;">Hired ✓</a>
+              <a href="#" class="k-btn" style="background:#E4FBF3;color:#0F6E5E;border-color:#C8F5E4;">Hired âœ“</a>
             </div>
           </div>
         </div>
 
         <div class="k-card">
           <div class="k-card-top">
-            <div class="k-avatar" style="background:#FFF3CD;color:#856404;">RP</div>
+            <div class="k-avatar" style="background:#E4FBF3;color:#0F6E5E;">RP</div>
             <div class="k-info">
               <div class="k-name">Roberto Pascual</div>
               <div class="k-role">Accounting Assistant</div>
@@ -678,15 +678,15 @@
             <span class="k-match">88%</span>
           </div>
           <div class="k-meta">
-            <span class="k-meta-row">📍 Barangay Natipuan</span>
-            <span class="k-meta-row">🏢 ABC Enterprises</span>
-            <span class="k-meta-row" style="color:#8b5cf6;font-weight:500;">✓ Started Feb 20, 2026</span>
+            <span class="k-meta-row">ðŸ“ Barangay Natipuan</span>
+            <span class="k-meta-row">ðŸ¢ ABC Enterprises</span>
+            <span class="k-meta-row" style="color:#1E9E86;font-weight:500;">âœ“ Started Feb 20, 2026</span>
           </div>
           <div class="k-footer">
             <span class="k-date">Hired Feb 18</span>
             <div class="k-actions">
               <a href="#" class="k-btn">View</a>
-              <a href="#" class="k-btn" style="background:#E2D9F3;color:#5a32a3;border-color:#C9B8F0;">Hired ✓</a>
+              <a href="#" class="k-btn" style="background:#E4FBF3;color:#0F6E5E;border-color:#C8F5E4;">Hired âœ“</a>
             </div>
           </div>
         </div>
@@ -700,11 +700,11 @@
   <!-- HINT -->
   <div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;margin-top:1rem;">
     <div style="font-size:0.87rem;color:var(--text-light);">
-      💡 Showing top 4 applicants per column. <strong>1,240 total applicants</strong> across all stages.
+      ðŸ’¡ Showing top 4 applicants per column. <strong>1,240 total applicants</strong> across all stages.
     </div>
     <div style="display:flex;gap:0.75rem;">
       <a href="../peso-dashboard/" class="btn btn-outline" style="font-size:0.85rem;">View Full Dashboard</a>
-      <a href="#" class="btn btn-primary" style="font-size:0.85rem;">📤 Export All Records</a>
+      <a href="#" class="btn btn-primary" style="font-size:0.85rem;">ðŸ“¤ Export All Records</a>
     </div>
   </div>
 
@@ -744,7 +744,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2026 TalentScout AI — PESO Nasugbu, Batangas</span>
+      <span>Â© 2026 TalentScout AI â€” PESO Nasugbu, Batangas</span>
       <span>Built for Local Employment</span>
     </div>
   </div>
@@ -752,3 +752,5 @@
 
 </body>
 </html>
+
+

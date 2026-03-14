@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Skill Gap Analysis — TalentScout AI</title>
+  <title>Skill Gap Analysis â€” TalentScout AI</title>
   <link rel="stylesheet" href="../styles/global.css">
   <style>
     .gap-layout {
@@ -18,7 +18,7 @@
 
     /* Summary banner */
     .summary-banner {
-      background: linear-gradient(135deg, #E8F5E9, #F2FCF3);
+      background: linear-gradient(135deg, #E4FBF3, #EEFFF9);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 1.75rem;
@@ -58,7 +58,7 @@
     }
     .pill-green { background: #D4EDDA; color: #155724; }
     .pill-red   { background: #F8D7DA; color: #721c24; }
-    .pill-yellow{ background: #FFF3CD; color: #856404; }
+    .pill-yellow{ background: #E4FBF3; color: #0F6E5E; }
 
     /* Skill Sections */
     .skill-section {
@@ -75,7 +75,7 @@
     .skill-name { font-size: 0.88rem; font-weight: 500; color: var(--text-dark); }
     .skill-pct { font-size: 0.82rem; font-weight: 700; }
     .skill-pct.good { color: var(--primary-darker); }
-    .skill-pct.warn { color: #856404; }
+    .skill-pct.warn { color: #0F6E5E; }
     .skill-pct.bad  { color: #721c24; }
 
     /* Gap Tags */
@@ -90,7 +90,7 @@
       margin: 0.3rem;
     }
     .gap-tag.missing { background: #F8D7DA; color: #721c24; border: 1px solid #F1AEB5; }
-    .gap-tag.partial { background: #FFF3CD; color: #856404; border: 1px solid #FFD77A; }
+    .gap-tag.partial { background: #E4FBF3; color: #0F6E5E; border: 1px solid #C8F5E4; }
 
     /* Courses */
     .course-card {
@@ -200,7 +200,7 @@
 <div class="page-header">
   <div class="page-header-inner">
     <div class="breadcrumb"><a href="../index.html">Home</a> / Skill Gap Analysis</div>
-    <h1>📊 Skill Gap Analysis</h1>
+    <h1>ðŸ“Š Skill Gap Analysis</h1>
     <p>Discover which skills you already have, identify gaps, and get personalized upskilling recommendations to boost your employability.</p>
   </div>
 </div>
@@ -224,9 +224,9 @@
         <h3>Your Employability Score: 68 / 100</h3>
         <p>You have strong foundations in Front-End Development but are missing key skills demanded by Nasugbu tech employers. Closing 3 skill gaps could raise your score to <strong>89%</strong>.</p>
         <div class="summary-pills">
-          <span class="summary-pill pill-green">✓ 7 Verified Skills</span>
-          <span class="summary-pill pill-red">✗ 3 Critical Gaps</span>
-          <span class="summary-pill pill-yellow">⚠ 2 Partial Skills</span>
+          <span class="summary-pill pill-green">âœ“ 7 Verified Skills</span>
+          <span class="summary-pill pill-red">âœ— 3 Critical Gaps</span>
+          <span class="summary-pill pill-yellow">âš  2 Partial Skills</span>
         </div>
       </div>
     </div>
@@ -234,7 +234,7 @@
     <!-- CURRENT SKILLS -->
     <div class="skill-section">
       <div class="skill-section-header">
-        <div class="skill-section-title">✅ Current Skills</div>
+        <div class="skill-section-title">âœ… Current Skills</div>
         <span class="badge badge-green">7 Verified</span>
       </div>
       <div class="skill-grid">
@@ -272,7 +272,7 @@
     <!-- SKILL GAPS -->
     <div class="skill-section">
       <div class="skill-section-header">
-        <div class="skill-section-title">❌ Identified Skill Gaps</div>
+        <div class="skill-section-title">âŒ Identified Skill Gaps</div>
         <span class="badge badge-red">3 Critical</span>
       </div>
       <p style="font-size:0.87rem;color:var(--text-light);margin-bottom:1.25rem;">These skills are in demand across 42+ job postings in Nasugbu but are missing from your profile.</p>
@@ -280,32 +280,32 @@
         <div class="skill-item">
           <div class="skill-label-row"><span class="skill-name">TypeScript</span><span class="skill-pct bad">0%</span></div>
           <div class="progress-bar"><div class="progress-fill gap" style="width:5%;"></div></div>
-          <div style="font-size:0.78rem;color:#856404;margin-top:0.3rem;">Required by 28 jobs</div>
+          <div style="font-size:0.78rem;color:#0F6E5E;margin-top:0.3rem;">Required by 28 jobs</div>
         </div>
         <div class="skill-item">
           <div class="skill-label-row"><span class="skill-name">Python (Basic)</span><span class="skill-pct bad">0%</span></div>
           <div class="progress-bar"><div class="progress-fill gap" style="width:5%;"></div></div>
-          <div style="font-size:0.78rem;color:#856404;margin-top:0.3rem;">Required by 19 jobs</div>
+          <div style="font-size:0.78rem;color:#0F6E5E;margin-top:0.3rem;">Required by 19 jobs</div>
         </div>
         <div class="skill-item">
           <div class="skill-label-row"><span class="skill-name">Docker / DevOps</span><span class="skill-pct bad">10%</span></div>
           <div class="progress-bar"><div class="progress-fill gap" style="width:10%;"></div></div>
-          <div style="font-size:0.78rem;color:#856404;margin-top:0.3rem;">Required by 15 jobs</div>
+          <div style="font-size:0.78rem;color:#0F6E5E;margin-top:0.3rem;">Required by 15 jobs</div>
         </div>
         <div class="skill-item">
           <div class="skill-label-row"><span class="skill-name">SQL / Database</span><span class="skill-pct warn">25%</span></div>
           <div class="progress-bar"><div class="progress-fill warn" style="width:25%;"></div></div>
-          <div style="font-size:0.78rem;color:#856404;margin-top:0.3rem;">Required by 35 jobs</div>
+          <div style="font-size:0.78rem;color:#0F6E5E;margin-top:0.3rem;">Required by 35 jobs</div>
         </div>
       </div>
       <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border);">
         <div style="font-size:0.87rem;font-weight:600;color:var(--text-dark);margin-bottom:0.5rem;">All Gap Tags</div>
         <div>
-          <span class="gap-tag missing">✗ TypeScript</span>
-          <span class="gap-tag missing">✗ Python</span>
-          <span class="gap-tag missing">✗ Docker</span>
-          <span class="gap-tag partial">⚠ SQL (Partial)</span>
-          <span class="gap-tag partial">⚠ Node.js (Partial)</span>
+          <span class="gap-tag missing">âœ— TypeScript</span>
+          <span class="gap-tag missing">âœ— Python</span>
+          <span class="gap-tag missing">âœ— Docker</span>
+          <span class="gap-tag partial">âš  SQL (Partial)</span>
+          <span class="gap-tag partial">âš  Node.js (Partial)</span>
         </div>
       </div>
     </div>
@@ -318,14 +318,14 @@
     </div>
 
     <div class="course-card">
-      <div class="course-banner" style="background:linear-gradient(90deg,#3b82f6,#60a5fa);"></div>
+      <div class="course-banner" style="background:linear-gradient(90deg,#63E6B3,#98FBCB);"></div>
       <div class="course-body">
         <div class="course-provider">Udemy / Online</div>
         <div class="course-title">TypeScript: Complete Developer Guide</div>
         <div class="course-meta">
-          <span>⏱ 27 hours</span>
-          <span>🎯 Beginner–Intermediate</span>
-          <span>⭐ 4.8 (12,400 reviews)</span>
+          <span>â± 27 hours</span>
+          <span>ðŸŽ¯ Beginnerâ€“Intermediate</span>
+          <span>â­ 4.8 (12,400 reviews)</span>
         </div>
         <div class="course-skills">
           <span class="chip">TypeScript</span>
@@ -333,21 +333,21 @@
           <span class="chip">React + TS</span>
         </div>
         <div class="course-footer">
-          <span class="course-price">₱499 (Sale)</span>
+          <span class="course-price">â‚±499 (Sale)</span>
           <a href="#" class="btn btn-primary">Enroll Now</a>
         </div>
       </div>
     </div>
 
     <div class="course-card">
-      <div class="course-banner" style="background:linear-gradient(90deg,#16a34a,#4ade80);"></div>
+      <div class="course-banner" style="background:linear-gradient(90deg,#1E9E86,#63E6B3);"></div>
       <div class="course-body">
         <div class="course-provider">freeCodeCamp / Free</div>
-        <div class="course-title">Python for Beginners — Full Course</div>
+        <div class="course-title">Python for Beginners â€” Full Course</div>
         <div class="course-meta">
-          <span>⏱ 12 hours</span>
-          <span>🎯 Beginner</span>
-          <span>⭐ 4.9 (8,200 reviews)</span>
+          <span>â± 12 hours</span>
+          <span>ðŸŽ¯ Beginner</span>
+          <span>â­ 4.9 (8,200 reviews)</span>
         </div>
         <div class="course-skills">
           <span class="chip">Python Basics</span>
@@ -362,14 +362,14 @@
     </div>
 
     <div class="course-card">
-      <div class="course-banner" style="background:linear-gradient(90deg,#f59e0b,#fbbf24);"></div>
+      <div class="course-banner" style="background:linear-gradient(90deg,#63E6B3,#98FBCB);"></div>
       <div class="course-body">
         <div class="course-provider">Coursera / Google</div>
-        <div class="course-title">SQL for Data Analysis — Google Certificate</div>
+        <div class="course-title">SQL for Data Analysis â€” Google Certificate</div>
         <div class="course-meta">
-          <span>⏱ 18 hours</span>
-          <span>🎯 Beginner</span>
-          <span>⭐ 4.7 (5,600 reviews)</span>
+          <span>â± 18 hours</span>
+          <span>ðŸŽ¯ Beginner</span>
+          <span>â­ 4.7 (5,600 reviews)</span>
         </div>
         <div class="course-skills">
           <span class="chip">SQL Basics</span>
@@ -377,7 +377,7 @@
           <span class="chip">Queries</span>
         </div>
         <div class="course-footer">
-          <span class="course-price">₱0 (Audit Free)</span>
+          <span class="course-price">â‚±0 (Audit Free)</span>
           <a href="#" class="btn btn-primary">Enroll Free</a>
         </div>
       </div>
@@ -391,7 +391,7 @@
       <div class="side-card-title">Your Progress</div>
       <div class="micro-stat"><span>Skills Have</span><span class="micro-val">7</span></div>
       <div class="micro-stat"><span>Skills Missing</span><span class="micro-val" style="color:#721c24;">3</span></div>
-      <div class="micro-stat"><span>Partial Skills</span><span class="micro-val" style="color:#856404;">2</span></div>
+      <div class="micro-stat"><span>Partial Skills</span><span class="micro-val" style="color:#0F6E5E;">2</span></div>
       <div class="micro-stat"><span>Courses Enrolled</span><span class="micro-val">1</span></div>
       <div class="micro-stat"><span>Employability Score</span><span class="micro-val">68%</span></div>
       <div class="micro-stat"><span>Potential Score</span><span class="micro-val" style="color:var(--primary-dark);">89%</span></div>
@@ -401,24 +401,24 @@
       <div class="side-card-title">Career Path</div>
       <div class="career-path">
         <div class="path-step">
-          <div class="path-dot done">✓</div>
+          <div class="path-dot done">âœ“</div>
           <div class="path-info">
             <div class="path-title">Junior Developer</div>
-            <div class="path-sub">Current level • Achieved</div>
+            <div class="path-sub">Current level â€¢ Achieved</div>
           </div>
         </div>
         <div class="path-step">
-          <div class="path-dot current">→</div>
+          <div class="path-dot current">â†’</div>
           <div class="path-info">
             <div class="path-title">Mid-Level Developer</div>
-            <div class="path-sub">In progress • +3 skills needed</div>
+            <div class="path-sub">In progress â€¢ +3 skills needed</div>
           </div>
         </div>
         <div class="path-step">
           <div class="path-dot next">3</div>
           <div class="path-info">
             <div class="path-title">Senior Developer</div>
-            <div class="path-sub">Future goal • 2–3 years</div>
+            <div class="path-sub">Future goal â€¢ 2â€“3 years</div>
           </div>
         </div>
         <div class="path-step">
@@ -459,9 +459,9 @@
     <div class="side-card">
       <div class="side-card-title">Quick Actions</div>
       <div style="display:flex;flex-direction:column;gap:0.6rem;">
-        <a href="../ai-matching/" class="btn btn-primary" style="justify-content:center;">🤖 View Job Matches</a>
-        <a href="../job-postings/" class="btn btn-light" style="justify-content:center;">📋 Browse Jobs</a>
-        <a href="../blind-hiring/" class="btn btn-outline" style="justify-content:center;">🫥 Apply (Blind Hiring)</a>
+        <a href="../ai-matching/" class="btn btn-primary" style="justify-content:center;">ðŸ¤– View Job Matches</a>
+        <a href="../job-postings/" class="btn btn-light" style="justify-content:center;">ðŸ“‹ Browse Jobs</a>
+        <a href="../blind-hiring/" class="btn btn-outline" style="justify-content:center;">ðŸ«¥ Apply (Blind Hiring)</a>
       </div>
     </div>
   </aside>
@@ -501,7 +501,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2026 TalentScout AI — PESO Nasugbu, Batangas</span>
+      <span>Â© 2026 TalentScout AI â€” PESO Nasugbu, Batangas</span>
       <span>Built for Local Employment</span>
     </div>
   </div>
@@ -509,3 +509,5 @@
 
 </body>
 </html>
+
+

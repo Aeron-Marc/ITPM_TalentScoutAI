@@ -1,21 +1,21 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 /* ========================================
-   TALENTSCOUT AI — GLOBAL STYLES
-   Color Scheme: #ADEBB3 (Mint Green)
+   TALENTSCOUT AI â€” GLOBAL STYLES
+   Color Scheme: #98FBCB (Mint Green)
    ======================================== */
 
 :root {
-  --primary:        #ADEBB3;
-  --primary-mid:    #7DD886;
-  --primary-dark:   #3DAA52;
-  --primary-darker: #1E6B30;
-  --bg-light:       #F2FCF3;
+  --primary:        #98FBCB;
+  --primary-mid:    #63E6B3;
+  --primary-dark:   #1E9E86;
+  --primary-darker: #0F6E5E;
+  --bg-light:       #EEFFF9;
   --bg-card:        #FFFFFF;
   --text-dark:      #132B17;
   --text-mid:       #3A5C3F;
   --text-light:     #718F77;
-  --border:         #C8ECC9;
+  --border:         #C8F5E4;
   --shadow-sm:      0 1px 4px rgba(29, 107, 48, 0.08);
   --shadow:         0 4px 16px rgba(29, 107, 48, 0.12);
   --shadow-lg:      0 8px 32px rgba(29, 107, 48, 0.20);
@@ -142,12 +142,12 @@ body {
   font-weight: 600;
 }
 .badge-green   { background: #D4EDDA; color: #155724; }
-.badge-blue    { background: #CCE5FF; color: #004085; }
-.badge-yellow  { background: #FFF3CD; color: #856404; }
-.badge-gray    { background: #E9ECEF; color: #495057; }
-.badge-purple  { background: #E2D9F3; color: #5a32a3; }
+.badge-blue    { background: #E4FBF3; color: #0F6E5E; }
+.badge-yellow  { background: #E4FBF3; color: #0F6E5E; }
+.badge-gray    { background: #E4FBF3; color: #3A5C3F; }
+.badge-purple  { background: #E4FBF3; color: #0F6E5E; }
 .badge-red     { background: #F8D7DA; color: #721c24; }
-.badge-orange  { background: #FFE5D0; color: #8B3A00; }
+.badge-orange  { background: #E4FBF3; color: #0F6E5E; }
 
 /* ====== SECTION WRAPPER ====== */
 .section {
@@ -265,7 +265,7 @@ textarea.input { resize: vertical; min-height: 100px; }
   border-radius: 100px;
 }
 .progress-fill.gap { background: linear-gradient(90deg, #dc3545, #f8827b); }
-.progress-fill.warn { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.progress-fill.warn { background: linear-gradient(90deg, #63E6B3, #98FBCB); }
 
 /* ====== STAT CARD ====== */
 .stat-card {
@@ -286,9 +286,9 @@ textarea.input { resize: vertical; min-height: 100px; }
   margin-bottom: 1rem;
 }
 .stat-icon-green  { background: #D4EDDA; }
-.stat-icon-blue   { background: #CCE5FF; }
-.stat-icon-yellow { background: #FFF3CD; }
-.stat-icon-purple { background: #E2D9F3; }
+.stat-icon-blue   { background: #E4FBF3; }
+.stat-icon-yellow { background: #E4FBF3; }
+.stat-icon-purple { background: #E4FBF3; }
 .stat-value {
   font-size: 2rem;
   font-weight: 800;
@@ -385,3 +385,4 @@ textarea.input { resize: vertical; min-height: 100px; }
 .flex { display: flex; }
 .flex-center { display: flex; align-items: center; }
 .flex-between { display: flex; justify-content: space-between; align-items: center; }
+
