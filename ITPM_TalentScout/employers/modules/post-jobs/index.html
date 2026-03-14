@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Post Job Listings | Employers - TalentScout AI</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
+    
+    .navbar { background: white; border-bottom: 1px solid #e0e0e0; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .nav-logo { font-size: 1.25rem; font-weight: 700; color: #1a1a1a; text-decoration: none; }
+    .nav-logo span { color: #98FBCB; }
+    .nav-links { list-style: none; display: flex; gap: 2rem; }
+    .nav-links a { text-decoration: none; color: #666; font-weight: 500; }
+    
+    .container { max-width: 1000px; margin: 0 auto; padding: 2rem; }
+    
+    .header { margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 2rem; color: #1a1a1a; }
+    .new-job-btn { background: #98FBCB; color: #1a1a1a; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; font-weight: 700; cursor: pointer; }
+    .new-job-btn:hover { background: #7af0b1; }
+    
+    .form-container {
+      background: white;
+      border-left: 4px solid #98FBCB;
+      border-radius: 4px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .form-group { margin-bottom: 1.5rem; }
+    .form-label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1a1a1a; }
+    .form-input, .form-textarea, .form-select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 0.95rem;
+      font-family: inherit;
+    }
+    .form-textarea { resize: vertical; min-height: 120px; }
+    
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-grid .form-group { margin-bottom: 0; }
+    
+    .submit-btn {
+      background: #98FBCB;
+      color: #1a1a1a;
+      padding: 0.75rem 3rem;
+      border: none;
+      border-radius: 4px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .submit-btn:hover { background: #7af0b1; }
+    
+    .posted-jobs {
+      background: white;
+      border-radius: 4px;
+      padding: 2rem;
+    }
+    
+    .job-item {
+      border-bottom: 1px solid #e0e0e0;
+      padding: 1rem 0;
+    }
+    .job-item:last-child { border-bottom: none; }
+    
+    .job-title { font-weight: 700; color: #1a1a1a; }
+    .job-meta { color: #666; font-size: 0.9rem; margin-top: 0.5rem; }
+    
+    .footer { background: #1a1a1a; color: white; padding: 2rem; margin-top: 3rem; text-align: center; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="../../index.html" class="nav-logo">Talent<span>Scout</span> AI</a>
+    <ul class="nav-links">
+      <li><a href="../../index.html">Home</a></li>
+      <li><a href="./" style="color: #98FBCB; font-weight: 700;">Post Jobs</a></li>
+      <li><a href="../employee-finder/">Find Talent</a></li>
+      <li><a href="../applicant-tracking/">Pipeline</a></li>
+      <li><a href="../chat-sms/">Messages</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <div class="header">
+      <h1>📝 Post Job Listings</h1>
+      <button class="new-job-btn">+ New Job Posting</button>
+    </div>
+
+    <div class="form-container">
+      <h2 style="margin-bottom: 1.5rem;">Create a New Job Posting</h2>
+      
+      <form>
+        <div class="form-group">
+          <label class="form-label">Job Title *</label>
+          <input type="text" class="form-input" placeholder="e.g., Senior React Developer" required>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Job Category *</label>
+            <select class="form-select" required>
+              <option>Select Category</option>
+              <option>Engineering</option>
+              <option>Design</option>
+              <option>Sales</option>
+              <option>Marketing</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Employment Type *</label>
+            <select class="form-select" required>
+              <option>Select Type</option>
+              <option>Full-time</option>
+              <option>Part-time</option>
+              <option>Contract</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Salary Range (Min) *</label>
+            <input type="number" class="form-input" placeholder="₱ 30,000" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Salary Range (Max) *</label>
+            <input type="number" class="form-input" placeholder="₱ 70,000" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Location *</label>
+          <input type="text" class="form-input" placeholder="e.g., Barangay Kaylaway, Nasugbu" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Job Description *</label>
+          <textarea class="form-textarea" placeholder="Describe the role, responsibilities, and requirements..." required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Required Skills (comma-separated)</label>
+          <input type="text" class="form-input" placeholder="React, TypeScript, Node.js, SQL">
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Experience Level Required *</label>
+            <select class="form-select" required>
+              <option>Select Level</option>
+              <option>Entry Level</option>
+              <option>Mid-level</option>
+              <option>Senior</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Application Deadline *</label>
+            <input type="date" class="form-input" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label style="display: flex; align-items: center; cursor: pointer;">
+            <input type="checkbox" style="margin-right: 0.5rem;"> Use Blind Hiring for this posting
+          </label>
+        </div>
+
+        <button type="submit" class="submit-btn">Post Job Listing</button>
+      </form>
+    </div>
+
+    <div class="posted-jobs">
+      <h2 style="margin-bottom: 1.5rem;">Your Active Job Postings (3)</h2>
+      
+      <div class="job-item">
+        <div class="job-title">Senior React Developer</div>
+        <div class="job-meta">📍 Barangay Kaylaway | 🎯 Full-time | 👥 12 Applications | ⏰ Expires in 18 days</div>
+      </div>
+
+      <div class="job-item">
+        <div class="job-title">UI/UX Designer</div>
+        <div class="job-meta">📍 Barangay Talahib | 🎯 Full-time | 👥 8 Applications | ⏰ Expires in 12 days</div>
+      </div>
+
+      <div class="job-item">
+        <div class="job-title">Data Analyst</div>
+        <div class="job-meta">📍 Barangay Poblacion | 🎯 Full-time | 👥 5 Applications | ⏰ Expires in 5 days</div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>&copy; 2026 TalentScout AI — PESO Nasugbu, Batangas. Hire local talent.</p>
+  </footer>
+</body>
+</html>

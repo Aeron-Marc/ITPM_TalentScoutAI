@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Job Matching | Job Seekers - TalentScout AI</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
+    
+    .navbar { background: white; border-bottom: 1px solid #e0e0e0; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .nav-logo { font-size: 1.25rem; font-weight: 700; color: #1a1a1a; text-decoration: none; }
+    .nav-logo span { color: #98FBCB; }
+    .nav-links { list-style: none; display: flex; gap: 2rem; }
+    .nav-links a { text-decoration: none; color: #666; font-weight: 500; }
+    .nav-links a:hover { color: #98FBCB; }
+    
+    .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+    
+    .header { margin-bottom: 2rem; }
+    .header h1 { font-size: 2rem; color: #1a1a1a; }
+    .header-subtitle { color: #666; margin-top: 0.5rem; }
+    
+    .match-algorithm {
+      background: white;
+      border-left: 4px solid #98FBCB;
+      border-radius: 4px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .match-score {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    
+    .score-card {
+      background: #f9f9f9;
+      border-radius: 4px;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    
+    .score-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #98FBCB;
+      margin-bottom: 0.5rem;
+    }
+    
+    .score-label { color: #666; font-weight: 600; }
+    .score-description { color: #999; font-size: 0.85rem; margin-top: 0.5rem; }
+    
+    .recommendation-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    .rec-card {
+      background: white;
+      border-radius: 4px;
+      padding: 1.5rem;
+      border: 1px solid #e0e0e0;
+    }
+    
+    .rec-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem; }
+    .rec-title { font-weight: 700; color: #1a1a1a; }
+    .match-badge {
+      background: #98FBCB;
+      color: #1a1a1a;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .rec-company { color: #98FBCB; font-weight: 600; margin-bottom: 0.5rem; }
+    .rec-location { color: #666; font-size: 0.9rem; margin-bottom: 1rem; }
+    .rec-reason { background: #f0f0f0; padding: 1rem; border-radius: 4px; font-size: 0.9rem; color: #666; margin-bottom: 1rem; }
+    
+    .view-btn {
+      background: #98FBCB;
+      color: #1a1a1a;
+      border: none;
+      padding: 0.5rem 1.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+    }
+    .view-btn:hover { background: #7af0b1; }
+    
+    .footer { background: #1a1a1a; color: white; padding: 2rem; margin-top: 3rem; text-align: center; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="../../index.html" class="nav-logo">Talent<span>Scout</span> AI</a>
+    <ul class="nav-links">
+      <li><a href="../../index.html">Home</a></li>
+      <li><a href="../job-postings/">Browse Jobs</a></li>
+      <li><a href="./" style="color: #98FBCB; font-weight: 700;">AI Matching</a></li>
+      <li><a href="../skill-gap-analysis/">Skills</a></li>
+      <li><a href="../applicant-tracking/">Applications</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <div class="header">
+      <h1>🤖 AI Job Matching</h1>
+      <p class="header-subtitle">Personalized job recommendations based on your skills and experience</p>
+    </div>
+
+    <div class="match-algorithm">
+      <h2>Your Profile Strength</h2>
+      <p style="color: #666; margin-top: 0.5rem;">Our AI analyzes your skills to find the perfect opportunities</p>
+      
+      <div class="match-score">
+        <div class="score-card">
+          <div class="score-number">92%</div>
+          <div class="score-label">Profile Complete</div>
+          <div class="score-description">Add more skills to improve matches</div>
+        </div>
+        <div class="score-card">
+          <div class="score-number">8/10</div>
+          <div class="score-label">Skills Verified</div>
+          <div class="score-description">Complete more verifications</div>
+        </div>
+        <div class="score-card">
+          <div class="score-number">27</div>
+          <div class="score-label">Matching Jobs</div>
+          <div class="score-description">New recommendations this week</div>
+        </div>
+      </div>
+    </div>
+
+    <h2 style="margin-top: 2rem; margin-bottom: 1rem;">Recommended for You</h2>
+    <div class="recommendation-cards">
+      <div class="rec-card">
+        <div class="rec-header">
+          <div class="rec-title">Senior React Developer</div>
+          <div class="match-badge">92% Match</div>
+        </div>
+        <div class="rec-company">Tech Solutions PH</div>
+        <div class="rec-location">📍 Barangay Kaylaway</div>
+        <div class="rec-reason">
+          <strong>Why matched:</strong> Your React expertise and TypeScript skills align perfectly with this role. You have 8/8 required skills.
+        </div>
+        <button class="view-btn">View Details</button>
+      </div>
+
+      <div class="rec-card">
+        <div class="rec-header">
+          <div class="rec-title">Full Stack Developer</div>
+          <div class="match-badge">87% Match</div>
+        </div>
+        <div class="rec-company">WebDev Studios</div>
+        <div class="rec-location">📍 Barangay Talahib</div>
+        <div class="rec-reason">
+          <strong>Why matched:</strong> Strong JavaScript and Node.js background. Missing: MongoDB (but it's learnable).
+        </div>
+        <button class="view-btn">View Details</button>
+      </div>
+
+      <div class="rec-card">
+        <div class="rec-header">
+          <div class="rec-title">Frontend Team Lead</div>
+          <div class="match-badge">84% Match</div>
+        </div>
+        <div class="rec-company">Digital Innovation Inc</div>
+        <div class="rec-location">📍 Barangay Barahan</div>
+        <div class="rec-reason">
+          <strong>Why matched:</strong> Leadership experience + technical skills. Perfect for mentoring junior developers.
+        </div>
+        <button class="view-btn">View Details</button>
+      </div>
+
+      <div class="rec-card">
+        <div class="rec-header">
+          <div class="rec-title">UI Component Engineer</div>
+          <div class="match-badge">79% Match</div>
+        </div>
+        <div class="rec-company">Design Systems Co</div>
+        <div class="rec-location">📍 Barangay Poblacion</div>
+        <div class="rec-reason">
+          <strong>Why matched:</strong> Your React knowledge + design thinking combination is ideal for this role.
+        </div>
+        <button class="view-btn">View Details</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>&copy; 2026 TalentScout AI — PESO Nasugbu, Batangas. AI-powered talent matching.</p>
+  </footer>
+</body>
+</html>

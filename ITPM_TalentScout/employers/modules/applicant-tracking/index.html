@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Applicant Tracking | Employers - TalentScout AI</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
+    
+    .navbar { background: white; border-bottom: 1px solid #e0e0e0; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .nav-logo { font-size: 1.25rem; font-weight: 700; color: #1a1a1a; text-decoration: none; }
+    .nav-logo span { color: #98FBCB; }
+    .nav-links { list-style: none; display: flex; gap: 2rem; }
+    .nav-links a { text-decoration: none; color: #666; font-weight: 500; }
+    
+    .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+    
+    .header { margin-bottom: 2rem; }
+    .header h1 { font-size: 2rem; color: #1a1a1a; }
+    
+    .kanban { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+    
+    .column {
+      background: white;
+      border-radius: 4px;
+      border-top: 4px solid #98FBCB;
+      padding: 1.5rem;
+    }
+    
+    .column-title { font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .column-count { color: #98FBCB; font-weight: 700; }
+    
+    .card {
+      background: #f9f9f9;
+      border-radius: 4px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid #e0e0e0;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    
+    .card-name { font-weight: 700; color: #1a1a1a; }
+    .card-role { color: #98FBCB; font-size: 0.85rem; margin-top: 0.25rem; }
+    .card-time { color: #999; font-size: 0.8rem; margin-top: 0.5rem; }
+    
+    .footer { background: #1a1a1a; color: white; padding: 2rem; margin-top: 3rem; text-align: center; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="../../index.html" class="nav-logo">Talent<span>Scout</span> AI</a>
+    <ul class="nav-links">
+      <li><a href="../../index.html">Home</a></li>
+      <li><a href="../post-jobs/">Post Jobs</a></li>
+      <li><a href="../employee-finder/">Find Talent</a></li>
+      <li><a href="./" style="color: #98FBCB; font-weight: 700;">Pipeline</a></li>
+      <li><a href="../chat-sms/">Messages</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <div class="header">
+      <h1>📊 Job Application Tracker</h1>
+      <p style="color: #666; margin-top: 0.5rem;">Manage your entire hiring pipeline</p>
+    </div>
+
+    <div class="kanban">
+      <!-- Applied -->
+      <div class="column">
+        <div class="column-title">📥 Applied <span class="column-count">8</span></div>
+        
+        <div class="card">
+          <div class="card-name">John Dela Cruz</div>
+          <div class="card-role">Senior React Developer</div>
+          <div class="card-time">Applied 2 days ago</div>
+        </div>
+
+        <div class="card">
+          <div class="card-name">Maria Santos</div>
+          <div class="card-role">Full Stack Engineer</div>
+          <div class="card-time">Applied 1 day ago</div>
+        </div>
+
+        <div class="card">
+          <div class="card-name">Roberto Garcia</div>
+          <div class="card-role">Backend Developer</div>
+          <div class="card-time">Applied today</div>
+        </div>
+
+        <div class="card">
+          <div class="card-name">Angela Santos</div>
+          <div class="card-role">UI/UX Designer</div>
+          <div class="card-time">Applied today</div>
+        </div>
+      </div>
+
+      <!-- Screening -->
+      <div class="column">
+        <div class="column-title">👀 In Review <span class="column-count">5</span></div>
+        
+        <div class="card">
+          <div class="card-name">Carlos Reyes</div>
+          <div class="card-role">Senior React Developer</div>
+          <div class="card-time">In review since yesterday</div>
+        </div>
+
+        <div class="card">
+          <div class="card-name">Lisa Wong</div>
+          <div class="card-role">Full Stack Developer</div>
+          <div class="card-time">In review since 2 days ago</div>
+        </div>
+
+        <div class="card">
+          <div class="card-name">David Kim</div>
+          <div class="card-role">Backend Developer</div>
+          <div class="card-time">In review since 1 day ago</div>
+        </div>
+      </div>
+
+      <!-- Interview -->
+      <div class="column">
+        <div class="column-title">📞 Interview <span class="column-count">3</span></div>
+        
+        <div class="card">
+          <div class="card-name">Jennifer Lee</div>
+          <div class="card-role">Senior React Developer</div>
+          <div class="card-time">Interview scheduled 24 Mar</div>
+        </div>
+
+        <div class="card">
+          <div class="card-name">Michael Brown</div>
+          <div class="card-role">Full Stack Engineer</div>
+          <div class="card-time">Interview scheduled 25 Mar</div>
+        </div>
+
+        <div class="card">
+          <div class="card-name">Sarah Jones</div>
+          <div class="card-role">UI Designer</div>
+          <div class="card-time">Interview completed 20 Mar</div>
+        </div>
+      </div>
+
+      <!-- Offer -->
+      <div class="column">
+        <div class="column-title">✅ Offer <span class="column-count">1</span></div>
+        
+        <div class="card">
+          <div class="card-name">Jennifer Lee</div>
+          <div class="card-role">Senior React Developer</div>
+          <div class="card-time">Offer sent 21 Mar</div>
+        </div>
+      </div>
+
+      <!-- Hired -->
+      <div class="column">
+        <div class="column-title">🎉 Hired <span class="column-count">2</span></div>
+        
+        <div class="card">
+          <div class="card-name">Michael Chen</div>
+          <div class="card-role">Full Stack Developer</div>
+          <div class="card-time">Hired on 15 Mar</div>
+        </div>
+
+        <div class="card">
+          <div class="card-name">Nina Patel</div>
+          <div class="card-role">UI/UX Designer</div>
+          <div class="card-time">Hired on 10 Mar</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>&copy; 2026 TalentScout AI — PESO Nasugbu, Batangas. Streamlined hiring process.</p>
+  </footer>
+</body>
+</html>
