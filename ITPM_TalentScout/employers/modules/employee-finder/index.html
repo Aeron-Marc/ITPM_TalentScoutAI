@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Finder | Employers - TalentScout AI</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
+    
+    .navbar { background: white; border-bottom: 1px solid #e0e0e0; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .nav-logo { font-size: 1.25rem; font-weight: 700; color: #1a1a1a; text-decoration: none; }
+    .nav-logo span { color: #98FBCB; }
+    .nav-links { list-style: none; display: flex; gap: 2rem; }
+    .nav-links a { text-decoration: none; color: #666; font-weight: 500; }
+    
+    .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+    
+    .header { margin-bottom: 2rem; }
+    .header h1 { font-size: 2rem; color: #1a1a1a; }
+    
+    .search-container {
+      background: white;
+      border-left: 4px solid #98FBCB;
+      border-radius: 4px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .search-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+    .form-input { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; }
+    
+    .search-btn {
+      background: #98FBCB;
+      color: #1a1a1a;
+      border: none;
+      padding: 0.75rem 2rem;
+      border-radius: 4px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .search-btn:hover { background: #7af0b1; }
+    
+    .candidates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    .candidate-card {
+      background: white;
+      border-radius: 4px;
+      padding: 1.5rem;
+      border: 1px solid #e0e0e0;
+    }
+    
+    .candidate-header { display: flex; align-items: start; gap: 1rem; margin-bottom: 1rem; }
+    .candidate-avatar {
+      width: 60px;
+      height: 60px;
+      background: #98FBCB;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #1a1a1a;
+      flex-shrink: 0;
+    }
+    
+    .candidate-name { font-weight: 700; color: #1a1a1a; }
+    .candidate-title { color: #98FBCB; font-weight: 600; font-size: 0.9rem; }
+    .candidate-location { color: #666; font-size: 0.9rem; margin-top: 0.5rem; }
+    
+    .candidate-skills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+    
+    .skill-tag {
+      background: #f0f0f0;
+      color: #666;
+      padding: 0.25rem 0.5rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+    }
+    
+    .candidate-footer {
+      display: flex;
+      gap: 0.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e0e0e0;
+    }
+    
+    .message-btn, .profile-btn {
+      flex: 1;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: white;
+    }
+    
+    .message-btn {
+      background: #98FBCB;
+      color: #1a1a1a;
+      border-color: #98FBCB;
+    }
+    .message-btn:hover { background: #7af0b1; }
+    
+    .profile-btn { color: #666; }
+    .profile-btn:hover { background: #f9f9f9; }
+    
+    .footer { background: #1a1a1a; color: white; padding: 2rem; margin-top: 3rem; text-align: center; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="../../index.html" class="nav-logo">Talent<span>Scout</span> AI</a>
+    <ul class="nav-links">
+      <li><a href="../../index.html">Home</a></li>
+      <li><a href="../post-jobs/">Post Jobs</a></li>
+      <li><a href="./" style="color: #98FBCB; font-weight: 700;">Find Talent</a></li>
+      <li><a href="../applicant-tracking/">Pipeline</a></li>
+      <li><a href="../chat-sms/">Messages</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <div class="header">
+      <h1>🔍 Employee Finder</h1>
+      <p style="color: #666; margin-top: 0.5rem;">Search and filter candidates from our talent pool</p>
+    </div>
+
+    <div class="search-container">
+      <div class="search-grid">
+        <input type="text" class="form-input" placeholder="Search by job title...">
+        <input type="text" class="form-input" placeholder="Search by skills...">
+        <input type="text" class="form-input" placeholder="Location...">
+      </div>
+      <button class="search-btn">Search Candidates</button>
+    </div>
+
+    <h2 style="margin-bottom: 1.5rem;">Matching Candidates (24 found)</h2>
+    <div class="candidates-grid">
+      <div class="candidate-card">
+        <div class="candidate-header">
+          <div class="candidate-avatar">JD</div>
+          <div>
+            <div class="candidate-name">John Dela Cruz</div>
+            <div class="candidate-title">Senior React Developer</div>
+            <div class="candidate-location">📍 Barangay Kaylaway</div>
+          </div>
+        </div>
+        <div class="candidate-skills">
+          <span class="skill-tag">React</span>
+          <span class="skill-tag">TypeScript</span>
+          <span class="skill-tag">Node.js</span>
+          <span class="skill-tag">SQL</span>
+        </div>
+        <p style="font-size: 0.9rem; color: #666; margin-bottom: 1rem; line-height: 1.5;">5+ years in full-stack development. Recently completed system design certification. Available immediately.</p>
+        <div class="candidate-footer">
+          <button class="message-btn">View Profile</button>
+          <button class="profile-btn">Message</button>
+        </div>
+      </div>
+
+      <div class="candidate-card">
+        <div class="candidate-header">
+          <div class="candidate-avatar">MP</div>
+          <div>
+            <div class="candidate-name">Maria Pagutansan</div>
+            <div class="candidate-title">Full Stack Engineer</div>
+            <div class="candidate-location">📍 Barangay Talahib</div>
+          </div>
+        </div>
+        <div class="candidate-skills">
+          <span class="skill-tag">JavaScript</span>
+          <span class="skill-tag">React</span>
+          <span class="skill-tag">Python</span>
+          <span class="skill-tag">PostgreSQL</span>
+        </div>
+        <p style="font-size: 0.9rem; color: #666; margin-bottom: 1rem; line-height: 1.5;">7 years experience. BS Computer Science. Strong problem-solving skills. Open to remote work.</p>
+        <div class="candidate-footer">
+          <button class="message-btn">View Profile</button>
+          <button class="profile-btn">Message</button>
+        </div>
+      </div>
+
+      <div class="candidate-card">
+        <div class="candidate-header">
+          <div class="candidate-avatar">RG</div>
+          <div>
+            <div class="candidate-name">Roberto Garcia</div>
+            <div class="candidate-title">Backend Developer</div>
+            <div class="candidate-location">📍 Barangay Poblacion</div>
+          </div>
+        </div>
+        <div class="candidate-skills">
+          <span class="skill-tag">Node.js</span>
+          <span class="skill-tag">Java</span>
+          <span class="skill-tag">Docker</span>
+          <span class="skill-tag">AWS</span>
+        </div>
+        <p style="font-size: 0.9rem; color: #666; margin-bottom: 1rem; line-height: 1.5;">4 years backend development. Experience with microservices. DevOps certified. Seeking new challenge.</p>
+        <div class="candidate-footer">
+          <button class="message-btn">View Profile</button>
+          <button class="profile-btn">Message</button>
+        </div>
+      </div>
+
+      <div class="candidate-card">
+        <div class="candidate-header">
+          <div class="candidate-avatar">AS</div>
+          <div>
+            <div class="candidate-name">Angela Santos</div>
+            <div class="candidate-title">UI/UX Designer</div>
+            <div class="candidate-location">📍 Barangay Barahan</div>
+          </div>
+        </div>
+        <div class="candidate-skills">
+          <span class="skill-tag">Figma</span>
+          <span class="skill-tag">UI Design</span>
+          <span class="skill-tag">Adobe XD</span>
+          <span class="skill-tag">Prototyping</span>
+        </div>
+        <p style="font-size: 0.9rem; color: #666; margin-bottom: 1rem; line-height: 1.5;">6 years design experience. Award-winning portfolio. Specialized in product design. Can start immediately.</p>
+        <div class="candidate-footer">
+          <button class="message-btn">View Profile</button>
+          <button class="profile-btn">Message</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>&copy; 2026 TalentScout AI — PESO Nasugbu, Batangas. Find your next star employee.</p>
+  </footer>
+</body>
+</html>

@@ -1,221 +1,317 @@
-﻿<!DOCTYPE html>
+﻿<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>For Job Seekers â€” TalentScout AI</title>
-  <link rel="stylesheet" href="../styles/global.css">
-  <link rel="stylesheet" href="../styles/page-layout.css"></head>
-<body>
-
-<!-- NAVBAR -->
-<nav class="navbar">
-  <a href="../index.html" class="nav-logo">
-    <div class="nav-logo-icon">TS</div>
-    <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
-  </a>
-  <ul class="nav-links">
-    <li><a href="../index.html">Home</a></li>
-    <li><a href="./index.html" class="active">For Job Seekers</a></li>
-    <li><a href="../employers/">For Employers</a></li>
-    <li><a href="../peso-dashboard/">PESO Admin</a></li>
-  </ul>
-  <div class="nav-actions">
-    <a href="#" class="btn btn-outline">Login</a>
-    <a href="#" class="btn btn-primary">Get Started</a>
-  </div>
-</nav>
-
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-inner">
-    <div>
-      <div class="hero-label">ðŸ’¼ Find Your Dream Job</div>
-      <h1>Land Your Next <span>Opportunity</span> in Nasugbu</h1>
-      <p class="hero-desc">
-        TalentScout AI matches you with jobs based on your skills and experience. Get AI-powered recommendations, build your resume, and track your applications in one place.
-      </p>
-      <div class="hero-actions">
-        <a href="../job-postings/" class="btn-hero-primary">Browse Jobs</a>
-        <a href="../applicant-tracking/" class="btn-hero-outline">Track Applications</a>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>For Job Seekers â€” TalentScout AI</title>
+    <link rel="stylesheet" href="../styles/global.css" />
+    <link rel="stylesheet" href="../styles/page-layout.css" />
+  </head>
+  <body>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+      <a href="./index.html" class="nav-logo">
+        <div class="nav-logo-icon">TS</div>
+        <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="./index.html" class="active">Home</a></li>
+        <li><a href="./modules/job-postings/">Browse Jobs</a></li>
+        <li><a href="./modules/ai-matching/">AI Matching</a></li>
+        <li><a href="./modules/skill-gap-analysis/">Skills</a></li>
+        <li><a href="./modules/applicant-tracking/">Applications</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="./login.html" class="btn btn-outline">Login</a>
+        <a href="./signup.html" class="btn btn-primary">Get Started</a>
       </div>
-    </div>
+    </nav>
 
-    <div class="hero-visual">
-      <div class="mock-card">
-        <div class="mock-top">
-          <span class="mock-title">ðŸ¤– Perfect Match Found</span>
-          <span class="mock-badge">92% Match</span>
-        </div>
-        <div style="font-weight:700; font-size:1rem; margin-bottom:0.25rem;">Senior React Developer</div>
-        <div style="font-size:0.82rem; opacity:0.72; margin-bottom:0.8rem;">Tech Solutions PH â€¢ Barangay Kaylaway</div>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-inner">
         <div>
-          <span class="mock-chip">React</span>
-          <span class="mock-chip">TypeScript</span>
-          <span class="mock-chip">Node.js</span>
+          <div class="hero-label">ðŸ’¼ Find Your Dream Job</div>
+          <h1>Land Your Next <span>Opportunity</span> in Nasugbu</h1>
+          <p class="hero-desc">
+            TalentScout AI matches you with jobs based on your skills and
+            experience. Get AI-powered recommendations, build your resume, and
+            track your applications in one place.
+          </p>
+          <div class="hero-actions">
+            <a href="./modules/job-postings/" class="btn-hero-primary"
+              >Browse Jobs</a
+            >
+            <a href="./modules/applicant-tracking/" class="btn-hero-outline"
+              >Track Applications</a
+            >
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="mock-card">
+            <div class="mock-top">
+              <span class="mock-title">ðŸ¤– Perfect Match Found</span>
+              <span class="mock-badge">92% Match</span>
+            </div>
+            <div
+              style="font-weight: 700; font-size: 1rem; margin-bottom: 0.25rem"
+            >
+              Senior React Developer
+            </div>
+            <div
+              style="font-size: 0.82rem; opacity: 0.72; margin-bottom: 0.8rem"
+            >
+              Tech Solutions PH â€¢ Barangay Kaylaway
+            </div>
+            <div>
+              <span class="mock-chip">React</span>
+              <span class="mock-chip">TypeScript</span>
+              <span class="mock-chip">Node.js</span>
+            </div>
+          </div>
+
+          <div class="mock-card">
+            <div
+              style="font-size: 0.82rem; opacity: 0.7; margin-bottom: 0.6rem"
+            >
+              Your Profile Strength
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                font-size: 0.78rem;
+                margin-bottom: 0.3rem;
+              "
+            >
+              <span>Resume Ready</span
+              ><span style="color: #98fbcb; font-weight: 700">100%</span>
+            </div>
+            <div class="mock-bar-bg">
+              <div class="mock-bar-fill" style="width: 100%"></div>
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                font-size: 0.78rem;
+                margin-bottom: 0.3rem;
+              "
+            >
+              <span>Skills Verified</span
+              ><span style="color: #98fbcb; font-weight: 700">8 / 10</span>
+            </div>
+            <div class="mock-bar-bg">
+              <div class="mock-bar-fill" style="width: 80%"></div>
+            </div>
+          </div>
         </div>
       </div>
+    </section>
 
-      <div class="mock-card">
-        <div style="font-size:0.82rem;opacity:0.70;margin-bottom:0.6rem;">Your Profile Strength</div>
-        <div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:0.3rem;">
-          <span>Resume Ready</span><span style="color:#98FBCB;font-weight:700;">100%</span>
+    <!-- FEATURES -->
+    <div class="features-bg">
+      <div class="features-header">
+        <div class="section-label">Your Toolkit</div>
+        <h2 class="section-title">Everything You Need to Succeed</h2>
+        <p class="section-subtitle">
+          Smart tools designed to help you find the right job, build your
+          skills, and advance your career.
+        </p>
+        <div style="margin-top: 1.5rem">
+          <a href="./modules/" class="btn btn-primary">View All Tools</a>
         </div>
-        <div class="mock-bar-bg"><div class="mock-bar-fill" style="width:100%;"></div></div>
-        <div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:0.3rem;">
-          <span>Skills Verified</span><span style="color:#98FBCB;font-weight:700;">8 / 10</span>
+      </div>
+      <div class="features-grid">
+        <a href="./modules/job-postings/" class="feature-card">
+          <div class="feature-icon">ðŸ“‹</div>
+          <div class="feature-title">Browse Job Opportunities</div>
+          <p class="feature-desc">
+            Explore hundreds of active job postings across all barangays in
+            Nasugbu. Filter by skills, location, salary, and job type.
+          </p>
+          <span class="feature-link">Explore Jobs â†’</span>
+        </a>
+        <a href="./modules/ai-matching/" class="feature-card">
+          <div class="feature-icon">ðŸ¤–</div>
+          <div class="feature-title">AI Job Matching</div>
+          <p class="feature-desc">
+            Get personalized job recommendations powered by AI that analyzes
+            your skills and matches you with the best opportunities.
+          </p>
+          <span class="feature-link">See Your Matches â†’</span>
+        </a>
+        <a href="#" class="feature-card">
+          <div class="feature-icon">âœï¸</div>
+          <div class="feature-title">Resume Builder</div>
+          <p class="feature-desc">
+            Create a professional resume with guided templates. Highlight your
+            skills and experience to stand out to employers.
+          </p>
+          <span class="feature-link">Build Resume â†’</span>
+        </a>
+        <a href="./modules/skill-gap-analysis/" class="feature-card">
+          <div class="feature-icon">ðŸ“Š</div>
+          <div class="feature-title">Skill Gap Analysis</div>
+          <p class="feature-desc">
+            Get a detailed analysis of your skills and discover exactly what
+            training you need to unlock more job opportunities.
+          </p>
+          <span class="feature-link">Analyze Skills â†’</span>
+        </a>
+        <a href="#" class="feature-card">
+          <div class="feature-icon">ðŸ“š</div>
+          <div class="feature-title">Upskilling Courses</div>
+          <p class="feature-desc">
+            Access personalized course recommendations to close your skill gaps
+            and level up your career prospects.
+          </p>
+          <span class="feature-link">Find Courses â†’</span>
+        </a>
+        <a href="./modules/applicant-tracking/" class="feature-card">
+          <div class="feature-icon">ðŸ“‘</div>
+          <div class="feature-title">Application Tracker</div>
+          <p class="feature-desc">
+            Monitor every application in real-time. Track status from Pending
+            through Interview to Successfully Hired.
+          </p>
+          <span class="feature-link">Track Applications â†’</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- BENEFITS -->
+    <div class="benefits-section">
+      <div class="benefits-inner">
+        <div class="benefits-header">
+          <div class="section-label">Why Choose TalentScout</div>
+          <h2>Built For Your Success</h2>
         </div>
-        <div class="mock-bar-bg"><div class="mock-bar-fill" style="width:80%;"></div></div>
+        <div class="benefits-grid">
+          <div class="benefit-item">
+            <div class="benefit-icon">âš¡</div>
+            <div class="benefit-title">Faster Matching</div>
+            <div class="benefit-desc">
+              AI-powered matching finds your perfect job in seconds, not weeks.
+              Get matched to roles that truly fit your skills.
+            </div>
+          </div>
+          <div class="benefit-item">
+            <div class="benefit-icon">ðŸŽ¯</div>
+            <div class="benefit-title">Fair & Unbiased</div>
+            <div class="benefit-desc">
+              Blind hiring evaluates you based on skills alone. No
+              discrimination, no bias â€” pure talent recognition.
+            </div>
+          </div>
+          <div class="benefit-item">
+            <div class="benefit-icon">ðŸ“ˆ</div>
+            <div class="benefit-title">Skill Development</div>
+            <div class="benefit-desc">
+              Get upskilling recommendations tailored to what employers in
+              Nasugbu are actually looking for.
+            </div>
+          </div>
+          <div class="benefit-item">
+            <div class="benefit-icon">ðŸŒ</div>
+            <div class="benefit-title">Local Opportunities</div>
+            <div class="benefit-desc">
+              Support local employment. Find jobs within your community or work
+              remotely for Nasugbu-based companies.
+            </div>
+          </div>
+          <div class="benefit-item">
+            <div class="benefit-icon">ðŸ“±</div>
+            <div class="benefit-title">Always Connected</div>
+            <div class="benefit-desc">
+              Chat and SMS support to stay updated on your applications and
+              communicate with employers instantly.
+            </div>
+          </div>
+          <div class="benefit-item">
+            <div class="benefit-icon">âœ…</div>
+            <div class="benefit-title">One Dashboard</div>
+            <div class="benefit-desc">
+              Manage your profile, resume, job applications, and skill
+              development â€” all in one place.
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</section>
 
-<!-- FEATURES -->
-<div class="features-bg">
-  <div class="features-header">
-    <div class="section-label">Your Toolkit</div>
-    <h2 class="section-title">Everything You Need to Succeed</h2>
-    <p class="section-subtitle">Smart tools designed to help you find the right job, build your skills, and advance your career.</p>
-    <div style="margin-top:1.5rem;"><a href="./modules/" class="btn btn-primary">View All Tools</a></div>
-  </div>
-  <div class="features-grid">
-    <a href="../job-postings/" class="feature-card">
-      <div class="feature-icon">ðŸ“‹</div>
-      <div class="feature-title">Browse Job Opportunities</div>
-      <p class="feature-desc">Explore hundreds of active job postings across all barangays in Nasugbu. Filter by skills, location, salary, and job type.</p>
-      <span class="feature-link">Explore Jobs â†’</span>
-    </a>
-    <a href="../ai-matching/" class="feature-card">
-      <div class="feature-icon">ðŸ¤–</div>
-      <div class="feature-title">AI Job Matching</div>
-      <p class="feature-desc">Get personalized job recommendations powered by AI that analyzes your skills and matches you with the best opportunities.</p>
-      <span class="feature-link">See Your Matches â†’</span>
-    </a>
-    <a href="#" class="feature-card">
-      <div class="feature-icon">âœï¸</div>
-      <div class="feature-title">Resume Builder</div>
-      <p class="feature-desc">Create a professional resume with guided templates. Highlight your skills and experience to stand out to employers.</p>
-      <span class="feature-link">Build Resume â†’</span>
-    </a>
-    <a href="../skill-gap-analysis/" class="feature-card">
-      <div class="feature-icon">ðŸ“Š</div>
-      <div class="feature-title">Skill Gap Analysis</div>
-      <p class="feature-desc">Get a detailed analysis of your skills and discover exactly what training you need to unlock more job opportunities.</p>
-      <span class="feature-link">Analyze Skills â†’</span>
-    </a>
-    <a href="#" class="feature-card">
-      <div class="feature-icon">ðŸ“š</div>
-      <div class="feature-title">Upskilling Courses</div>
-      <p class="feature-desc">Access personalized course recommendations to close your skill gaps and level up your career prospects.</p>
-      <span class="feature-link">Find Courses â†’</span>
-    </a>
-    <a href="../applicant-tracking/" class="feature-card">
-      <div class="feature-icon">ðŸ“‘</div>
-      <div class="feature-title">Application Tracker</div>
-      <p class="feature-desc">Monitor every application in real-time. Track status from Pending through Interview to Successfully Hired.</p>
-      <span class="feature-link">Track Applications â†’</span>
-    </a>
-  </div>
-</div>
+    <!-- CTA -->
+    <section class="cta-section">
+      <div class="cta-inner">
+        <div class="section-label">Ready to Get Started?</div>
+        <h2 class="cta-title">Start Your Job Search Today</h2>
+        <p class="cta-desc">
+          Join hundreds of job seekers who have found their dream jobs through
+          TalentScout AI. Create your profile and get matched to opportunities
+          in minutes.
+        </p>
+        <div class="cta-actions">
+          <a
+            href="../job-postings/"
+            class="btn btn-primary"
+            style="padding: 0.85rem 2rem; font-size: 0.95rem"
+            >Browse Job Postings</a
+          >
+          <a
+            href="#"
+            class="btn btn-outline"
+            style="padding: 0.85rem 2rem; font-size: 0.95rem"
+            >Create Profile</a
+          >
+        </div>
+      </div>
+    </section>
 
-<!-- BENEFITS -->
-<div class="benefits-section">
-  <div class="benefits-inner">
-    <div class="benefits-header">
-      <div class="section-label">Why Choose TalentScout</div>
-      <h2>Built For Your Success</h2>
-    </div>
-    <div class="benefits-grid">
-      <div class="benefit-item">
-        <div class="benefit-icon">âš¡</div>
-        <div class="benefit-title">Faster Matching</div>
-        <div class="benefit-desc">AI-powered matching finds your perfect job in seconds, not weeks. Get matched to roles that truly fit your skills.</div>
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <h3>TalentScout AI</h3>
+            <p>
+              Smart AI-powered recruitment platform for PESO Nasugbu, Batangas.
+              Connecting local talent with local opportunities.
+            </p>
+          </div>
+          <div class="footer-col">
+            <h4>For Job Seekers</h4>
+            <ul>
+              <li><a href="../job-postings/">Browse Jobs</a></li>
+              <li><a href="../ai-matching/">AI Matching</a></li>
+              <li><a href="../skill-gap-analysis/">Skill Gap Analysis</a></li>
+              <li><a href="../applicant-tracking/">Track Applications</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>For Employers</h4>
+            <ul>
+              <li><a href="../employers/">Post Jobs</a></li>
+              <li><a href="../blind-hiring/">Blind Hiring</a></li>
+              <li><a href="../employers/">Find Talent</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>PESO Nasugbu</h4>
+            <ul>
+              <li><a href="#">Nasugbu, Batangas</a></li>
+              <li><a href="#">About PESO</a></li>
+              <li><a href="#">Contact Us</a></li>
+              <li><a href="#">Privacy Policy</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span>Â© 2026 TalentScout AI â€” PESO Nasugbu, Batangas</span>
+          <span>Built for Local Employment & Community Growth</span>
+        </div>
       </div>
-      <div class="benefit-item">
-        <div class="benefit-icon">ðŸŽ¯</div>
-        <div class="benefit-title">Fair & Unbiased</div>
-        <div class="benefit-desc">Blind hiring evaluates you based on skills alone. No discrimination, no bias â€” pure talent recognition.</div>
-      </div>
-      <div class="benefit-item">
-        <div class="benefit-icon">ðŸ“ˆ</div>
-        <div class="benefit-title">Skill Development</div>
-        <div class="benefit-desc">Get upskilling recommendations tailored to what employers in Nasugbu are actually looking for.</div>
-      </div>
-      <div class="benefit-item">
-        <div class="benefit-icon">ðŸŒ</div>
-        <div class="benefit-title">Local Opportunities</div>
-        <div class="benefit-desc">Support local employment. Find jobs within your community or work remotely for Nasugbu-based companies.</div>
-      </div>
-      <div class="benefit-item">
-        <div class="benefit-icon">ðŸ“±</div>
-        <div class="benefit-title">Always Connected</div>
-        <div class="benefit-desc">Chat and SMS support to stay updated on your applications and communicate with employers instantly.</div>
-      </div>
-      <div class="benefit-item">
-        <div class="benefit-icon">âœ…</div>
-        <div class="benefit-title">One Dashboard</div>
-        <div class="benefit-desc">Manage your profile, resume, job applications, and skill development â€” all in one place.</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- CTA -->
-<section class="cta-section">
-  <div class="cta-inner">
-    <div class="section-label">Ready to Get Started?</div>
-    <h2 class="cta-title">Start Your Job Search Today</h2>
-    <p class="cta-desc">Join hundreds of job seekers who have found their dream jobs through TalentScout AI. Create your profile and get matched to opportunities in minutes.</p>
-    <div class="cta-actions">
-      <a href="../job-postings/" class="btn btn-primary" style="padding:0.85rem 2rem;font-size:0.95rem;">Browse Job Postings</a>
-      <a href="#" class="btn btn-outline" style="padding:0.85rem 2rem;font-size:0.95rem;">Create Profile</a>
-    </div>
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer class="footer">
-  <div class="footer-inner">
-    <div class="footer-top">
-      <div class="footer-brand">
-        <h3>TalentScout AI</h3>
-        <p>Smart AI-powered recruitment platform for PESO Nasugbu, Batangas. Connecting local talent with local opportunities.</p>
-      </div>
-      <div class="footer-col">
-        <h4>For Job Seekers</h4>
-        <ul>
-          <li><a href="../job-postings/">Browse Jobs</a></li>
-          <li><a href="../ai-matching/">AI Matching</a></li>
-          <li><a href="../skill-gap-analysis/">Skill Gap Analysis</a></li>
-          <li><a href="../applicant-tracking/">Track Applications</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>For Employers</h4>
-        <ul>
-          <li><a href="../employers/">Post Jobs</a></li>
-          <li><a href="../blind-hiring/">Blind Hiring</a></li>
-          <li><a href="../employers/">Find Talent</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>PESO Nasugbu</h4>
-        <ul>
-          <li><a href="#">Nasugbu, Batangas</a></li>
-          <li><a href="#">About PESO</a></li>
-          <li><a href="#">Contact Us</a></li>
-          <li><a href="#">Privacy Policy</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span>Â© 2026 TalentScout AI â€” PESO Nasugbu, Batangas</span>
-      <span>Built for Local Employment & Community Growth</span>
-    </div>
-  </div>
-</footer>
-
-</body>
+    </footer>
+    <script src="./employee-auth.js"></script>
+  </body>
 </html>
-

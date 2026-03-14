@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics & Reports | PESO Admin - TalentScout AI</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; color: #333; }
+    
+    .navbar { background: white; border-bottom: 1px solid #e0e0e0; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .nav-logo { font-size: 1.25rem; font-weight: 700; color: #1a1a1a; text-decoration: none; }
+    .nav-logo span { color: #98FBCB; }
+    .nav-links { list-style: none; display: flex; gap: 2rem; }
+    .nav-links a { text-decoration: none; color: #666; font-weight: 500; }
+    
+    .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+    
+    .header h1 { font-size: 2rem; color: #1a1a1a; margin-bottom: 2rem; }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+      background: white;
+      border-left: 4px solid #98FBCB;
+      border-radius: 4px;
+      padding: 1.5rem;
+    }
+    
+    .stat-number { font-size: 2.5rem; font-weight: 700; color: #98FBCB; }
+    .stat-label { color: #666; margin-top: 0.5rem; font-weight: 600; }
+    .stat-change { color: #4caf50; font-size: 0.9rem; margin-top: 0.5rem; }
+    
+    .chart-section {
+      background: white;
+      border-left: 4px solid #98FBCB;
+      border-radius: 4px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .chart-title { font-size: 1.2rem; font-weight: 700; color: #1a1a1a; margin-bottom: 1.5rem; }
+    
+    .bar-chart { display: flex; align-items: flex-end; gap: 1rem; height: 300px; justify-content: space-around; }
+    .bar { width: 40px; background: linear-gradient(180deg, #98FBCB, #63e6b3); border-radius: 4px 4px 0 0; cursor: pointer; }
+    .bar:hover { opacity: 0.8; }
+    
+    .table-section {
+      background: white;
+      border-left: 4px solid #98FBCB;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    th {
+      background: #f9f9f9;
+      border-bottom: 2px solid #e0e0e0;
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+    
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    tr:hover { background: #f9f9f9; }
+    
+    .footer { background: #1a1a1a; color: white; padding: 2rem; margin-top: 3rem; text-align: center; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="../../index.html" class="nav-logo">Talent<span>Scout</span> AI</a>
+    <ul class="nav-links">
+      <li><a href="../../index.html">Dashboard</a></li>
+      <li><a href="./" style="color: #98FBCB; font-weight: 700;">Analytics</a></li>
+      <li><a href="../employer-management/">Employers</a></li>
+      <li><a href="../employee-management/">Employees</a></li>
+      <li><a href="../application-tracking/">Applications</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <h1 style="font-size: 2rem; color: #1a1a1a; margin-bottom: 2rem;">📊 Analytics & Reports</h1>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">1,240</div>
+        <div class="stat-label">Total Applicants</div>
+        <div class="stat-change">↑ +12% from last month</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-number">247</div>
+        <div class="stat-label">Active Job Posts</div>
+        <div class="stat-change">↑ +8% from last month</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-number">89</div>
+        <div class="stat-label">Registered Employers</div>
+        <div class="stat-change">↑ +5% from last month</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-number">523</div>
+        <div class="stat-label">Hired</div>
+        <div class="stat-change">↑ +15% from last month</div>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-title">Hiring Trend (Monthly)</div>
+      <div class="bar-chart">
+        <div class="bar" style="height: 40%;"></div>
+        <div class="bar" style="height: 55%;"></div>
+        <div class="bar" style="height: 65%;"></div>
+        <div class="bar" style="height: 80%;"></div>
+        <div class="bar" style="height: 75%;"></div>
+        <div class="bar" style="height: 90%;"></div>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-title">Top Hiring Categories</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Job Category</th>
+            <th>Open Positions</th>
+            <th>Applications</th>
+            <th>Hired</th>
+            <th>Avg Days to Hire</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Software Development</td>
+            <td>45</td>
+            <td>380</td>
+            <td>128</td>
+            <td>8.5 days</td>
+          </tr>
+          <tr>
+            <td>Design</td>
+            <td>12</td>
+            <td>95</td>
+            <td>24</td>
+            <td>7.2 days</td>
+          </tr>
+          <tr>
+            <td>Sales & Marketing</td>
+            <td>28</td>
+            <td>210</td>
+            <td>56</td>
+            <td>9.1 days</td>
+          </tr>
+          <tr>
+            <td>Administration</td>
+            <td>18</td>
+            <td>145</td>
+            <td>45</td>
+            <td>6.8 days</td>
+          </tr>
+          <tr>
+            <td>Customer Service</td>
+            <td>15</td>
+            <td>110</td>
+            <td>38</td>
+            <td>5.4 days</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-title">Talent Pool Distribution by Barangay</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Barangay</th>
+            <th>Registered Candidates</th>
+            <th>Active Applicants</th>
+            <th>Employed</th>
+            <th>Employment Rate</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Barangay Kaylaway</td>
+            <td>245</td>
+            <td>128</td>
+            <td>89</td>
+            <td>36.3%</td>
+          </tr>
+          <tr>
+            <td>Barangay Poblacion</td>
+            <td>187</td>
+            <td>94</td>
+            <td>72</td>
+            <td>38.5%</td>
+          </tr>
+          <tr>
+            <td>Barangay Talahib</td>
+            <td>156</td>
+            <td>78</td>
+            <td>58</td>
+            <td>37.2%</td>
+          </tr>
+          <tr>
+            <td>Barangay Barahan</td>
+            <td>142</td>
+            <td>72</td>
+            <td>51</td>
+            <td>35.9%</td>
+          </tr>
+          <tr>
+            <td>Other Barangays</td>
+            <td>343</td>
+            <td>172</td>
+            <td>119</td>
+            <td>34.7%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>&copy; 2026 TalentScout AI — PESO Nasugbu, Batangas. Data-driven insights.</p>
+  </footer>
+</body>
+</html>
