@@ -6,159 +6,6 @@
     <title>Application Tracker | Job Seekers - TalentScout AI</title>
     <link rel="stylesheet" href="../../../styles/global.css" />
     <link rel="stylesheet" href="../../../styles/page-layout.css" />
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      body {
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        background: #f5f5f5;
-        color: #333;
-      }
-
-      .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem;
-      }
-
-      .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 2rem;
-      }
-      .header h1 {
-        font-size: 2rem;
-        color: #1a1a1a;
-      }
-      .header-subtitle {
-        color: #666;
-        margin-top: 0.5rem;
-      }
-
-      .stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        margin-bottom: 2rem;
-      }
-
-      .stat-card {
-        background: white;
-        border-left: 4px solid #98fbcb;
-        border-radius: 4px;
-        padding: 1.5rem;
-      }
-
-      .stat-number {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #98fbcb;
-      }
-      .stat-label {
-        color: #666;
-        font-size: 0.9rem;
-        margin-top: 0.5rem;
-      }
-
-      .table-container {
-        background: white;
-        border-radius: 4px;
-        overflow: hidden;
-      }
-
-      table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-
-      th {
-        background: #f9f9f9;
-        border-bottom: 2px solid #e0e0e0;
-        padding: 1rem;
-        text-align: left;
-        font-weight: 600;
-        color: #1a1a1a;
-      }
-
-      td {
-        padding: 1.25rem 1rem;
-        border-bottom: 1px solid #e0e0e0;
-      }
-
-      tr:hover {
-        background: #f9f9f9;
-      }
-
-      .job-title {
-        font-weight: 600;
-        color: #1a1a1a;
-      }
-      .company {
-        color: #98fbcb;
-        font-weight: 600;
-      }
-      .applied-date {
-        color: #666;
-        font-size: 0.9rem;
-      }
-
-      .status-badge {
-        display: inline-block;
-        padding: 0.35rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-      }
-
-      .status-pending {
-        background: #fff3cd;
-        color: #856404;
-      }
-      .status-reviewed {
-        background: #d1ecf1;
-        color: #0c5460;
-      }
-      .status-interview {
-        background: #d1ecf1;
-        color: #0c5460;
-        border-color: #bee5eb;
-      }
-      .status-rejected {
-        background: #f8d7da;
-        color: #721c24;
-      }
-      .status-approved {
-        background: #d4edda;
-        color: #155724;
-      }
-
-      .action-btn {
-        background: #98fbcb;
-        color: #1a1a1a;
-        border: none;
-        padding: 0.4rem 0.8rem;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 0.85rem;
-        font-weight: 600;
-      }
-      .action-btn:hover {
-        background: #7af0b1;
-      }
-
-      .footer {
-        background: #1a1a1a;
-        color: white;
-        padding: 2rem;
-        margin-top: 3rem;
-        text-align: center;
-      }
-    </style>
   </head>
   <body>
     <nav class="navbar">
@@ -172,6 +19,7 @@
         <li><a href="../ai-matching/">AI Matching</a></li>
         <li><a href="../skill-gap-analysis/">Skills</a></li>
         <li><a href="./" class="active">Applications</a></li>
+        <li><a href="../">All Tools</a></li>
       </ul>
       <div class="nav-actions">
         <a href="../../login.html" class="btn btn-outline">Login</a>
@@ -179,37 +27,41 @@
       </div>
     </nav>
 
-    <div class="container">
-      <div class="header">
-        <div>
-          <h1>📑 Application Tracker</h1>
-          <p class="header-subtitle">
-            Monitor your job applications from apply to hire
-          </p>
+    <div class="page-header">
+      <div class="page-header-inner">
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a> / Application Tracker
+        </div>
+        <h1>Application Tracker</h1>
+        <p>
+          Monitor your job applications from first submission to interview and
+          final hiring decision.
+        </p>
+      </div>
+    </div>
+
+    <main class="employee-module-shell">
+      <div class="tracker-stats">
+        <div class="tracker-stat-card">
+          <div class="tracker-stat-number">8</div>
+          <div class="tracker-stat-label">Total Applications</div>
+        </div>
+        <div class="tracker-stat-card">
+          <div class="tracker-stat-number">2</div>
+          <div class="tracker-stat-label">Interviews Scheduled</div>
+        </div>
+        <div class="tracker-stat-card">
+          <div class="tracker-stat-number">1</div>
+          <div class="tracker-stat-label">Job Offer</div>
+        </div>
+        <div class="tracker-stat-card">
+          <div class="tracker-stat-number">5</div>
+          <div class="tracker-stat-label">Under Review</div>
         </div>
       </div>
 
-      <div class="stats">
-        <div class="stat-card">
-          <div class="stat-number">8</div>
-          <div class="stat-label">Total Applications</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number">2</div>
-          <div class="stat-label">Interviews Scheduled</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number">1</div>
-          <div class="stat-label">Job Offer</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number">5</div>
-          <div class="stat-label">Under Review</div>
-        </div>
-      </div>
-
-      <div class="table-container">
-        <table>
+      <div class="tracker-table-wrap">
+        <table class="tracker-table">
           <thead>
             <tr>
               <th>Job Title</th>
@@ -221,18 +73,18 @@
           </thead>
           <tbody>
             <tr>
-              <td class="job-title">Senior React Developer</td>
-              <td class="company">Tech Solutions PH</td>
-              <td class="applied-date">2026-03-10</td>
+              <td class="tracker-job-title">Senior React Developer</td>
+              <td class="tracker-company">Tech Solutions PH</td>
+              <td>2026-03-10</td>
               <td>
                 <span class="status-badge status-approved">Offer Received</span>
               </td>
               <td><button class="action-btn">View Details</button></td>
             </tr>
             <tr>
-              <td class="job-title">Full Stack Developer</td>
-              <td class="company">WebDev Studios</td>
-              <td class="applied-date">2026-03-08</td>
+              <td class="tracker-job-title">Full Stack Developer</td>
+              <td class="tracker-company">WebDev Studios</td>
+              <td>2026-03-08</td>
               <td>
                 <span class="status-badge status-interview"
                   >Interview Scheduled</span
@@ -241,9 +93,9 @@
               <td><button class="action-btn">View Details</button></td>
             </tr>
             <tr>
-              <td class="job-title">UI Component Engineer</td>
-              <td class="company">Design Systems Co</td>
-              <td class="applied-date">2026-03-07</td>
+              <td class="tracker-job-title">UI Component Engineer</td>
+              <td class="tracker-company">Design Systems Co</td>
+              <td>2026-03-07</td>
               <td>
                 <span class="status-badge status-interview"
                   >Interview Scheduled</span
@@ -252,43 +104,43 @@
               <td><button class="action-btn">View Details</button></td>
             </tr>
             <tr>
-              <td class="job-title">Frontend Team Lead</td>
-              <td class="company">Digital Innovation Inc</td>
-              <td class="applied-date">2026-03-05</td>
+              <td class="tracker-job-title">Frontend Team Lead</td>
+              <td class="tracker-company">Digital Innovation Inc</td>
+              <td>2026-03-05</td>
               <td>
                 <span class="status-badge status-reviewed">Under Review</span>
               </td>
               <td><button class="action-btn">View Details</button></td>
             </tr>
             <tr>
-              <td class="job-title">Data Analyst</td>
-              <td class="company">Analytics Pro</td>
-              <td class="applied-date">2026-03-03</td>
+              <td class="tracker-job-title">Data Analyst</td>
+              <td class="tracker-company">Analytics Pro</td>
+              <td>2026-03-03</td>
               <td>
                 <span class="status-badge status-reviewed">Under Review</span>
               </td>
               <td><button class="action-btn">View Details</button></td>
             </tr>
             <tr>
-              <td class="job-title">Junior Developer</td>
-              <td class="company">StartUp Lab</td>
-              <td class="applied-date">2026-02-28</td>
+              <td class="tracker-job-title">Junior Developer</td>
+              <td class="tracker-company">StartUp Lab</td>
+              <td>2026-02-28</td>
               <td>
                 <span class="status-badge status-rejected">Not Selected</span>
               </td>
               <td><button class="action-btn">View Details</button></td>
             </tr>
             <tr>
-              <td class="job-title">Backend Engineer</td>
-              <td class="company">Cloud Systems Inc</td>
-              <td class="applied-date">2026-02-25</td>
+              <td class="tracker-job-title">Backend Engineer</td>
+              <td class="tracker-company">Cloud Systems Inc</td>
+              <td>2026-02-25</td>
               <td><span class="status-badge status-pending">Pending</span></td>
               <td><button class="action-btn">View Details</button></td>
             </tr>
             <tr>
-              <td class="job-title">API Developer</td>
-              <td class="company">Tech Innovations Ltd</td>
-              <td class="applied-date">2026-02-22</td>
+              <td class="tracker-job-title">API Developer</td>
+              <td class="tracker-company">Tech Innovations Ltd</td>
+              <td>2026-02-22</td>
               <td>
                 <span class="status-badge status-reviewed">Under Review</span>
               </td>
@@ -297,13 +149,47 @@
           </tbody>
         </table>
       </div>
-    </div>
+    </main>
 
     <footer class="footer">
-      <p>
-        &copy; 2026 TalentScout AI — PESO Nasugbu, Batangas. Track your path to
-        success.
-      </p>
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <h3>TalentScout AI</h3>
+            <p>
+              Smart AI-powered recruitment platform for PESO Nasugbu, Batangas.
+              Follow your application journey with a clear, unified dashboard.
+            </p>
+          </div>
+          <div class="footer-col">
+            <h4>Employee Tools</h4>
+            <ul>
+              <li><a href="../job-postings/">Job Postings</a></li>
+              <li><a href="../ai-matching/">AI Matching</a></li>
+              <li><a href="../skill-gap-analysis/">Skill Gap Analysis</a></li>
+              <li><a href="./">Application Tracker</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>Account</h4>
+            <ul>
+              <li><a href="../../login.html">Login</a></li>
+              <li><a href="../../signup.html">Sign Up</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>PESO Nasugbu</h4>
+            <ul>
+              <li><a href="#">Nasugbu, Batangas</a></li>
+              <li><a href="#">Contact Us</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span>© 2026 TalentScout AI - PESO Nasugbu, Batangas</span>
+          <span>Track your path from application to hiring</span>
+        </div>
+      </div>
     </footer>
     <script src="../../employee-auth.js"></script>
   </body>

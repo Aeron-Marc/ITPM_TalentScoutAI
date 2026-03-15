@@ -1,30 +1,32 @@
 /* ===== CSS VARIABLES ===== */
 :root {
   --nav-height: 60px;
-  
+
   /* Colors */
-  --primary-dark: #1E9E86;
-  --primary-mid: #4FBFA4;
-  --primary-light: #98FBCB;
-  --primary-lighter: #D4F7ED;
-  
+  --primary-dark: #1e9e86;
+  --primary-mid: #4fbfa4;
+  --primary-light: #98fbcb;
+  --primary-lighter: #d4f7ed;
+  --primary: #d4f7ed;
+  --primary-darker: #157a68;
+
   /* Text */
-  --text-dark: #1A1A1A;
-  --text-mid: #4A4A4A;
-  --text-light: #7A7A7A;
-  --text-muted: #A0A0A0;
-  
+  --text-dark: #1a1a1a;
+  --text-mid: #4a4a4a;
+  --text-light: #7a7a7a;
+  --text-muted: #a0a0a0;
+
   /* Background */
-  --bg-light: #F8FFFE;
-  --bg-lighter: #EEFFF9;
-  --border: #E0E8E5;
-  
+  --bg-light: #f8fffe;
+  --bg-lighter: #eefff9;
+  --border: #e0e8e5;
+
   /* Spacing */
   --radius: 8px;
   --radius-sm: 4px;
-  
+
   /* Shadow */
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
   --shadow: 0 4px 12px rgba(30, 158, 134, 0.15);
   --shadow-lg: 0 10px 30px rgba(30, 158, 134, 0.2);
 }
@@ -41,13 +43,20 @@ html {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
   color: var(--text-dark);
   line-height: 1.6;
   background: white;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: 700;
   line-height: 1.2;
 }
@@ -171,7 +180,7 @@ a {
 }
 
 .btn-primary:hover {
-  background: #157A68;
+  background: #157a68;
   box-shadow: var(--shadow);
 }
 
@@ -218,7 +227,7 @@ a {
 }
 
 .btn-hero-primary:hover {
-  background: #157A68;
+  background: #157a68;
   box-shadow: var(--shadow-lg);
   transform: translateY(-2px);
 }
@@ -271,35 +280,51 @@ a {
   color: var(--primary-dark);
 }
 
-.mt-1 { margin-top: 0.5rem; }
-.mt-2 { margin-top: 1rem; }
-.mt-3 { margin-top: 1.5rem; }
-.mt-4 { margin-top: 2rem; }
+.mt-1 {
+  margin-top: 0.5rem;
+}
+.mt-2 {
+  margin-top: 1rem;
+}
+.mt-3 {
+  margin-top: 1.5rem;
+}
+.mt-4 {
+  margin-top: 2rem;
+}
 
-.mb-1 { margin-bottom: 0.5rem; }
-.mb-2 { margin-bottom: 1rem; }
-.mb-3 { margin-bottom: 1.5rem; }
-.mb-4 { margin-bottom: 2rem; }
+.mb-1 {
+  margin-bottom: 0.5rem;
+}
+.mb-2 {
+  margin-bottom: 1rem;
+}
+.mb-3 {
+  margin-bottom: 1.5rem;
+}
+.mb-4 {
+  margin-bottom: 2rem;
+}
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
   .navbar {
     padding: 0 1.5rem;
   }
-  
+
   .nav-links {
     gap: 0;
   }
-  
+
   .nav-links a {
     padding: 0 1rem;
     font-size: 0.8rem;
   }
-  
+
   .section-title {
     font-size: 1.5rem;
   }
-  
+
   .btn-nav {
     padding: 0.5rem 1rem;
     font-size: 0.8rem;

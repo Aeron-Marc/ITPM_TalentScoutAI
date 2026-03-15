@@ -349,6 +349,7 @@
         <li><a href="../ai-matching/">AI Matching</a></li>
         <li><a href="../skill-gap-analysis/">Skills</a></li>
         <li><a href="../applicant-tracking/">Applications</a></li>
+        <li><a href="../">All Tools</a></li>
       </ul>
       <div class="nav-actions">
         <a href="../../login.html" class="btn btn-outline">Login</a>
@@ -555,7 +556,9 @@
 
             <div class="resume-actions">
               <button type="submit" class="btn btn-primary">Save Resume</button>
-              <button type="button" class="btn btn-primary" id="downloadPdfBtn">&#8595; Download PDF</button>
+              <button type="button" class="btn btn-primary" id="downloadPdfBtn">
+                &#8595; Download PDF
+              </button>
               <button type="button" class="btn btn-outline" id="fillSampleBtn">
                 Fill Sample Data
               </button>
@@ -573,7 +576,12 @@
       </div>
     </main>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
+      integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
     <script src="../../employee-auth.js"></script>
     <script>
       const STORAGE_KEY = "tsEmployeeResumeData";
@@ -1361,7 +1369,9 @@
         .addEventListener("click", function () {
           const element = document.getElementById("resumePreview");
           const rawName = (baseFields.fullName.value || "resume").trim();
-          const safeName = rawName.replace(/[^a-z0-9_\-\s]/gi, "").replace(/\s+/g, "_") || "resume";
+          const safeName =
+            rawName.replace(/[^a-z0-9_\-\s]/gi, "").replace(/\s+/g, "_") ||
+            "resume";
 
           const btn = document.getElementById("downloadPdfBtn");
           btn.disabled = true;

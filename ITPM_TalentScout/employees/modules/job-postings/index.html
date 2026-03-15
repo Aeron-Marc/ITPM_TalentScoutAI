@@ -3,164 +3,248 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Browse Job Postings | Job Seekers - TalentScout AI</title>
+    <title>Job Postings — TalentScout AI</title>
     <link rel="stylesheet" href="../../../styles/global.css" />
     <link rel="stylesheet" href="../../../styles/page-layout.css" />
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+      .search-bar-wrap {
+        background: white;
+        border-bottom: 1px solid var(--border);
+        padding: 1.25rem 2.5rem;
       }
-      body {
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        background: #f5f5f5;
-        color: #333;
-      }
-
-      /* Main Content */
-      .container {
+      .search-bar {
         max-width: 1200px;
         margin: 0 auto;
-        padding: 2rem;
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+      }
+      .search-input-rel {
+        position: relative;
+        flex: 2;
+      }
+      .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-light);
+        font-size: 0.9rem;
+      }
+      .search-input-rel .input {
+        padding-left: 2.5rem;
       }
 
-      .header {
+      .main-layout {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 2.5rem;
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        gap: 2rem;
+      }
+
+      /* Sidebar */
+      .sidebar-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.25rem;
+        margin-bottom: 1.25rem;
+      }
+      .sidebar-title {
+        font-weight: 700;
+        font-size: 0.88rem;
+        color: var(--text-dark);
+        margin-bottom: 1rem;
+        padding-bottom: 0.6rem;
+        border-bottom: 1px solid var(--border);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .filter-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.87rem;
+        color: var(--text-mid);
+        padding: 0.38rem 0;
+      }
+      .filter-left {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .fcheck {
+        width: 16px;
+        height: 16px;
+        border: 1.5px solid var(--border);
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.65rem;
+        flex-shrink: 0;
+      }
+      .fcheck.on {
+        background: var(--primary-dark);
+        border-color: var(--primary-dark);
+        color: white;
+      }
+      .fcount {
+        background: var(--bg-light);
+        color: var(--text-light);
+        padding: 0.1rem 0.5rem;
+        border-radius: 100px;
+        font-size: 0.75rem;
+      }
+
+      /* Salary range */
+      .range-bar {
+        height: 4px;
+        background: var(--border);
+        border-radius: 100px;
+        position: relative;
+        margin: 0.5rem 0;
+      }
+      .range-fill {
+        position: absolute;
+        left: 12%;
+        right: 28%;
+        height: 100%;
+        background: var(--primary-dark);
+        border-radius: 100px;
+      }
+
+      /* Jobs column */
+      .jobs-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 2rem;
+        margin-bottom: 1.25rem;
       }
-      .header h1 {
-        font-size: 2rem;
-        color: #1a1a1a;
+      .jobs-count {
+        font-size: 0.9rem;
+        color: var(--text-light);
       }
-      .header-subtitle {
-        color: #666;
-        margin-top: 0.5rem;
-      }
-
-      .search-bar {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 2rem;
-      }
-      .search-bar input {
-        flex: 1;
-        padding: 0.75rem 1rem;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 0.95rem;
-      }
-      .search-bar button {
-        padding: 0.75rem 2rem;
-        background: #98fbcb;
-        color: #1a1a1a;
-        border: none;
-        border-radius: 4px;
-        font-weight: 600;
-        cursor: pointer;
-      }
-      .search-bar button:hover {
-        background: #7af0b1;
-      }
-
-      /* Job Cards Grid */
-      .jobs-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        gap: 1.5rem;
+      .jobs-count strong {
+        color: var(--text-dark);
+        font-weight: 700;
       }
 
       .job-card {
         background: white;
-        border-left: 4px solid #98fbcb;
-        border-radius: 4px;
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius);
         padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.2s;
         cursor: pointer;
-        transition:
-          box-shadow 0.2s,
-          transform 0.2s;
       }
       .job-card:hover {
-        box-shadow: 0 4px 12px rgba(152, 251, 203, 0.2);
-        transform: translateY(-2px);
+        border-color: var(--primary-dark);
+        box-shadow: var(--shadow);
       }
-
+      .job-top {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+      }
+      .job-logo {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1rem;
+        flex-shrink: 0;
+      }
+      .job-info {
+        flex: 1;
+      }
       .job-title {
-        font-size: 1.1rem;
         font-weight: 700;
-        color: #1a1a1a;
-        margin-bottom: 0.5rem;
+        font-size: 1.05rem;
+        color: var(--text-dark);
+        margin-bottom: 0.2rem;
       }
       .job-company {
-        color: #98fbcb;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
+        font-size: 0.87rem;
+        color: var(--text-mid);
       }
-      .job-location {
-        color: #666;
-        font-size: 0.9rem;
-        margin-bottom: 1rem;
-      }
-      .job-description {
-        color: #777;
-        font-size: 0.9rem;
-        line-height: 1.5;
-        margin-bottom: 1rem;
-      }
-
       .job-meta {
         display: flex;
-        gap: 1rem;
-        margin-bottom: 1rem;
+        gap: 1.2rem;
+        flex-wrap: wrap;
+        font-size: 0.83rem;
+        color: var(--text-light);
+        margin: 0.6rem 0;
+      }
+      .job-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+      }
+      .job-skills {
+        display: flex;
+        gap: 0.4rem;
         flex-wrap: wrap;
       }
-      .job-tag {
-        background: #f0f0f0;
-        color: #666;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
-      }
-
       .job-footer {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding-top: 1rem;
-        border-top: 1px solid #f0f0f0;
+        margin-top: 1rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--border);
       }
       .job-salary {
-        color: #98fbcb;
         font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--primary-darker);
       }
-      .apply-btn {
-        background: #98fbcb;
-        color: #1a1a1a;
-        border: none;
-        padding: 0.5rem 1.5rem;
-        border-radius: 4px;
-        font-weight: 600;
-        cursor: pointer;
+      .job-date {
+        font-size: 0.8rem;
+        color: var(--text-light);
       }
-      .apply-btn:hover {
-        background: #7af0b1;
+      .job-footer-actions {
+        display: flex;
+        gap: 0.5rem;
       }
 
-      /* Footer */
-      .footer {
-        background: #1a1a1a;
+      /* Pagination */
+      .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.4rem;
+        margin-top: 2rem;
+      }
+      .pg-btn {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius-sm);
+        font-size: 0.87rem;
+        font-weight: 500;
+        border: 1.5px solid var(--border);
+        background: white;
+        color: var(--text-mid);
+        cursor: pointer;
+      }
+      .pg-btn.active {
+        background: var(--primary-dark);
+        border-color: var(--primary-dark);
         color: white;
-        padding: 2rem;
-        margin-top: 3rem;
-        text-align: center;
       }
     </style>
   </head>
   <body>
-    <!-- Navbar -->
+    <!-- NAVBAR -->
     <nav class="navbar">
       <a href="../../index.html" class="nav-logo">
         <div class="nav-logo-icon">TS</div>
@@ -172,6 +256,7 @@
         <li><a href="../ai-matching/">AI Matching</a></li>
         <li><a href="../skill-gap-analysis/">Skills</a></li>
         <li><a href="../applicant-tracking/">Applications</a></li>
+        <li><a href="../">All Tools</a></li>
       </ul>
       <div class="nav-actions">
         <a href="../../login.html" class="btn btn-outline">Login</a>
@@ -179,147 +264,557 @@
       </div>
     </nav>
 
-    <!-- Main Content -->
-    <div class="container">
-      <div class="header">
-        <div>
-          <h1>📋 Browse Job Postings</h1>
-          <p class="header-subtitle">
-            Explore opportunities in Nasugbu, matched to your skills
-          </p>
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <div class="page-header-inner">
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a> / Job Postings
         </div>
-      </div>
-
-      <div class="search-bar">
-        <input
-          type="text"
-          placeholder="Search by job title, skills, or company..."
-        />
-        <button>Search</button>
-      </div>
-
-      <div class="jobs-grid">
-        <!-- Sample Job Cards -->
-        <div class="job-card">
-          <div class="job-title">Senior React Developer</div>
-          <div class="job-company">Tech Solutions PH</div>
-          <div class="job-location">📍 Barangay Kaylaway, Nasugbu</div>
-          <div class="job-description">
-            Looking for an experienced React developer to build modern web
-            applications...
-          </div>
-          <div class="job-meta">
-            <span class="job-tag">React</span>
-            <span class="job-tag">TypeScript</span>
-            <span class="job-tag">Node.js</span>
-          </div>
-          <div class="job-footer">
-            <div class="job-salary">₱50,000 - ₱70,000/month</div>
-            <button class="apply-btn">Apply Now</button>
-          </div>
-        </div>
-
-        <div class="job-card">
-          <div class="job-title">UI/UX Designer</div>
-          <div class="job-company">Creative Studio Inc</div>
-          <div class="job-location">📍 Barangay Candasngan, Nasugbu</div>
-          <div class="job-description">
-            Design beautiful and intuitive user interfaces for our product
-            suite...
-          </div>
-          <div class="job-meta">
-            <span class="job-tag">Figma</span>
-            <span class="job-tag">UI Design</span>
-            <span class="job-tag">Adobe XD</span>
-          </div>
-          <div class="job-footer">
-            <div class="job-salary">₱35,000 - ₱50,000/month</div>
-            <button class="apply-btn">Apply Now</button>
-          </div>
-        </div>
-
-        <div class="job-card">
-          <div class="job-title">Data Analyst</div>
-          <div class="job-company">Analytics Pro</div>
-          <div class="job-location">📍 Barangay Poblacion, Nasugbu</div>
-          <div class="job-description">
-            Analyze data and create insights to drive business decisions...
-          </div>
-          <div class="job-meta">
-            <span class="job-tag">SQL</span>
-            <span class="job-tag">Power BI</span>
-            <span class="job-tag">Python</span>
-          </div>
-          <div class="job-footer">
-            <div class="job-salary">₱40,000 - ₱60,000/month</div>
-            <button class="apply-btn">Apply Now</button>
-          </div>
-        </div>
-
-        <div class="job-card">
-          <div class="job-title">Customer Service Manager</div>
-          <div class="job-company">Service Excellence Ltd</div>
-          <div class="job-location">📍 Barangay Talahib, Nasugbu</div>
-          <div class="job-description">
-            Lead a team of customer service representatives and ensure excellent
-            service...
-          </div>
-          <div class="job-meta">
-            <span class="job-tag">Leadership</span>
-            <span class="job-tag">Communication</span>
-            <span class="job-tag">Management</span>
-          </div>
-          <div class="job-footer">
-            <div class="job-salary">₱45,000 - ₱65,000/month</div>
-            <button class="apply-btn">Apply Now</button>
-          </div>
-        </div>
-
-        <div class="job-card">
-          <div class="job-title">Full Stack Developer</div>
-          <div class="job-company">WebDev Studios</div>
-          <div class="job-location">📍 Barangay Barahan, Nasugbu</div>
-          <div class="job-description">
-            Build end-to-end web solutions using modern tech stacks...
-          </div>
-          <div class="job-meta">
-            <span class="job-tag">JavaScript</span>
-            <span class="job-tag">React</span>
-            <span class="job-tag">Node.js</span>
-          </div>
-          <div class="job-footer">
-            <div class="job-salary">₱55,000 - ₱75,000/month</div>
-            <button class="apply-btn">Apply Now</button>
-          </div>
-        </div>
-
-        <div class="job-card">
-          <div class="job-title">Marketing Specialist</div>
-          <div class="job-company">Growth Marketing Co</div>
-          <div class="job-location">📍 Barangay Kaylaway, Nasugbu</div>
-          <div class="job-description">
-            Develop and execute marketing strategies to drive business growth...
-          </div>
-          <div class="job-meta">
-            <span class="job-tag">Digital Marketing</span>
-            <span class="job-tag">SEO</span>
-            <span class="job-tag">Social Media</span>
-          </div>
-          <div class="job-footer">
-            <div class="job-salary">₱32,000 - ₱48,000/month</div>
-            <button class="apply-btn">Apply Now</button>
-          </div>
-        </div>
+        <h1>📋 Job Postings</h1>
+        <p>
+          Explore available jobs across all barangays in Nasugbu, Batangas.
+          Centralized, digitized, and updated daily.
+        </p>
       </div>
     </div>
 
-    <!-- Footer -->
+    <!-- SEARCH BAR -->
+    <div class="search-bar-wrap">
+      <div class="search-bar">
+        <div class="search-input-rel">
+          <span class="search-icon">🔍</span>
+          <input
+            type="text"
+            class="input"
+            placeholder="Search job title, skills, or company..."
+          />
+        </div>
+        <select class="input select" style="width: 200px">
+          <option>All Barangays</option>
+          <option>Barangay Kaylaway</option>
+          <option>Barangay Natipuan</option>
+          <option>Barangay Bucana</option>
+          <option>Barangay Maugat</option>
+          <option>Barangay Reparo</option>
+          <option>Barangay Calayo</option>
+          <option>Barangay Pantalan</option>
+          <option>Barangay Wawa</option>
+          <option>Barangay Bolo</option>
+          <option>Barangay Lumbangan</option>
+          <option>Barangay Aga</option>
+          <option>Barangay Bilaran</option>
+          <option>Barangay Utod</option>
+        </select>
+        <select class="input select" style="width: 160px">
+          <option>All Job Types</option>
+          <option>Full-time</option>
+          <option>Part-time</option>
+          <option>Remote</option>
+          <option>Hybrid</option>
+          <option>Contract</option>
+        </select>
+        <a
+          href="#"
+          class="btn btn-primary"
+          style="white-space: nowrap; padding: 0.65rem 1.5rem"
+          >Search Jobs</a
+        >
+      </div>
+    </div>
+
+    <!-- MAIN LAYOUT -->
+    <div class="main-layout">
+      <!-- SIDEBAR FILTERS -->
+      <aside>
+        <div class="sidebar-card">
+          <div class="sidebar-title">Job Category</div>
+          <div class="filter-item">
+            <div class="filter-left">
+              <div class="fcheck on">✓</div>
+              <span>Technology</span>
+            </div>
+            <span class="fcount">42</span>
+          </div>
+          <div class="filter-item">
+            <div class="filter-left">
+              <div class="fcheck on">✓</div>
+              <span>Healthcare</span>
+            </div>
+            <span class="fcount">28</span>
+          </div>
+          <div class="filter-item">
+            <div class="filter-left">
+              <div class="fcheck"></div>
+              <span>Finance &amp; Accounting</span>
+            </div>
+            <span class="fcount">35</span>
+          </div>
+          <div class="filter-item">
+            <div class="filter-left">
+              <div class="fcheck"></div>
+              <span>Education</span>
+            </div>
+            <span class="fcount">19</span>
+          </div>
+          <div class="filter-item">
+            <div class="filter-left">
+              <div class="fcheck"></div>
+              <span>Construction</span>
+            </div>
+            <span class="fcount">24</span>
+          </div>
+          <div class="filter-item">
+            <div class="filter-left">
+              <div class="fcheck"></div>
+              <span>Hospitality</span>
+            </div>
+            <span class="fcount">31</span>
+          </div>
+          <div class="filter-item">
+            <div class="filter-left">
+              <div class="fcheck"></div>
+              <span>Customer Service</span>
+            </div>
+            <span class="fcount">47</span>
+          </div>
+          <div class="filter-item">
+            <div class="filter-left">
+              <div class="fcheck"></div>
+              <span>Agriculture</span>
+            </div>
+            <span class="fcount">11</span>
+          </div>
+        </div>
+
+        <div class="sidebar-card">
+          <div class="sidebar-title">Work Setup</div>
+          <div class="filter-item">
+            <div class="filter-left">
+              <div class="fcheck on">✓</div>
+              <span>On-site</span>
+            </div>
+            <span class="fcount">186</span>
+          </div>
+          <div class="filter-item">
+            <div class="filter-left">
+              <div class="fcheck on">✓</div>
+              <span>Remote</span>
+            </div>
+            <span class="fcount">74</span>
+          </div>
+          <div class="filter-item">
+            <div class="filter-left">
+              <div class="fcheck"></div>
+              <span>Hybrid</span>
+            </div>
+            <span class="fcount">43</span>
+          </div>
+        </div>
+
+        <div class="sidebar-card">
+          <div class="sidebar-title">Salary Range</div>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              font-size: 0.82rem;
+              color: var(--text-light);
+              margin-bottom: 0.4rem;
+            "
+          >
+            <span>₱10,000</span><span>₱60,000+</span>
+          </div>
+          <div class="range-bar"><div class="range-fill"></div></div>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              font-size: 0.82rem;
+              font-weight: 700;
+              color: var(--primary-darker);
+              margin-top: 0.4rem;
+            "
+          >
+            <span>₱15,000</span><span>₱45,000</span>
+          </div>
+        </div>
+
+        <div class="sidebar-card">
+          <div class="sidebar-title">Experience Level</div>
+          <div class="filter-item">
+            <div class="filter-left">
+              <div class="fcheck on">✓</div>
+              <span>Entry Level</span>
+            </div>
+            <span class="fcount">89</span>
+          </div>
+          <div class="filter-item">
+            <div class="filter-left">
+              <div class="fcheck"></div>
+              <span>Mid Level</span>
+            </div>
+            <span class="fcount">127</span>
+          </div>
+          <div class="filter-item">
+            <div class="filter-left">
+              <div class="fcheck"></div>
+              <span>Senior Level</span>
+            </div>
+            <span class="fcount">58</span>
+          </div>
+        </div>
+
+        <div class="sidebar-card">
+          <div class="sidebar-title">Posted Within</div>
+          <div class="filter-item">
+            <div class="filter-left">
+              <div class="fcheck on">✓</div>
+              <span>Last 7 days</span>
+            </div>
+            <span class="fcount">68</span>
+          </div>
+          <div class="filter-item">
+            <div class="filter-left">
+              <div class="fcheck"></div>
+              <span>Last 30 days</span>
+            </div>
+            <span class="fcount">193</span>
+          </div>
+          <div class="filter-item">
+            <div class="filter-left">
+              <div class="fcheck"></div>
+              <span>All time</span>
+            </div>
+            <span class="fcount">247</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- JOB LISTINGS -->
+      <main>
+        <div class="jobs-header">
+          <div class="jobs-count">
+            Showing <strong>247 jobs</strong> in Nasugbu, Batangas
+          </div>
+          <select class="input select" style="width: 200px">
+            <option>Sort: Most Recent</option>
+            <option>Sort: Best AI Match</option>
+            <option>Sort: Salary (High–Low)</option>
+            <option>Sort: Salary (Low–High)</option>
+          </select>
+        </div>
+
+        <!-- JOB CARDS -->
+        <div class="job-card">
+          <div class="job-top">
+            <div class="job-logo" style="background: #e8f5e9; color: #2e7d32">
+              TS
+            </div>
+            <div class="job-info">
+              <div class="job-title">Front-End Developer</div>
+              <div class="job-company">Tech Solutions PH</div>
+            </div>
+            <span class="badge badge-blue">Remote</span>
+          </div>
+          <div class="job-meta">
+            <span>📍 Barangay Kaylaway</span>
+            <span>💼 Full-time</span>
+            <span>🎓 Mid Level</span>
+            <span>👥 Technology</span>
+          </div>
+          <div class="job-skills">
+            <span class="chip">React</span>
+            <span class="chip">JavaScript</span>
+            <span class="chip">HTML / CSS</span>
+            <span class="chip">Tailwind CSS</span>
+          </div>
+          <div class="job-footer">
+            <div class="job-salary">₱25,000 – ₱35,000 / mo</div>
+            <div style="display: flex; align-items: center; gap: 1rem">
+              <span class="job-date">Posted 2 days ago</span>
+              <a href="#" class="btn btn-primary">Apply Now</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="job-card">
+          <div class="job-top">
+            <div class="job-logo" style="background: #e3f2fd; color: #1565c0">
+              AB
+            </div>
+            <div class="job-info">
+              <div class="job-title">Accounting Assistant</div>
+              <div class="job-company">ABC Enterprises</div>
+            </div>
+            <span class="badge badge-gray">On-site</span>
+          </div>
+          <div class="job-meta">
+            <span>📍 Barangay Natipuan</span>
+            <span>💼 Full-time</span>
+            <span>🎓 Entry Level</span>
+            <span>💰 Finance</span>
+          </div>
+          <div class="job-skills">
+            <span class="chip">Bookkeeping</span>
+            <span class="chip">MS Excel</span>
+            <span class="chip">QuickBooks</span>
+            <span class="chip">BIR Filing</span>
+          </div>
+          <div class="job-footer">
+            <div class="job-salary">₱18,000 – ₱22,000 / mo</div>
+            <div style="display: flex; align-items: center; gap: 1rem">
+              <span class="job-date">Posted 1 day ago</span>
+              <a href="#" class="btn btn-primary">Apply Now</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="job-card">
+          <div class="job-top">
+            <div class="job-logo" style="background: #f3e5f5; color: #6a1b9a">
+              RI
+            </div>
+            <div class="job-info">
+              <div class="job-title">Customer Service Representative</div>
+              <div class="job-company">Remote Inc.</div>
+            </div>
+            <span class="badge badge-blue">Remote</span>
+          </div>
+          <div class="job-meta">
+            <span>📍 Barangay Bucana</span>
+            <span>💼 Full-time</span>
+            <span>🎓 Entry Level</span>
+            <span>☎️ Customer Service</span>
+          </div>
+          <div class="job-skills">
+            <span class="chip">Communication</span>
+            <span class="chip">English Fluency</span>
+            <span class="chip">CRM Tools</span>
+            <span class="chip">Shifting Schedule</span>
+          </div>
+          <div class="job-footer">
+            <div class="job-salary">₱20,000 – ₱25,000 / mo</div>
+            <div style="display: flex; align-items: center; gap: 1rem">
+              <span class="job-date">Posted 3 days ago</span>
+              <a href="#" class="btn btn-primary">Apply Now</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="job-card">
+          <div class="job-top">
+            <div class="job-logo" style="background: #e8f5e9; color: #1b5e20">
+              NM
+            </div>
+            <div class="job-info">
+              <div class="job-title">Registered Nurse</div>
+              <div class="job-company">Nasugbu Medical Center</div>
+            </div>
+            <span class="badge badge-gray">On-site</span>
+          </div>
+          <div class="job-meta">
+            <span>📍 Barangay Reparo</span>
+            <span>💼 Full-time</span>
+            <span>🎓 Mid Level</span>
+            <span>🏥 Healthcare</span>
+          </div>
+          <div class="job-skills">
+            <span class="chip">Patient Care</span>
+            <span class="chip">PRC Licensed</span>
+            <span class="chip">BLS / ACLS</span>
+            <span class="chip">IV Therapy</span>
+          </div>
+          <div class="job-footer">
+            <div class="job-salary">₱28,000 – ₱35,000 / mo</div>
+            <div style="display: flex; align-items: center; gap: 1rem">
+              <span class="job-date">Posted 5 days ago</span>
+              <a href="#" class="btn btn-primary">Apply Now</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="job-card">
+          <div class="job-top">
+            <div class="job-logo" style="background: #fff8e1; color: #e65100">
+              LB
+            </div>
+            <div class="job-info">
+              <div class="job-title">Digital Marketing Specialist</div>
+              <div class="job-company">Local Brand Co.</div>
+            </div>
+            <span class="badge badge-purple">Hybrid</span>
+          </div>
+          <div class="job-meta">
+            <span>📍 Barangay Calayo</span>
+            <span>💼 Full-time</span>
+            <span>🎓 Mid Level</span>
+            <span>📊 Marketing</span>
+          </div>
+          <div class="job-skills">
+            <span class="chip">Digital Marketing</span>
+            <span class="chip">Social Media</span>
+            <span class="chip">Canva</span>
+            <span class="chip">Google Analytics</span>
+          </div>
+          <div class="job-footer">
+            <div class="job-salary">₱22,000 – ₱28,000 / mo</div>
+            <div style="display: flex; align-items: center; gap: 1rem">
+              <span class="job-date">Posted 1 week ago</span>
+              <a href="#" class="btn btn-primary">Apply Now</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="job-card">
+          <div class="job-top">
+            <div class="job-logo" style="background: #e3f2fd; color: #0d47a1">
+              DC
+            </div>
+            <div class="job-info">
+              <div class="job-title">Data Entry Clerk</div>
+              <div class="job-company">Data Corp PH</div>
+            </div>
+            <span class="badge badge-blue">Remote</span>
+          </div>
+          <div class="job-meta">
+            <span>📍 Barangay Pantalan</span>
+            <span>💼 Part-time</span>
+            <span>🎓 Entry Level</span>
+            <span>⌨️ Admin / Data</span>
+          </div>
+          <div class="job-skills">
+            <span class="chip">MS Office</span>
+            <span class="chip">50+ WPM Typing</span>
+            <span class="chip">Attention to Detail</span>
+          </div>
+          <div class="job-footer">
+            <div class="job-salary">₱16,000 – ₱20,000 / mo</div>
+            <div style="display: flex; align-items: center; gap: 1rem">
+              <span class="job-date">Posted 2 days ago</span>
+              <a href="#" class="btn btn-primary">Apply Now</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="job-card">
+          <div class="job-top">
+            <div class="job-logo" style="background: #fff3e0; color: #bf360c">
+              SR
+            </div>
+            <div class="job-info">
+              <div class="job-title">Chef / Line Cook</div>
+              <div class="job-company">Seaside Restaurant</div>
+            </div>
+            <span class="badge badge-gray">On-site</span>
+          </div>
+          <div class="job-meta">
+            <span>📍 Barangay Wawa</span>
+            <span>💼 Full-time</span>
+            <span>🎓 Entry – Mid</span>
+            <span>🍽️ Hospitality</span>
+          </div>
+          <div class="job-skills">
+            <span class="chip">Culinary Arts</span>
+            <span class="chip">Food Safety</span>
+            <span class="chip">Menu Planning</span>
+          </div>
+          <div class="job-footer">
+            <div class="job-salary">₱18,000 – ₱22,000 / mo</div>
+            <div style="display: flex; align-items: center; gap: 1rem">
+              <span class="job-date">Posted 4 days ago</span>
+              <a href="#" class="btn btn-primary">Apply Now</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="job-card">
+          <div class="job-top">
+            <div class="job-logo" style="background: #fce4ec; color: #880e4f">
+              LH
+            </div>
+            <div class="job-info">
+              <div class="job-title">Elementary School Teacher</div>
+              <div class="job-company">Learning Hub Academy</div>
+            </div>
+            <span class="badge badge-gray">On-site</span>
+          </div>
+          <div class="job-meta">
+            <span>📍 Barangay Lumbangan</span>
+            <span>💼 Full-time</span>
+            <span>🎓 Entry Level</span>
+            <span>📚 Education</span>
+          </div>
+          <div class="job-skills">
+            <span class="chip">LET Passer</span>
+            <span class="chip">Classroom Management</span>
+            <span class="chip">Curriculum Design</span>
+          </div>
+          <div class="job-footer">
+            <div class="job-salary">₱20,000 – ₱25,000 / mo</div>
+            <div style="display: flex; align-items: center; gap: 1rem">
+              <span class="job-date">Posted 6 days ago</span>
+              <a href="#" class="btn btn-primary">Apply Now</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAGINATION -->
+        <div class="pagination">
+          <div class="pg-btn">‹</div>
+          <div class="pg-btn active">1</div>
+          <div class="pg-btn">2</div>
+          <div class="pg-btn">3</div>
+          <div class="pg-btn">…</div>
+          <div class="pg-btn">24</div>
+          <div class="pg-btn">›</div>
+        </div>
+      </main>
+    </div>
+
+    <!-- FOOTER -->
     <footer class="footer">
-      <p>
-        &copy; 2026 TalentScout AI — PESO Nasugbu, Batangas. Connecting talent
-        with opportunity.
-      </p>
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <h3>TalentScout AI</h3>
+            <p>
+              Smart AI-powered recruitment platform for PESO Nasugbu, Batangas.
+              Connecting local talent with local opportunities through fair,
+              intelligent hiring.
+            </p>
+          </div>
+          <div class="footer-col">
+            <h4>Features</h4>
+            <ul>
+              <li><a href="./">Job Postings</a></li>
+              <li><a href="../ai-matching/">AI Matching</a></li>
+              <li><a href="../skill-gap-analysis/">Skill Gap Analysis</a></li>
+              <li><a href="../blind-hiring-info/">Blind Hiring</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>Job Seeker</h4>
+            <ul>
+              <li><a href="../applicant-tracking/">Applicant Tracking</a></li>
+              <li><a href="../">All Employee Tools</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>PESO Nasugbu</h4>
+            <ul>
+              <li><a href="#">Nasugbu, Batangas</a></li>
+              <li><a href="#">About PESO</a></li>
+              <li><a href="#">Contact Us</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span>© 2026 TalentScout AI — PESO Nasugbu, Batangas</span>
+          <span>Built for Local Employment</span>
+        </div>
+      </div>
     </footer>
+
     <script src="../../employee-auth.js"></script>
   </body>
 </html>

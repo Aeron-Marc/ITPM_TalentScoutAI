@@ -6,114 +6,6 @@
     <title>Blind Hiring Info | Job Seekers - TalentScout AI</title>
     <link rel="stylesheet" href="../../../styles/global.css" />
     <link rel="stylesheet" href="../../../styles/page-layout.css" />
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      body {
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        background: #f5f5f5;
-        color: #333;
-      }
-
-      .container {
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 2rem;
-      }
-
-      .header {
-        text-align: center;
-        margin-bottom: 3rem;
-      }
-      .header h1 {
-        font-size: 2.5rem;
-        color: #1a1a1a;
-        margin-bottom: 0.5rem;
-      }
-      .header-subtitle {
-        color: #666;
-        font-size: 1.1rem;
-      }
-
-      .info-section {
-        background: white;
-        border-left: 4px solid #98fbcb;
-        border-radius: 4px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-      }
-
-      .info-section h2 {
-        color: #1a1a1a;
-        margin-bottom: 1rem;
-      }
-      .info-section p {
-        color: #666;
-        line-height: 1.6;
-        margin-bottom: 1rem;
-      }
-      .info-section ul {
-        margin-left: 1.5rem;
-        color: #666;
-      }
-      .info-section li {
-        margin-bottom: 0.5rem;
-        line-height: 1.6;
-      }
-
-      .benefits-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1.5rem;
-        margin-top: 2rem;
-      }
-
-      .benefit-card {
-        background: white;
-        border-radius: 4px;
-        padding: 1.5rem;
-        border: 1px solid #e0e0e0;
-        text-align: center;
-      }
-
-      .benefit-icon {
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
-      }
-      .benefit-title {
-        font-weight: 700;
-        color: #1a1a1a;
-        margin-bottom: 0.5rem;
-      }
-      .benefit-desc {
-        color: #666;
-        font-size: 0.9rem;
-      }
-
-      .highlight {
-        background: #eefff9;
-        border-left: 4px solid #98fbcb;
-        padding: 1.5rem;
-        border-radius: 4px;
-        margin: 2rem 0;
-      }
-
-      .highlight strong {
-        color: #1a1a1a;
-      }
-
-      .footer {
-        background: #1a1a1a;
-        color: white;
-        padding: 2rem;
-        margin-top: 3rem;
-        text-align: center;
-      }
-    </style>
   </head>
   <body>
     <nav class="navbar">
@@ -127,6 +19,7 @@
         <li><a href="../ai-matching/">AI Matching</a></li>
         <li><a href="../skill-gap-analysis/">Skills</a></li>
         <li><a href="../applicant-tracking/">Applications</a></li>
+        <li><a href="../">All Tools</a></li>
       </ul>
       <div class="nav-actions">
         <a href="../../login.html" class="btn btn-outline">Login</a>
@@ -134,15 +27,18 @@
       </div>
     </nav>
 
-    <div class="container">
-      <div class="header">
-        <h1>🫥 Blind Hiring Information</h1>
-        <p class="header-subtitle">
-          Fair, merit-based hiring that reduces bias
-        </p>
+    <div class="page-header">
+      <div class="page-header-inner">
+        <div class="breadcrumb">
+          <a href="../../index.html">Home</a> / Blind Hiring Information
+        </div>
+        <h1>Blind Hiring Information</h1>
+        <p>Fair, merit-based hiring that reduces bias and protects privacy.</p>
       </div>
+    </div>
 
-      <div class="info-section">
+    <main class="blind-container">
+      <div class="blind-info-section">
         <h2>What is Blind Hiring?</h2>
         <p>
           Blind hiring is a recruitment process where employers evaluate
@@ -157,13 +53,13 @@
         </p>
       </div>
 
-      <div class="highlight">
+      <div class="blind-highlight">
         <strong>✨ How It Works:</strong> Employers see your skills,
         certifications, and work experience — but not your name, photo, or
         personal background. You're evaluated purely on what you can do.
       </div>
 
-      <div class="info-section">
+      <div class="blind-info-section">
         <h2>Why Blind Hiring?</h2>
         <ul>
           <li>
@@ -185,41 +81,41 @@
         </ul>
       </div>
 
-      <div class="benefits-grid">
-        <div class="benefit-card">
-          <div class="benefit-icon">🎯</div>
-          <div class="benefit-title">Skill-Based</div>
-          <div class="benefit-desc">
+      <div class="blind-benefits-grid">
+        <div class="blind-benefit-card">
+          <div class="blind-benefit-icon">🎯</div>
+          <div class="blind-benefit-title">Skill-Based</div>
+          <div class="blind-benefit-desc">
             Evaluated on your abilities and experience, not background
           </div>
         </div>
 
-        <div class="benefit-card">
-          <div class="benefit-icon">⚖️</div>
-          <div class="benefit-title">Fair & Unbiased</div>
-          <div class="benefit-desc">
+        <div class="blind-benefit-card">
+          <div class="blind-benefit-icon">⚖️</div>
+          <div class="blind-benefit-title">Fair & Unbiased</div>
+          <div class="blind-benefit-desc">
             Same opportunity for everyone regardless of demographics
           </div>
         </div>
 
-        <div class="benefit-card">
-          <div class="benefit-icon">🔒</div>
-          <div class="benefit-title">Privacy Protected</div>
-          <div class="benefit-desc">
+        <div class="blind-benefit-card">
+          <div class="blind-benefit-icon">🔒</div>
+          <div class="blind-benefit-title">Privacy Protected</div>
+          <div class="blind-benefit-desc">
             Your personal details remain confidential during screening
           </div>
         </div>
 
-        <div class="benefit-card">
-          <div class="benefit-icon">📈</div>
-          <div class="benefit-title">Better Matches</div>
-          <div class="benefit-desc">
+        <div class="blind-benefit-card">
+          <div class="blind-benefit-icon">📈</div>
+          <div class="blind-benefit-title">Better Matches</div>
+          <div class="blind-benefit-desc">
             Jobs filled by candidates who actually have the skills
           </div>
         </div>
       </div>
 
-      <div class="info-section">
+      <div class="blind-info-section">
         <h2>How Your Profile is Anonymized</h2>
         <p>When you opt into blind hiring:</p>
         <ul>
@@ -237,7 +133,7 @@
         </ul>
       </div>
 
-      <div class="info-section">
+      <div class="blind-info-section">
         <h2>Your Control & Privacy</h2>
         <p>You have full control over blind hiring:</p>
         <ul>
@@ -248,19 +144,54 @@
         </ul>
       </div>
 
-      <div class="highlight">
+      <div class="blind-highlight">
         <strong>💡 Pro Tip:</strong> Blind hiring gives applicants with
         non-traditional backgrounds a fair chance. If you have great skills but
         an unconventional career path, blind hiring positions can be your
         advantage!
       </div>
-    </div>
+    </main>
 
     <footer class="footer">
-      <p>
-        &copy; 2026 TalentScout AI — PESO Nasugbu, Batangas. Fair hiring for
-        all.
-      </p>
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <h3>TalentScout AI</h3>
+            <p>
+              Smart AI-powered recruitment platform for PESO Nasugbu, Batangas.
+              We promote fair, inclusive, skill-first hiring for every worker.
+            </p>
+          </div>
+          <div class="footer-col">
+            <h4>Employee Tools</h4>
+            <ul>
+              <li><a href="../job-postings/">Job Postings</a></li>
+              <li><a href="../ai-matching/">AI Matching</a></li>
+              <li><a href="../skill-gap-analysis/">Skill Gap Analysis</a></li>
+              <li><a href="../applicant-tracking/">Application Tracker</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>Guides</h4>
+            <ul>
+              <li><a href="./">Blind Hiring Info</a></li>
+              <li><a href="../../signup.html">Create Account</a></li>
+              <li><a href="../../login.html">Employee Login</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>PESO Nasugbu</h4>
+            <ul>
+              <li><a href="#">Nasugbu, Batangas</a></li>
+              <li><a href="#">Contact Us</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span>© 2026 TalentScout AI - PESO Nasugbu, Batangas</span>
+          <span>Fair hiring for all talent</span>
+        </div>
+      </div>
     </footer>
     <script src="../../employee-auth.js"></script>
   </body>
