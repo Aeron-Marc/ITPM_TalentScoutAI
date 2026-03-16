@@ -49,6 +49,7 @@ body {
   color: var(--text-dark);
   line-height: 1.6;
   background: white;
+  transition: background-color 0.3s ease;
 }
 
 h1,
@@ -140,7 +141,8 @@ a {
   font-size: 0.9rem;
   color: var(--text-light);
   border-bottom: 3px solid transparent;
-  transition: all 0.2s;
+  transition: all 0.25s ease;
+  position: relative;
 }
 
 .nav-links a:hover {
@@ -171,7 +173,12 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.btn:active {
+  transform: scale(0.96);
 }
 
 .btn-primary {
@@ -181,19 +188,22 @@ a {
 
 .btn-primary:hover {
   background: #157a68;
-  box-shadow: var(--shadow);
+  box-shadow: 0 4px 12px rgba(30, 158, 134, 0.2);
+  transform: translateY(-1px);
 }
 
 .btn-outline {
   background: transparent;
   color: var(--text-mid);
   border: 1.5px solid var(--border);
+  transition: all 0.25s ease;
 }
 
 .btn-outline:hover {
   border-color: var(--primary-dark);
   color: var(--primary-dark);
   background: var(--bg-lighter);
+  box-shadow: 0 2px 8px rgba(30, 158, 134, 0.12);
 }
 
 .btn-secondary {
@@ -218,7 +228,9 @@ a {
   border: none;
   text-decoration: none;
   display: inline-block;
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-hero-primary {
@@ -228,8 +240,12 @@ a {
 
 .btn-hero-primary:hover {
   background: #157a68;
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(30, 158, 134, 0.25);
+  transform: translateY(-3px);
+}
+
+.btn-hero-primary:active {
+  transform: translateY(-1px);
 }
 
 .btn-hero-outline {
@@ -240,6 +256,8 @@ a {
 
 .btn-hero-outline:hover {
   background: var(--primary-lighter);
+  box-shadow: 0 4px 16px rgba(30, 158, 134, 0.15);
+  transform: translateY(-2px);
 }
 
 /* ===== TYPOGRAPHY ===== */
@@ -329,4 +347,62 @@ a {
     padding: 0.5rem 1rem;
     font-size: 0.8rem;
   }
+}
+
+/* ===== FORM ELEMENTS ===== */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="tel"],
+.input,
+textarea,
+.textarea,
+select,
+.select {
+  width: 100%;
+  padding: 0.7rem 0.875rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--text-dark);
+  background: white;
+  transition: all 0.2s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+input[type="tel"]:focus,
+.input:focus,
+textarea:focus,
+.textarea:focus,
+select:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--primary-dark);
+  box-shadow: 0 0 0 3px rgba(30, 158, 134, 0.1);
+  background: #fafffe;
+}
+
+textarea,
+.textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Checkbox & Radio */
+input[type="checkbox"],
+input[type="radio"] {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+input[type="checkbox"]:hover,
+input[type="radio"]:hover {
+  accent-color: var(--primary-dark);
 }

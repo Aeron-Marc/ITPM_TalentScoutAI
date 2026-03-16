@@ -567,6 +567,15 @@
   border: 1.5px solid var(--border);
   border-radius: var(--radius);
   padding: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: default;
+}
+
+.benefit-item:hover {
+  border-color: var(--primary-dark);
+  box-shadow: 0 6px 16px rgba(30, 158, 134, 0.12);
+  transform: translateY(-2px);
+  background: white;
 }
 
 .benefit-icon {
@@ -898,4 +907,148 @@
   .footer-bottom {
     flex-direction: column;
   }
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.feature-card,
+.module-card,
+.candidate-card,
+.job-card,
+.benefit-item {
+  animation: slideInUp 0.4s ease-out;
+}
+
+.tab-content.active {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.btn {
+  transition: all 0.2s ease;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+/* ===== ENHANCED CARD TRANSITIONS ===== */
+.feature-card,
+.module-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.feature-card:hover,
+.module-card:hover {
+  border-color: var(--primary-dark);
+  box-shadow: 0 8px 24px rgba(30, 158, 134, 0.16);
+}
+
+.candidate-card {
+  transition: all 0.25s ease;
+  position: relative;
+}
+
+.candidate-card:hover {
+  border-color: var(--primary-dark);
+  box-shadow: 0 6px 20px rgba(30, 158, 134, 0.14);
+}
+
+/* ===== FILTER & BUTTON TRANSITIONS ===== */
+.filter-item {
+  transition: background-color 0.2s ease;
+}
+
+.filter-item:hover {
+  background-color: var(--bg-lighter);
+  border-radius: 4px;
+}
+
+.fcheck {
+  transition: all 0.2s ease;
+}
+
+.fcheck:hover {
+  border-color: var(--primary-dark);
+}
+
+.fcheck.on {
+  animation: pulse 0.4s ease-out;
+}
+
+/* ===== TABLE ENHANCEMENTS ===== */
+.tracker-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.tracker-table tbody tr:hover {
+  background-color: #f4fffb;
+}
+
+.action-btn {
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== STATUS BADGE ANIMATION ===== */
+.status-badge {
+  transition: all 0.2s ease;
+}
+
+.status-approved {
+  animation: slideInDown 0.3s ease-out;
+}
+
+/* ===== FORM FOCUS EFFECTS ===== */
+.input:focus,
+.select:focus,
+.textarea:focus {
+  animation: slideInDown 0.2s ease-out;
+}
+
+/* ===== SMOOTH SCROLLING ENHANCEMENT ===== */
+* {
+  scroll-behavior: smooth;
 }

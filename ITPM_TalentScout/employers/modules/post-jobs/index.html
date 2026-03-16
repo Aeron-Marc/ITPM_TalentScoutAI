@@ -3,200 +3,679 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Post Job Listings | Employers - TalentScout AI</title>
+  <title>Post Job Listings — TalentScout AI</title>
+  <link rel="stylesheet" href="../../../styles/global.css">
+  <link rel="stylesheet" href="../../../styles/page-layout.css">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
-    
-    .navbar { background: white; border-bottom: 1px solid #e0e0e0; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-    .nav-logo { font-size: 1.25rem; font-weight: 700; color: #1a1a1a; text-decoration: none; }
-    .nav-logo span { color: #98FBCB; }
-    .nav-links { list-style: none; display: flex; gap: 2rem; }
-    .nav-links a { text-decoration: none; color: #666; font-weight: 500; }
-    
-    .container { max-width: 1000px; margin: 0 auto; padding: 2rem; }
-    
-    .header { margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
-    .header h1 { font-size: 2rem; color: #1a1a1a; }
-    .new-job-btn { background: #98FBCB; color: #1a1a1a; border: none; padding: 0.75rem 1.5rem; border-radius: 4px; font-weight: 700; cursor: pointer; }
-    .new-job-btn:hover { background: #7af0b1; }
-    
-    .form-container {
+    /* Secondary Navigation / Tabs */
+    .sub-navbar {
       background: white;
-      border-left: 4px solid #98FBCB;
-      border-radius: 4px;
-      padding: 2rem;
-      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+      padding: 0 2.5rem;
     }
-    
-    .form-group { margin-bottom: 1.5rem; }
-    .form-label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1a1a1a; }
-    .form-input, .form-textarea, .form-select {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 0.95rem;
-      font-family: inherit;
+    .sub-navbar-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      gap: 2rem;
     }
-    .form-textarea { resize: vertical; min-height: 120px; }
-    
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .form-grid .form-group { margin-bottom: 0; }
-    
-    .submit-btn {
-      background: #98FBCB;
-      color: #1a1a1a;
-      padding: 0.75rem 3rem;
-      border: none;
-      border-radius: 4px;
-      font-weight: 700;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-    .submit-btn:hover { background: #7af0b1; }
-    
-    .posted-jobs {
-      background: white;
-      border-radius: 4px;
-      padding: 2rem;
-    }
-    
-    .job-item {
-      border-bottom: 1px solid #e0e0e0;
+    .sub-nav-link {
       padding: 1rem 0;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-light);
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      cursor: pointer;
     }
-    .job-item:last-child { border-bottom: none; }
-    
-    .job-title { font-weight: 700; color: #1a1a1a; }
-    .job-meta { color: #666; font-size: 0.9rem; margin-top: 0.5rem; }
-    
-    .footer { background: #1a1a1a; color: white; padding: 2rem; margin-top: 3rem; text-align: center; }
+    .sub-nav-link.active {
+      color: var(--text-dark);
+      border-bottom-color: var(--primary-dark);
+    }
+    .sub-nav-link:hover {
+      color: var(--text-dark);
+    }
+
+    /* Tab Content */
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    .search-bar-wrap {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      padding: 1.25rem 2.5rem;
+    }
+    .search-bar {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    .search-input-rel {
+      position: relative;
+      flex: 2;
+    }
+    .search-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-light);
+      font-size: 0.9rem;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .search-input-rel .input {
+      padding-left: 2.5rem;
+      width: 100%;
+    }
+
+    .main-layout {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 2.5rem;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 2rem;
+    }
+
+    /* Sidebar */
+    .sidebar-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    .sidebar-title {
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: var(--text-dark);
+      margin-bottom: 1rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .filter-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.87rem;
+      color: var(--text-mid);
+      padding: 0.38rem 0;
+    }
+    .filter-left {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .fcheck {
+      width: 16px;
+      height: 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      flex-shrink: 0;
+    }
+    .fcheck.on {
+      background: var(--primary-dark);
+      border-color: var(--primary-dark);
+      color: white;
+    }
+    .fcount {
+      background: var(--bg-light);
+      color: var(--text-light);
+      padding: 0.1rem 0.5rem;
+      border-radius: 100px;
+      font-size: 0.75rem;
+    }
+
+    /* Content Area */
+    .content-col {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .page-header {
+      margin-bottom: 1.5rem;
+    }
+    .page-header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 0.5rem;
+    }
+    .page-header p {
+      font-size: 0.95rem;
+      color: var(--text-light);
+    }
+
+    .form-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+    }
+    .form-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 1.5rem;
+    }
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.87rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 0.5rem;
+    }
+    .input, .select, .textarea {
+      width: 100%;
+      padding: 0.65rem 0.875rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      font-family: inherit;
+      color: var(--text-dark);
+      background: white;
+      transition: border-color 0.2s;
+    }
+    .input:focus, .select:focus, .textarea:focus {
+      outline: none;
+      border-color: var(--primary-dark);
+      box-shadow: 0 0 0 3px rgba(152, 251, 203, 0.1);
+    }
+    .textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .form-row .form-group {
+      margin-bottom: 0;
+    }
+
+    .submit-btn {
+      background: var(--primary-dark);
+      color: white;
+      padding: 0.7rem 1.75rem;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .submit-btn:hover {
+      background: var(--primary-darker);
+    }
+
+    .jobs-list {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .jobs-list-header {
+      padding: 1.25rem 1.75rem;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+    .job-card {
+      padding: 1.25rem 1.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .job-card:last-child {
+      border-bottom: none;
+    }
+    .job-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 0.25rem;
+    }
+    .job-meta {
+      font-size: 0.8rem;
+      color: var(--text-light);
+    }
   </style>
 </head>
 <body>
-  <nav class="navbar">
-    <a href="../../index.html" class="nav-logo">Talent<span>Scout</span> AI</a>
-    <ul class="nav-links">
-      <li><a href="../../index.html">Home</a></li>
-      <li><a href="./" style="color: #98FBCB; font-weight: 700;">Post Jobs</a></li>
-      <li><a href="../employee-finder/">Find Talent</a></li>
-      <li><a href="../applicant-tracking/">Pipeline</a></li>
-      <li><a href="../chat-sms/">Messages</a></li>
-    </ul>
-  </nav>
 
-  <div class="container">
-    <div class="header">
-      <h1>📝 Post Job Listings</h1>
-      <button class="new-job-btn">+ New Job Posting</button>
-    </div>
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="../../index.html" class="nav-logo">
+    <div class="nav-logo-icon">TS</div>
+    <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="../../index.html">Home</a></li>
+    <li><a href="./" class="active">Post Jobs</a></li>
+    <li><a href="../employee-finder/">Find Talent</a></li>
+    <li><a href="../applicant-tracking/">Hiring Pipeline</a></li>
+    <li><a href="../chat-sms/">Messages</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="#" class="btn btn-outline">Login</a>
+    <a href="#" class="btn btn-primary">Get Started</a>
+  </div>
+</nav>
 
-    <div class="form-container">
-      <h2 style="margin-bottom: 1.5rem;">Create a New Job Posting</h2>
-      
-      <form>
-        <div class="form-group">
-          <label class="form-label">Job Title *</label>
-          <input type="text" class="form-input" placeholder="e.g., Senior React Developer" required>
-        </div>
+<!-- SECONDARY NAVBAR -->
+<div class="sub-navbar">
+  <div class="sub-navbar-inner">
+    <a class="sub-nav-link active" onclick="switchTab('create')">
+      [CREATE] Create New Posting
+    </a>
+    <a class="sub-nav-link" onclick="switchTab('manage')">
+      [MANAGE] Manage Postings
+    </a>
+  </div>
+</div>
 
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label">Job Category *</label>
-            <select class="form-select" required>
-              <option>Select Category</option>
-              <option>Engineering</option>
-              <option>Design</option>
-              <option>Sales</option>
-              <option>Marketing</option>
-            </select>
+<!-- TAB 1: CREATE -->
+<div id="create-tab" class="tab-content active">
+  <div class="main-layout">
+    <!-- SIDEBAR -->
+    <aside>
+      <div class="sidebar-card">
+        <div class="sidebar-title">Job Type</div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck on">✓</div>
+            <span>Full Time</span>
           </div>
-          <div class="form-group">
-            <label class="form-label">Employment Type *</label>
-            <select class="form-select" required>
-              <option>Select Type</option>
-              <option>Full-time</option>
-              <option>Part-time</option>
-              <option>Contract</option>
-            </select>
+          <span class="fcount">8</span>
+        </div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck">-</div>
+            <span>Part Time</span>
           </div>
+          <span class="fcount">3</span>
         </div>
-
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label">Salary Range (Min) *</label>
-            <input type="number" class="form-input" placeholder="₱ 30,000" required>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck">-</div>
+            <span>Contract</span>
           </div>
-          <div class="form-group">
-            <label class="form-label">Salary Range (Max) *</label>
-            <input type="number" class="form-input" placeholder="₱ 70,000" required>
-          </div>
+          <span class="fcount">2</span>
         </div>
-
-        <div class="form-group">
-          <label class="form-label">Location *</label>
-          <input type="text" class="form-input" placeholder="e.g., Barangay Kaylaway, Nasugbu" required>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Job Description *</label>
-          <textarea class="form-textarea" placeholder="Describe the role, responsibilities, and requirements..." required></textarea>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Required Skills (comma-separated)</label>
-          <input type="text" class="form-input" placeholder="React, TypeScript, Node.js, SQL">
-        </div>
-
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label">Experience Level Required *</label>
-            <select class="form-select" required>
-              <option>Select Level</option>
-              <option>Entry Level</option>
-              <option>Mid-level</option>
-              <option>Senior</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Application Deadline *</label>
-            <input type="date" class="form-input" required>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label style="display: flex; align-items: center; cursor: pointer;">
-            <input type="checkbox" style="margin-right: 0.5rem;"> Use Blind Hiring for this posting
-          </label>
-        </div>
-
-        <button type="submit" class="submit-btn">Post Job Listing</button>
-      </form>
-    </div>
-
-    <div class="posted-jobs">
-      <h2 style="margin-bottom: 1.5rem;">Your Active Job Postings (3)</h2>
-      
-      <div class="job-item">
-        <div class="job-title">Senior React Developer</div>
-        <div class="job-meta">📍 Barangay Kaylaway | 🎯 Full-time | 👥 12 Applications | ⏰ Expires in 18 days</div>
       </div>
 
-      <div class="job-item">
-        <div class="job-title">UI/UX Designer</div>
-        <div class="job-meta">📍 Barangay Talahib | 🎯 Full-time | 👥 8 Applications | ⏰ Expires in 12 days</div>
+      <div class="sidebar-card">
+        <div class="sidebar-title">Salary Range</div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck">-</div>
+            <span>Under 20K</span>
+          </div>
+          <span class="fcount">1</span>
+        </div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck">-</div>
+            <span>20K - 40K</span>
+          </div>
+          <span class="fcount">5</span>
+        </div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck">-</div>
+            <span>40K - 60K</span>
+          </div>
+          <span class="fcount">4</span>
+        </div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck">-</div>
+            <span>60K+</span>
+          </div>
+          <span class="fcount">3</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="content-col">
+      <div class="page-header">
+        <h1>[POST] Create New Job Posting</h1>
+        <p>Fill in the details below to post a new job opportunity</p>
       </div>
 
-      <div class="job-item">
-        <div class="job-title">Data Analyst</div>
-        <div class="job-meta">📍 Barangay Poblacion | 🎯 Full-time | 👥 5 Applications | ⏰ Expires in 5 days</div>
+      <!-- NEW JOB FORM -->
+      <div class="form-card">
+        <div class="form-title">Job Details</div>
+        <form>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Job Title *</label>
+              <input type="text" class="input" placeholder="e.g., Senior Developer" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Job Category *</label>
+              <select class="select" required>
+                <option>Select category</option>
+                <option>Technology</option>
+                <option>Finance</option>
+                <option>Sales</option>
+                <option>Marketing</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Job Description *</label>
+            <textarea class="textarea" placeholder="Describe the role and responsibilities" required></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Salary Range *</label>
+              <input type="text" class="input" placeholder="e.g., 40,000 - 60,000" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Location *</label>
+              <input type="text" class="input" placeholder="Barangay or area" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Job Type *</label>
+              <select class="select" required>
+                <option>Select type</option>
+                <option>Full Time</option>
+                <option>Part Time</option>
+                <option>Contract</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Required Skills *</label>
+              <input type="text" class="input" placeholder="e.g., React, Node.js" required>
+            </div>
+          </div>
+
+          <button type="submit" class="submit-btn">Post Job Listing</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2: MANAGE -->
+<div id="manage-tab" class="tab-content">
+  <div class="search-bar-wrap">
+    <div class="search-bar">
+      <div class="search-input-rel">
+        <span class="search-icon">[SEARCH]</span>
+        <input type="text" class="input" placeholder="Search by job title or position...">
       </div>
     </div>
   </div>
 
-  <footer class="footer">
-    <p>&copy; 2026 TalentScout AI — PESO Nasugbu, Batangas. Hire local talent.</p>
-  </footer>
+  <div class="main-layout">
+    <!-- SIDEBAR -->
+    <aside>
+      <div class="sidebar-card">
+        <div class="sidebar-title">Status</div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck on">✓</div>
+            <span>Active</span>
+          </div>
+          <span class="fcount">8</span>
+        </div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck">-</div>
+            <span>Closed</span>
+          </div>
+          <span class="fcount">2</span>
+        </div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck">-</div>
+            <span>Drafts</span>
+          </div>
+          <span class="fcount">1</span>
+        </div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-title">Posted Date</div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck">-</div>
+            <span>Last 7 Days</span>
+          </div>
+          <span class="fcount">3</span>
+        </div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck">-</div>
+            <span>Last 30 Days</span>
+          </div>
+          <span class="fcount">5</span>
+        </div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck">-</div>
+            <span>Earlier</span>
+          </div>
+          <span class="fcount">3</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="content-col">
+      <div class="page-header">
+        <h1>[MANAGE] Manage Job Postings</h1>
+        <p>View, edit, and manage all your job postings</p>
+      </div>
+
+      <!-- POSTED JOBS TABLE -->
+      <div>
+        <div class="jobs-list">
+          <div class="jobs-list-header">Your Active Job Postings</div>
+          
+          <div class="job-card">
+            <div style="display: grid; grid-template-columns: 1fr auto auto auto; gap: 1rem; align-items: center;">
+              <div>
+                <div class="job-title">Senior React Developer</div>
+                <div class="job-meta">Full Time • 45,000 - 65,000 • Posted 2 days ago</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="font-size: 1.2rem; font-weight: 700; color: var(--primary-dark);">5</div>
+                <div style="font-size: 0.75rem; color: var(--text-light);">Applications</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="background: #d4edda; color: #155724; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">ACTIVE</div>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <button style="background: white; border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;">Edit</button>
+                <button style="background: white; border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;">Close</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="job-card">
+            <div style="display: grid; grid-template-columns: 1fr auto auto auto; gap: 1rem; align-items: center;">
+              <div>
+                <div class="job-title">Python Backend Engineer</div>
+                <div class="job-meta">Full Time • 40,000 - 60,000 • Posted 5 days ago</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="font-size: 1.2rem; font-weight: 700; color: var(--primary-dark);">3</div>
+                <div style="font-size: 0.75rem; color: var(--text-light);">Applications</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="background: #d4edda; color: #155724; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">ACTIVE</div>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <button style="background: white; border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;">Edit</button>
+                <button style="background: white; border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;">Close</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="job-card">
+            <div style="display: grid; grid-template-columns: 1fr auto auto auto; gap: 1rem; align-items: center;">
+              <div>
+                <div class="job-title">Marketing Manager</div>
+                <div class="job-meta">Full Time • 35,000 - 50,000 • Posted 1 week ago</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="font-size: 1.2rem; font-weight: 700; color: var(--primary-dark);">7</div>
+                <div style="font-size: 0.75rem; color: var(--text-light);">Applications</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="background: #d4edda; color: #155724; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">ACTIVE</div>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <button style="background: white; border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;">Edit</button>
+                <button style="background: white; border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;">Close</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="job-card">
+            <div style="display: grid; grid-template-columns: 1fr auto auto auto; gap: 1rem; align-items: center;">
+              <div>
+                <div class="job-title">Graphic Designer</div>
+                <div class="job-meta">Part Time • 15,000 - 25,000 • Posted 2 weeks ago</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="font-size: 1.2rem; font-weight: 700; color: var(--primary-dark);">2</div>
+                <div style="font-size: 0.75rem; color: var(--text-light);">Applications</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="background: #e8e8e8; color: #666; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">CLOSED</div>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <button style="background: white; border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;">Edit</button>
+                <button style="background: white; border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;">Reopen</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function switchTab(tabName) {
+    // Hide all tabs
+    document.getElementById('create-tab').classList.remove('active');
+    document.getElementById('manage-tab').classList.remove('active');
+    
+    // Remove active class from all links
+    document.querySelectorAll('.sub-nav-link').forEach(link => {
+      link.classList.remove('active');
+    });
+    
+    // Show selected tab with animation
+    if (tabName === 'create') {
+      document.getElementById('create-tab').classList.add('active');
+      document.querySelectorAll('.sub-nav-link')[0].classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (tabName === 'manage') {
+      document.getElementById('manage-tab').classList.add('active');
+      document.querySelectorAll('.sub-nav-link')[1].classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  // Enhance form input focus effects
+  document.querySelectorAll('.input, .select, .textarea').forEach(input => {
+    input.addEventListener('focus', function() {
+      this.parentElement.style.transform = 'scale(1.01)';
+    });
+    input.addEventListener('blur', function() {
+      this.parentElement.style.transform = 'scale(1)';
+    });
+  });
+
+  // Add smooth transitions to checkboxes
+  document.querySelectorAll('.fcheck').forEach(checkbox => {
+    checkbox.addEventListener('click', function(e) {
+      // Prevent default to show animation
+      e.preventDefault();
+      this.classList.toggle('on');
+    });
+  });
+
+  // Enhance button feedback
+  document.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', function() {
+      this.style.transform = 'scale(0.98)';
+      setTimeout(() => {
+        this.style.transform = 'scale(1)';
+      }, 150);
+    });
+  });
+</script>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <h3>TalentScout AI</h3>
+        <p>Smart AI-powered recruitment platform for PESO Nasugbu, Batangas. Connecting employers with qualified local talent.</p>
+      </div>
+      <div class="footer-col">
+        <h4>For Job Seekers</h4>
+        <ul>
+          <li><a href="../../employees/">Browse Jobs</a></li>
+          <li><a href="../../employees/modules/ai-matching/">AI Matching</a></li>
+          <li><a href="../../employees/modules/skill-gap-analysis/">Skill Gap Analysis</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>For Employers</h4>
+        <ul>
+          <li><a href="../../index.html">Home</a></li>
+          <li><a href="./">Post Jobs</a></li>
+          <li><a href="../employee-finder/">Find Talent</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>PESO Nasugbu</h4>
+        <ul>
+          <li><a href="#">Contact Us</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 TalentScout AI – PESO Nasugbu, Batangas</span>
+      <span>Connecting Employers with Local Talent</span>
+    </div>
+  </div>
+</footer>
+
 </body>
 </html>
