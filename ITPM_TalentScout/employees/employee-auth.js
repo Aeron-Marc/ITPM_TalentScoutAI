@@ -23,13 +23,8 @@
       var defaultSignupHref = primaryBtn.getAttribute("href") || "./signup.html";
 
       if (loggedIn) {
-        var resumeHref = defaultSignupHref.replace(/signup\.html(?:#.*)?$/, "modules/resume-builder/");
-        if (resumeHref === defaultSignupHref) {
-          resumeHref = "./modules/resume-builder/";
-        }
-
         primaryBtn.textContent = "Build Resume";
-        primaryBtn.setAttribute("href", resumeHref);
+        primaryBtn.setAttribute("href", "./modules/resume-builder/");
 
         outlineBtn.textContent = "Logout";
         outlineBtn.setAttribute("href", "#");
