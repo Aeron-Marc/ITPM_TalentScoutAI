@@ -3,242 +3,724 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Employee Finder | Employers - TalentScout AI</title>
+  <title>Employee Finder — TalentScout AI</title>
+  <link rel="stylesheet" href="../../../styles/global.css">
+  <link rel="stylesheet" href="../../../styles/page-layout.css">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
-    
-    .navbar { background: white; border-bottom: 1px solid #e0e0e0; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-    .nav-logo { font-size: 1.25rem; font-weight: 700; color: #1a1a1a; text-decoration: none; }
-    .nav-logo span { color: #98FBCB; }
-    .nav-links { list-style: none; display: flex; gap: 2rem; }
-    .nav-links a { text-decoration: none; color: #666; font-weight: 500; }
-    
-    .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-    
-    .header { margin-bottom: 2rem; }
-    .header h1 { font-size: 2rem; color: #1a1a1a; }
-    
-    .search-container {
+    /* Secondary Navigation / Tabs */
+    .sub-navbar {
       background: white;
-      border-left: 4px solid #98FBCB;
-      border-radius: 4px;
-      padding: 2rem;
-      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+      padding: 0 2.5rem;
     }
-    
-    .search-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
-    .form-input { width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; }
-    
-    .search-btn {
-      background: #98FBCB;
-      color: #1a1a1a;
-      border: none;
-      padding: 0.75rem 2rem;
-      border-radius: 4px;
-      font-weight: 700;
+    .sub-navbar-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      gap: 2rem;
+    }
+    .sub-nav-link {
+      padding: 1rem 0;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-light);
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
       cursor: pointer;
     }
-    .search-btn:hover { background: #7af0b1; }
-    
-    .candidates-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1.5rem;
+    .sub-nav-link.active {
+      color: var(--text-dark);
+      border-bottom-color: var(--primary-dark);
     }
-    
-    .candidate-card {
+    .sub-nav-link:hover {
+      color: var(--text-dark);
+    }
+
+    /* Tab Content */
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    .search-bar-wrap {
       background: white;
-      border-radius: 4px;
-      padding: 1.5rem;
-      border: 1px solid #e0e0e0;
+      border-bottom: 1px solid var(--border);
+      padding: 1.25rem 2.5rem;
     }
-    
-    .candidate-header { display: flex; align-items: start; gap: 1rem; margin-bottom: 1rem; }
-    .candidate-avatar {
-      width: 60px;
-      height: 60px;
-      background: #98FBCB;
-      border-radius: 50%;
+    .search-bar {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    .search-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-light);
+      font-size: 0.9rem;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .search-input-rel {
+      position: relative;
+      flex: 2;
+    }
+    .search-input-rel .input {
+      padding-left: 2.5rem;
+      width: 100%;
+    }
+
+    .main-layout {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 2.5rem;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 2rem;
+    }
+
+    /* Sidebar */
+    .sidebar-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    .sidebar-title {
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: var(--text-dark);
+      margin-bottom: 1rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .filter-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.87rem;
+      color: var(--text-mid);
+      padding: 0.38rem 0;
+    }
+    .filter-left {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .fcheck {
+      width: 16px;
+      height: 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 4px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 700;
-      color: #1a1a1a;
+      font-size: 0.65rem;
       flex-shrink: 0;
     }
-    
-    .candidate-name { font-weight: 700; color: #1a1a1a; }
-    .candidate-title { color: #98FBCB; font-weight: 600; font-size: 0.9rem; }
-    .candidate-location { color: #666; font-size: 0.9rem; margin-top: 0.5rem; }
-    
-    .candidate-skills {
+    .fcheck.on {
+      background: var(--primary-dark);
+      border-color: var(--primary-dark);
+      color: white;
+    }
+    .fcount {
+      background: var(--bg-light);
+      color: var(--text-light);
+      padding: 0.1rem 0.5rem;
+      border-radius: 100px;
+      font-size: 0.75rem;
+    }
+
+    /* Results */
+    .results-header {
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .results-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+    .results-count {
+      font-size: 0.9rem;
+      color: var(--text-light);
+    }
+
+    .candidate-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      transition: all 0.2s;
+    }
+    .candidate-card:hover {
+      border-color: var(--primary-dark);
+      box-shadow: var(--shadow);
+    }
+
+    .candidate-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 1rem;
+    }
+    .candidate-info h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 0.25rem;
+    }
+    .candidate-role {
+      font-size: 0.87rem;
+      color: var(--text-light);
+    }
+    .match-badge {
+      background: var(--primary-light);
+      color: var(--primary-darker);
+      padding: 0.35rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .candidate-meta {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.85rem;
+      color: var(--text-light);
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .candidate-meta span {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .skills-list {
       display: flex;
       flex-wrap: wrap;
       gap: 0.5rem;
-      margin: 1rem 0;
+      margin-bottom: 1rem;
     }
-    
     .skill-tag {
-      background: #f0f0f0;
-      color: #666;
-      padding: 0.25rem 0.5rem;
-      border-radius: 12px;
+      background: var(--bg-light);
+      color: var(--text-mid);
+      padding: 0.35rem 0.75rem;
+      border-radius: 4px;
       font-size: 0.8rem;
     }
-    
-    .candidate-footer {
+
+    .action-buttons {
       display: flex;
-      gap: 0.5rem;
-      padding-top: 1rem;
-      border-top: 1px solid #e0e0e0;
+      gap: 0.75rem;
     }
-    
-    .message-btn, .profile-btn {
-      flex: 1;
-      padding: 0.5rem;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      cursor: pointer;
+    .btn-small {
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-sm);
       font-size: 0.85rem;
-      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary-small {
+      background: var(--primary-dark);
+      color: white;
+    }
+    .btn-primary-small:hover {
+      background: var(--primary-darker);
+    }
+    .btn-outline-small {
       background: white;
+      color: var(--primary-dark);
+      border: 1px solid var(--border);
     }
-    
-    .message-btn {
-      background: #98FBCB;
-      color: #1a1a1a;
-      border-color: #98FBCB;
+    .btn-outline-small:hover {
+      border-color: var(--primary-dark);
     }
-    .message-btn:hover { background: #7af0b1; }
-    
-    .profile-btn { color: #666; }
-    .profile-btn:hover { background: #f9f9f9; }
-    
-    .footer { background: #1a1a1a; color: white; padding: 2rem; margin-top: 3rem; text-align: center; }
   </style>
 </head>
 <body>
-  <nav class="navbar">
-    <a href="../../index.html" class="nav-logo">Talent<span>Scout</span> AI</a>
-    <ul class="nav-links">
-      <li><a href="../../index.html">Home</a></li>
-      <li><a href="../post-jobs/">Post Jobs</a></li>
-      <li><a href="./" style="color: #98FBCB; font-weight: 700;">Find Talent</a></li>
-      <li><a href="../applicant-tracking/">Pipeline</a></li>
-      <li><a href="../chat-sms/">Messages</a></li>
-    </ul>
-  </nav>
 
-  <div class="container">
-    <div class="header">
-      <h1>🔍 Employee Finder</h1>
-      <p style="color: #666; margin-top: 0.5rem;">Search and filter candidates from our talent pool</p>
-    </div>
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="../../index.html" class="nav-logo">
+    <div class="nav-logo-icon">TS</div>
+    <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="../../index.html">Home</a></li>
+    <li><a href="../post-jobs/">Post Jobs</a></li>
+    <li><a href="./" class="active">Find Talent</a></li>
+    <li><a href="../applicant-tracking/">Hiring Pipeline</a></li>
+    <li><a href="../chat-sms/">Messages</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="#" class="btn btn-outline">Login</a>
+    <a href="#" class="btn btn-primary">Get Started</a>
+  </div>
+</nav>
 
-    <div class="search-container">
-      <div class="search-grid">
-        <input type="text" class="form-input" placeholder="Search by job title...">
-        <input type="text" class="form-input" placeholder="Search by skills...">
-        <input type="text" class="form-input" placeholder="Location...">
+<!-- SECONDARY NAVBAR -->
+<div class="sub-navbar">
+  <div class="sub-navbar-inner">
+    <a class="sub-nav-link active" onclick="switchTab('normal')">
+      [SEARCH] Normal Hiring
+    </a>
+    <a class="sub-nav-link" onclick="switchTab('blind')">
+      [BLIND] Blind Hiring
+    </a>
+  </div>
+</div>
+
+<!-- TAB 1: NORMAL HIRING -->
+<div id="normal-tab" class="tab-content active">
+  <!-- SEARCH BAR -->
+  <div class="search-bar-wrap">
+    <div class="search-bar">
+      <div class="search-input-rel">
+        <span class="search-icon">[SEARCH]</span>
+        <input type="text" class="input" placeholder="Search by skills, job title, experience...">
       </div>
-      <button class="search-btn">Search Candidates</button>
+      <button class="btn btn-primary">Search</button>
     </div>
+  </div>
 
-    <h2 style="margin-bottom: 1.5rem;">Matching Candidates (24 found)</h2>
-    <div class="candidates-grid">
+  <!-- CONTENT -->
+  <div class="main-layout">
+    <!-- SIDEBAR FILTERS -->
+    <aside>
+      <div class="sidebar-card">
+        <div class="sidebar-title">Experience Level</div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck">-</div>
+            <span>Entry Level</span>
+          </div>
+          <span class="fcount">12</span>
+        </div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck on">✓</div>
+            <span>Mid Level</span>
+          </div>
+          <span class="fcount">24</span>
+        </div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck">-</div>
+            <span>Senior</span>
+          </div>
+          <span class="fcount">18</span>
+        </div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-title">Skills</div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck on">✓</div>
+            <span>React</span>
+          </div>
+          <span class="fcount">16</span>
+        </div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck on">✓</div>
+            <span>Python</span>
+          </div>
+          <span class="fcount">12</span>
+        </div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck">-</div>
+            <span>JavaScript</span>
+          </div>
+          <span class="fcount">18</span>
+        </div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-title">Location</div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck on">✓</div>
+            <span>Nasugbu</span>
+          </div>
+          <span class="fcount">42</span>
+        </div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck">-</div>
+            <span>Remote</span>
+          </div>
+          <span class="fcount">8</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- RESULTS -->
+    <div>
+      <div class="results-header">
+        <div class="results-title">[SEARCH] Top Talent Matches</div>
+        <div class="results-count">Showing 3 of 42 candidates</div>
+      </div>
+
+      <!-- Candidate 1 -->
       <div class="candidate-card">
         <div class="candidate-header">
-          <div class="candidate-avatar">JD</div>
-          <div>
-            <div class="candidate-name">John Dela Cruz</div>
-            <div class="candidate-title">Senior React Developer</div>
-            <div class="candidate-location">📍 Barangay Kaylaway</div>
+          <div class="candidate-info">
+            <h3>Maria Santos</h3>
+            <div class="candidate-role">Senior React Developer</div>
           </div>
+          <div class="match-badge">98% Match</div>
         </div>
-        <div class="candidate-skills">
+        <div class="candidate-meta">
+          <span>[EXP] 5+ years experience</span>
+          <span>[LOC] Nasugbu, Batangas</span>
+        </div>
+        <div class="skills-list">
           <span class="skill-tag">React</span>
           <span class="skill-tag">TypeScript</span>
           <span class="skill-tag">Node.js</span>
-          <span class="skill-tag">SQL</span>
-        </div>
-        <p style="font-size: 0.9rem; color: #666; margin-bottom: 1rem; line-height: 1.5;">5+ years in full-stack development. Recently completed system design certification. Available immediately.</p>
-        <div class="candidate-footer">
-          <button class="message-btn">View Profile</button>
-          <button class="profile-btn">Message</button>
-        </div>
-      </div>
-
-      <div class="candidate-card">
-        <div class="candidate-header">
-          <div class="candidate-avatar">MP</div>
-          <div>
-            <div class="candidate-name">Maria Pagutansan</div>
-            <div class="candidate-title">Full Stack Engineer</div>
-            <div class="candidate-location">📍 Barangay Talahib</div>
-          </div>
-        </div>
-        <div class="candidate-skills">
-          <span class="skill-tag">JavaScript</span>
-          <span class="skill-tag">React</span>
-          <span class="skill-tag">Python</span>
           <span class="skill-tag">PostgreSQL</span>
         </div>
-        <p style="font-size: 0.9rem; color: #666; margin-bottom: 1rem; line-height: 1.5;">7 years experience. BS Computer Science. Strong problem-solving skills. Open to remote work.</p>
-        <div class="candidate-footer">
-          <button class="message-btn">View Profile</button>
-          <button class="profile-btn">Message</button>
+        <div class="action-buttons">
+          <button class="btn-small btn-primary-small">View Profile</button>
+          <button class="btn-small btn-outline-small">Message</button>
         </div>
       </div>
 
+      <!-- Candidate 2 -->
       <div class="candidate-card">
         <div class="candidate-header">
-          <div class="candidate-avatar">RG</div>
-          <div>
-            <div class="candidate-name">Roberto Garcia</div>
-            <div class="candidate-title">Backend Developer</div>
-            <div class="candidate-location">📍 Barangay Poblacion</div>
+          <div class="candidate-info">
+            <h3>Juan Carlos Reyes</h3>
+            <div class="candidate-role">Full Stack Developer</div>
           </div>
+          <div class="match-badge">92% Match</div>
         </div>
-        <div class="candidate-skills">
-          <span class="skill-tag">Node.js</span>
-          <span class="skill-tag">Java</span>
-          <span class="skill-tag">Docker</span>
+        <div class="candidate-meta">
+          <span>[EXP] 4+ years experience</span>
+          <span>[LOC] Nasugbu, Batangas</span>
+        </div>
+        <div class="skills-list">
+          <span class="skill-tag">React</span>
+          <span class="skill-tag">Python</span>
+          <span class="skill-tag">Django</span>
           <span class="skill-tag">AWS</span>
         </div>
-        <p style="font-size: 0.9rem; color: #666; margin-bottom: 1rem; line-height: 1.5;">4 years backend development. Experience with microservices. DevOps certified. Seeking new challenge.</p>
-        <div class="candidate-footer">
-          <button class="message-btn">View Profile</button>
-          <button class="profile-btn">Message</button>
+        <div class="action-buttons">
+          <button class="btn-small btn-primary-small">View Profile</button>
+          <button class="btn-small btn-outline-small">Message</button>
         </div>
       </div>
 
+      <!-- Candidate 3 -->
       <div class="candidate-card">
         <div class="candidate-header">
-          <div class="candidate-avatar">AS</div>
-          <div>
-            <div class="candidate-name">Angela Santos</div>
-            <div class="candidate-title">UI/UX Designer</div>
-            <div class="candidate-location">📍 Barangay Barahan</div>
+          <div class="candidate-info">
+            <h3>Ana Fernandez</h3>
+            <div class="candidate-role">Frontend Engineer</div>
           </div>
+          <div class="match-badge">88% Match</div>
         </div>
-        <div class="candidate-skills">
-          <span class="skill-tag">Figma</span>
-          <span class="skill-tag">UI Design</span>
-          <span class="skill-tag">Adobe XD</span>
-          <span class="skill-tag">Prototyping</span>
+        <div class="candidate-meta">
+          <span>[EXP] 3+ years experience</span>
+          <span>[LOC] Nasugbu, Batangas</span>
         </div>
-        <p style="font-size: 0.9rem; color: #666; margin-bottom: 1rem; line-height: 1.5;">6 years design experience. Award-winning portfolio. Specialized in product design. Can start immediately.</p>
-        <div class="candidate-footer">
-          <button class="message-btn">View Profile</button>
-          <button class="profile-btn">Message</button>
+        <div class="skills-list">
+          <span class="skill-tag">JavaScript</span>
+          <span class="skill-tag">React</span>
+          <span class="skill-tag">Vue.js</span>
+          <span class="skill-tag">CSS</span>
+        </div>
+        <div class="action-buttons">
+          <button class="btn-small btn-primary-small">View Profile</button>
+          <button class="btn-small btn-outline-small">Message</button>
         </div>
       </div>
     </div>
   </div>
+</div>
 
-  <footer class="footer">
-    <p>&copy; 2026 TalentScout AI — PESO Nasugbu, Batangas. Find your next star employee.</p>
-  </footer>
+<!-- TAB 2: BLIND HIRING -->
+<div id="blind-tab" class="tab-content">
+  <!-- SEARCH BAR -->
+  <div class="search-bar-wrap">
+    <div class="search-bar">
+      <div class="search-input-rel">
+        <span class="search-icon">[SEARCH]</span>
+        <input type="text" class="input" placeholder="Search by skills or experience level...">
+      </div>
+      <button class="btn btn-primary">Search</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="main-layout">
+    <!-- SIDEBAR FILTERS -->
+    <aside>
+      <div class="sidebar-card">
+        <div class="sidebar-title">Experience Level</div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck">-</div>
+            <span>Entry Level</span>
+          </div>
+          <span class="fcount">12</span>
+        </div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck on">✓</div>
+            <span>Mid Level</span>
+          </div>
+          <span class="fcount">24</span>
+        </div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck">-</div>
+            <span>Senior</span>
+          </div>
+          <span class="fcount">18</span>
+        </div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-title">Skills</div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck on">✓</div>
+            <span>React</span>
+          </div>
+          <span class="fcount">16</span>
+        </div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck on">✓</div>
+            <span>Python</span>
+          </div>
+          <span class="fcount">12</span>
+        </div>
+        <div class="filter-item">
+          <div class="filter-left">
+            <div class="fcheck">-</div>
+            <span>JavaScript</span>
+          </div>
+          <span class="fcount">18</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- RESULTS -->
+    <div>
+      <div class="results-header">
+        <div class="results-title">[BLIND] Anonymous Candidate Screening</div>
+        <div class="results-count">Showing 3 of 42 candidates</div>
+      </div>
+
+      <!-- Blind Candidate 1 -->
+      <div class="candidate-card">
+        <div class="candidate-header">
+          <div class="candidate-info">
+            <h3>Candidate #A42</h3>
+            <div class="candidate-role">Senior Developer Role</div>
+          </div>
+          <div class="match-badge">98% Match</div>
+        </div>
+        <div class="candidate-meta">
+          <span>[EXP] 5+ years</span>
+        </div>
+        <div class="skills-list">
+          <span class="skill-tag">React</span>
+          <span class="skill-tag">TypeScript</span>
+          <span class="skill-tag">Node.js</span>
+          <span class="skill-tag">PostgreSQL</span>
+        </div>
+        <div class="action-buttons">
+          <button class="btn-small btn-primary-small">View Anonymous Profile</button>
+          <button class="btn-small btn-outline-small">Schedule Interview</button>
+        </div>
+      </div>
+
+      <!-- Blind Candidate 2 -->
+      <div class="candidate-card">
+        <div class="candidate-header">
+          <div class="candidate-info">
+            <h3>Candidate #B71</h3>
+            <div class="candidate-role">Full Stack Developer Role</div>
+          </div>
+          <div class="match-badge">92% Match</div>
+        </div>
+        <div class="candidate-meta">
+          <span>[EXP] 4+ years</span>
+        </div>
+        <div class="skills-list">
+          <span class="skill-tag">React</span>
+          <span class="skill-tag">Python</span>
+          <span class="skill-tag">Django</span>
+          <span class="skill-tag">AWS</span>
+        </div>
+        <div class="action-buttons">
+          <button class="btn-small btn-primary-small">View Anonymous Profile</button>
+          <button class="btn-small btn-outline-small">Schedule Interview</button>
+        </div>
+      </div>
+
+      <!-- Blind Candidate 3 -->
+      <div class="candidate-card">
+        <div class="candidate-header">
+          <div class="candidate-info">
+            <h3>Candidate #C39</h3>
+            <div class="candidate-role">Frontend Engineer Role</div>
+          </div>
+          <div class="match-badge">88% Match</div>
+        </div>
+        <div class="candidate-meta">
+          <span>[EXP] 3+ years</span>
+        </div>
+        <div class="skills-list">
+          <span class="skill-tag">JavaScript</span>
+          <span class="skill-tag">React</span>
+          <span class="skill-tag">Vue.js</span>
+          <span class="skill-tag">CSS</span>
+        </div>
+        <div class="action-buttons">
+          <button class="btn-small btn-primary-small">View Anonymous Profile</button>
+          <button class="btn-small btn-outline-small">Schedule Interview</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function switchTab(tabName) {
+    // Hide all tabs
+    document.getElementById('normal-tab').classList.remove('active');
+    document.getElementById('blind-tab').classList.remove('active');
+    
+    // Remove active class from all links
+    document.querySelectorAll('.sub-nav-link').forEach(link => {
+      link.classList.remove('active');
+    });
+    
+    // Show selected tab with smooth animation
+    if (tabName === 'normal') {
+      document.getElementById('normal-tab').classList.add('active');
+      document.querySelectorAll('.sub-nav-link')[0].classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (tabName === 'blind') {
+      document.getElementById('blind-tab').classList.add('active');
+      document.querySelectorAll('.sub-nav-link')[1].classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  // Enhance candidate card interactions
+  document.querySelectorAll('.candidate-card').forEach((card, index) => {
+    card.style.animationDelay = (index * 0.1) + 's';
+    card.addEventListener('mouseenter', function() {
+      this.style.boxShadow = '0 8px 24px rgba(30, 158, 134, 0.16)';
+    });
+    card.addEventListener('mouseleave', function() {
+      this.style.boxShadow = '';
+    });
+  });
+
+  // Add smooth transitions to filter checkboxes
+  document.querySelectorAll('.fcheck').forEach(checkbox => {
+    checkbox.addEventListener('click', function(e) {
+      e.preventDefault();
+      this.classList.toggle('on');
+      this.style.transform = 'scale(1.15)';
+      setTimeout(() => {
+        this.style.transform = 'scale(1)';
+      }, 150);
+    });
+  });
+
+  // Enhance button interactions
+  document.querySelectorAll('.btn-small').forEach(btn => {
+    btn.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateY(-2px)';
+      this.style.boxShadow = '0 4px 12px rgba(30, 158, 134, 0.15)';
+    });
+    btn.addEventListener('mouseleave', function() {
+      this.style.transform = 'translateY(0)';
+      this.style.boxShadow = '';
+    });
+  });
+
+  // Add observer for lazy animation of cards
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.candidate-card').forEach(card => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(10px)';
+    observer.observe(card);
+  });
+</script>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <h3>TalentScout AI</h3>
+        <p>Smart AI-powered recruitment platform for PESO Nasugbu, Batangas. Connecting employers with qualified local talent.</p>
+      </div>
+      <div class="footer-col">
+        <h4>For Job Seekers</h4>
+        <ul>
+          <li><a href="../../employees/">Browse Jobs</a></li>
+          <li><a href="../../employees/modules/ai-matching/">AI Matching</a></li>
+          <li><a href="../../employees/modules/skill-gap-analysis/">Skill Gap Analysis</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>For Employers</h4>
+        <ul>
+          <li><a href="../../index.html">Home</a></li>
+          <li><a href="../post-jobs/">Post Jobs</a></li>
+          <li><a href="./">Find Talent</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>PESO Nasugbu</h4>
+        <ul>
+          <li><a href="#">Contact Us</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 TalentScout AI – PESO Nasugbu, Batangas</span>
+      <span>Connecting Employers with Local Talent</span>
+    </div>
+  </div>
+</footer>
+
 </body>
 </html>

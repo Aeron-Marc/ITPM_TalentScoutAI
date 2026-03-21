@@ -1,187 +1,217 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Tools — For Job Seekers | TalentScout AI</title>
-  <link rel="stylesheet" href="../../styles/global.css">
-  <link rel="stylesheet" href="../../styles/page-layout.css">
-  <style>
-    .modules-section { padding: 3rem 2.5rem; background: white; }
-    .modules-inner { max-width: 1200px; margin: 0 auto; }
-    .modules-header { margin-bottom: 2.5rem; }
-    .modules-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.5rem;
-    }
-    .module-card {
-      background: var(--bg-light);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      padding: 2rem;
-      text-decoration: none;
-      color: inherit;
-      transition: all 0.25s;
-      display: block;
-    }
-    .module-card:hover {
-      border-color: var(--primary-dark);
-      box-shadow: var(--shadow);
-      transform: translateY(-4px);
-      background: white;
-    }
-    .module-icon {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-      display: block;
-    }
-    .module-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--text-dark);
-      margin-bottom: 0.5rem;
-    }
-    .module-desc {
-      font-size: 0.87rem;
-      color: var(--text-light);
-      line-height: 1.6;
-      margin-bottom: 1rem;
-    }
-    .module-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.3rem;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--primary-dark);
-      text-decoration: none;
-    }
-  </style>
-</head>
-<body>
-
-<!-- NAVBAR -->
-<nav class="navbar">
-  <a href="../index.html" class="nav-logo">
-    <div class="nav-logo-icon">TS</div>
-    <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
-  </a>
-  <ul class="nav-links">
-    <li><a href="../index.html">Home</a></li>
-    <li><a href="./job-postings/">Browse Jobs</a></li>
-    <li><a href="./ai-matching/">AI Matching</a></li>
-    <li><a href="./skill-gap-analysis/">Skills</a></li>
-    <li><a href="./applicant-tracking/" class="active">Applications</a></li>
-  </ul>
-  <div class="nav-actions">
-    <a href="#" class="btn btn-outline">Login</a>
-    <a href="#" class="btn btn-primary">Get Started</a>
-  </div>
-</nav>
-
-<!-- MODULES SECTION -->
-<div class="modules-section">
-  <div class="modules-inner">
-    <div class="modules-header">
-      <div class="section-label">Your Tools</div>
-      <h2 class="section-title">Job Seeker Modules</h2>
-      <p class="section-subtitle">Access all the tools you need to find opportunities, build your profile, and advance your career.</p>
-    </div>
-
-    <div class="modules-grid">
-      <!-- Browse Jobs -->
-      <a href="./job-postings/" class="module-card">
-        <span class="module-icon">📋</span>
-        <div class="module-title">Job Postings</div>
-        <div class="module-desc">Browse hundreds of job opportunities across all barangays in Nasugbu. Filter by skills, location, and salary.</div>
-        <span class="module-link">View Jobs →</span>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Tools — For Job Seekers | TalentScout AI</title>
+    <link rel="stylesheet" href="../../styles/global.css" />
+    <link rel="stylesheet" href="../../styles/page-layout.css" />
+    <style>
+      .modules-section {
+        padding: 3rem 2.5rem;
+        background: white;
+      }
+      .modules-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .modules-header {
+        margin-bottom: 2.5rem;
+      }
+      .modules-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+      }
+      .module-card {
+        background: var(--bg-light);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius);
+        padding: 2rem;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.25s;
+        display: block;
+      }
+      .module-card:hover {
+        border-color: var(--primary-dark);
+        box-shadow: var(--shadow);
+        transform: translateY(-4px);
+        background: white;
+      }
+      .module-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        display: block;
+      }
+      .module-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+      }
+      .module-desc {
+        font-size: 0.87rem;
+        color: var(--text-light);
+        line-height: 1.6;
+        margin-bottom: 1rem;
+      }
+      .module-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--primary-dark);
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+      <a href="../index.html" class="nav-logo">
+        <div class="nav-logo-icon">TS</div>
+        <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
       </a>
-
-      <!-- AI Matching -->
-      <a href="./ai-matching/" class="module-card">
-        <span class="module-icon">🤖</span>
-        <div class="module-title">AI Job Matching</div>
-        <div class="module-desc">Get personalized job recommendations based on your skills. AI-powered matching finds your perfect fit.</div>
-        <span class="module-link">See Matches →</span>
-      </a>
-
-      <!-- Skill Gap Analysis -->
-      <a href="./skill-gap-analysis/" class="module-card">
-        <span class="module-icon">📊</span>
-        <div class="module-title">Skill Gap Analysis</div>
-        <div class="module-desc">Discover what skills you need to unlock more opportunities. Get personalized course recommendations.</div>
-        <span class="module-link">Analyze Skills →</span>
-      </a>
-
-      <!-- Application Tracker -->
-      <a href="./applicant-tracking/" class="module-card">
-        <span class="module-icon">📑</span>
-        <div class="module-title">Application Tracker</div>
-        <div class="module-desc">Monitor your applications in real-time. Track progress from pending applications through job offers.</div>
-        <span class="module-link">Track Applications →</span>
-      </a>
-
-      <!-- Blind Hiring (Info) -->
-      <a href="./blind-hiring-info/" class="module-card">
-        <span class="module-icon">🫥</span>
-        <div class="module-title">Blind Hiring Info</div>
-        <div class="module-desc">Learn how blind hiring works. Understand how employers evaluate you based on skills alone, not personal details.</div>
-        <span class="module-link">Learn More →</span>
-      </a>
-
-      <!-- Resume Builder (Coming Soon) -->
-      <a href="#" class="module-card" style="opacity:0.6; pointer-events:none;">
-        <span class="module-icon">✏️</span>
-        <div class="module-title">Resume Builder</div>
-        <div class="module-desc">Create a professional resume with guided templates. Coming soon.</div>
-        <span class="module-link">Coming Soon</span>
-      </a>
-    </div>
-  </div>
-</div>
-
-<!-- FOOTER -->
-<footer class="footer">
-  <div class="footer-inner">
-    <div class="footer-top">
-      <div class="footer-brand">
-        <h3>TalentScout AI</h3>
-        <p>Smart AI-powered recruitment platform for PESO Nasugbu, Batangas. Connecting local talent with opportunity.</p>
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="./job-postings/">Browse Jobs</a></li>
+        <li><a href="./ai-matching/">AI Matching</a></li>
+        <li><a href="./resume-builder/">Resume Builder</a></li>
+        <li><a href="./skill-gap-analysis/">Skills</a></li>
+        <li><a href="./applicant-tracking/">Applications</a></li>
+        <li><a href="./" class="active">All Tools</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a href="../login.html" class="btn btn-outline">Login</a>
+        <a href="../signup.html" class="btn btn-primary">Get Started</a>
       </div>
-      <div class="footer-col">
-        <h4>For Job Seekers</h4>
-        <ul>
-          <li><a href="../../job-postings/">Browse Jobs</a></li>
-          <li><a href="../../ai-matching/">AI Matching</a></li>
-          <li><a href="../../skill-gap-analysis/">Skill Analysis</a></li>
-          <li><a href="../../applicant-tracking/">Track Applications</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>For Employers</h4>
-        <ul>
-          <li><a href="../../employers/">Post Jobs</a></li>
-          <li><a href="../../blind-hiring/">Blind Hiring</a></li>
-          <li><a href="../../employers/">Find Talent</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>Resources</h4>
-        <ul>
-          <li><a href="../../index.html">Home</a></li>
-          <li><a href="#">About</a></li>
-          <li><a href="#">Contact</a></li>
-          <li><a href="#">Privacy Policy</a></li>
-        </ul>
+    </nav>
+
+    <!-- MODULES SECTION -->
+    <div class="modules-section">
+      <div class="modules-inner">
+        <div class="modules-header">
+          <div class="section-label">Your Tools</div>
+          <h2 class="section-title">Job Seeker Modules</h2>
+          <p class="section-subtitle">
+            Access all the tools you need to find opportunities, build your
+            profile, and advance your career.
+          </p>
+        </div>
+
+        <div class="modules-grid">
+          <!-- Browse Jobs -->
+          <a href="./job-postings/" class="module-card">
+            <span class="module-icon">📋</span>
+            <div class="module-title">Job Postings</div>
+            <div class="module-desc">
+              Browse hundreds of job opportunities across all barangays in
+              Nasugbu. Filter by skills, location, and salary.
+            </div>
+            <span class="module-link">View Jobs →</span>
+          </a>
+
+          <!-- AI Matching -->
+          <a href="./ai-matching/" class="module-card">
+            <span class="module-icon">🤖</span>
+            <div class="module-title">AI Job Matching</div>
+            <div class="module-desc">
+              Get personalized job recommendations based on your skills.
+              AI-powered matching finds your perfect fit.
+            </div>
+            <span class="module-link">See Matches →</span>
+          </a>
+
+          <!-- Skill Gap Analysis -->
+          <a href="./skill-gap-analysis/" class="module-card">
+            <span class="module-icon">📊</span>
+            <div class="module-title">Skill Gap Analysis</div>
+            <div class="module-desc">
+              Discover what skills you need to unlock more opportunities. Get
+              personalized course recommendations.
+            </div>
+            <span class="module-link">Analyze Skills →</span>
+          </a>
+
+          <!-- Application Tracker -->
+          <a href="./applicant-tracking/" class="module-card">
+            <span class="module-icon">📑</span>
+            <div class="module-title">Application Tracker</div>
+            <div class="module-desc">
+              Monitor your applications in real-time. Track progress from
+              pending applications through job offers.
+            </div>
+            <span class="module-link">Track Applications →</span>
+          </a>
+
+          <!-- Resume Builder -->
+          <a href="./resume-builder/" class="module-card">
+            <span class="module-icon">✏️</span>
+            <div class="module-title">Resume Builder</div>
+            <div class="module-desc">
+              Create a professional resume in minutes. Simple step-by-step process
+              with real-time preview.
+            </div>
+            <span class="module-link">Build Resume →</span>
+          </a>
+        </div>
       </div>
     </div>
-    <div class="footer-bottom">
-      <span>© 2026 TalentScout AI — PESO Nasugbu, Batangas</span>
-      <span>Connecting Talent with Opportunity</span>
-    </div>
-  </div>
-</footer>
 
-</body>
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <h3>TalentScout AI</h3>
+            <p>
+              Smart AI-powered recruitment platform for PESO Nasugbu, Batangas.
+              Connecting local talent with opportunity.
+            </p>
+          </div>
+          <div class="footer-col">
+            <h4>For Job Seekers</h4>
+            <ul>
+              <li><a href="./job-postings/">Browse Jobs</a></li>
+              <li><a href="./ai-matching/">AI Matching</a></li>
+              <li><a href="./skill-gap-analysis/">Skill Analysis</a></li>
+              <li><a href="./applicant-tracking/">Track Applications</a></li>
+              <li><a href="./resume-builder/">Resume Builder</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>For Employers</h4>
+            <ul>
+              <li>
+                <a href="../../employers/modules/post-jobs/">Post Jobs</a>
+              </li>
+              <li>
+                <a href="../../employers/modules/blind-hiring/">Blind Hiring</a>
+              </li>
+              <li>
+                <a href="../../employers/modules/employee-finder/"
+                  >Find Talent</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>Resources</h4>
+            <ul>
+              <li><a href="../../index.html">Home</a></li>
+              <li><a href="#">About</a></li>
+              <li><a href="#">Contact</a></li>
+              <li><a href="#">Privacy Policy</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span>© 2026 TalentScout AI — PESO Nasugbu, Batangas</span>
+          <span>Connecting Talent with Opportunity</span>
+        </div>
+      </div>
+    </footer>
+  </body>
 </html>

@@ -1,30 +1,32 @@
 /* ===== CSS VARIABLES ===== */
 :root {
   --nav-height: 60px;
-  
+
   /* Colors */
-  --primary-dark: #1E9E86;
-  --primary-mid: #4FBFA4;
-  --primary-light: #98FBCB;
-  --primary-lighter: #D4F7ED;
-  
+  --primary-dark: #1e9e86;
+  --primary-mid: #4fbfa4;
+  --primary-light: #98fbcb;
+  --primary-lighter: #d4f7ed;
+  --primary: #d4f7ed;
+  --primary-darker: #157a68;
+
   /* Text */
-  --text-dark: #1A1A1A;
-  --text-mid: #4A4A4A;
-  --text-light: #7A7A7A;
-  --text-muted: #A0A0A0;
-  
+  --text-dark: #1a1a1a;
+  --text-mid: #4a4a4a;
+  --text-light: #7a7a7a;
+  --text-muted: #a0a0a0;
+
   /* Background */
-  --bg-light: #F8FFFE;
-  --bg-lighter: #EEFFF9;
-  --border: #E0E8E5;
-  
+  --bg-light: #f8fffe;
+  --bg-lighter: #eefff9;
+  --border: #e0e8e5;
+
   /* Spacing */
   --radius: 8px;
   --radius-sm: 4px;
-  
+
   /* Shadow */
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
   --shadow: 0 4px 12px rgba(30, 158, 134, 0.15);
   --shadow-lg: 0 10px 30px rgba(30, 158, 134, 0.2);
 }
@@ -41,13 +43,21 @@ html {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
   color: var(--text-dark);
   line-height: 1.6;
   background: white;
+  transition: background-color 0.3s ease;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: 700;
   line-height: 1.2;
 }
@@ -131,7 +141,8 @@ a {
   font-size: 0.9rem;
   color: var(--text-light);
   border-bottom: 3px solid transparent;
-  transition: all 0.2s;
+  transition: all 0.25s ease;
+  position: relative;
 }
 
 .nav-links a:hover {
@@ -162,7 +173,12 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.btn:active {
+  transform: scale(0.96);
 }
 
 .btn-primary {
@@ -171,20 +187,23 @@ a {
 }
 
 .btn-primary:hover {
-  background: #157A68;
-  box-shadow: var(--shadow);
+  background: #157a68;
+  box-shadow: 0 4px 12px rgba(30, 158, 134, 0.2);
+  transform: translateY(-1px);
 }
 
 .btn-outline {
   background: transparent;
   color: var(--text-mid);
   border: 1.5px solid var(--border);
+  transition: all 0.25s ease;
 }
 
 .btn-outline:hover {
   border-color: var(--primary-dark);
   color: var(--primary-dark);
   background: var(--bg-lighter);
+  box-shadow: 0 2px 8px rgba(30, 158, 134, 0.12);
 }
 
 .btn-secondary {
@@ -209,7 +228,9 @@ a {
   border: none;
   text-decoration: none;
   display: inline-block;
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-hero-primary {
@@ -218,9 +239,13 @@ a {
 }
 
 .btn-hero-primary:hover {
-  background: #157A68;
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
+  background: #157a68;
+  box-shadow: 0 8px 24px rgba(30, 158, 134, 0.25);
+  transform: translateY(-3px);
+}
+
+.btn-hero-primary:active {
+  transform: translateY(-1px);
 }
 
 .btn-hero-outline {
@@ -231,6 +256,8 @@ a {
 
 .btn-hero-outline:hover {
   background: var(--primary-lighter);
+  box-shadow: 0 4px 16px rgba(30, 158, 134, 0.15);
+  transform: translateY(-2px);
 }
 
 /* ===== TYPOGRAPHY ===== */
@@ -271,37 +298,111 @@ a {
   color: var(--primary-dark);
 }
 
-.mt-1 { margin-top: 0.5rem; }
-.mt-2 { margin-top: 1rem; }
-.mt-3 { margin-top: 1.5rem; }
-.mt-4 { margin-top: 2rem; }
+.mt-1 {
+  margin-top: 0.5rem;
+}
+.mt-2 {
+  margin-top: 1rem;
+}
+.mt-3 {
+  margin-top: 1.5rem;
+}
+.mt-4 {
+  margin-top: 2rem;
+}
 
-.mb-1 { margin-bottom: 0.5rem; }
-.mb-2 { margin-bottom: 1rem; }
-.mb-3 { margin-bottom: 1.5rem; }
-.mb-4 { margin-bottom: 2rem; }
+.mb-1 {
+  margin-bottom: 0.5rem;
+}
+.mb-2 {
+  margin-bottom: 1rem;
+}
+.mb-3 {
+  margin-bottom: 1.5rem;
+}
+.mb-4 {
+  margin-bottom: 2rem;
+}
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
   .navbar {
     padding: 0 1.5rem;
   }
-  
+
   .nav-links {
     gap: 0;
   }
-  
+
   .nav-links a {
     padding: 0 1rem;
     font-size: 0.8rem;
   }
-  
+
   .section-title {
     font-size: 1.5rem;
   }
-  
+
   .btn-nav {
     padding: 0.5rem 1rem;
     font-size: 0.8rem;
   }
+}
+
+/* ===== FORM ELEMENTS ===== */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="tel"],
+.input,
+textarea,
+.textarea,
+select,
+.select {
+  width: 100%;
+  padding: 0.7rem 0.875rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--text-dark);
+  background: white;
+  transition: all 0.2s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+input[type="tel"]:focus,
+.input:focus,
+textarea:focus,
+.textarea:focus,
+select:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--primary-dark);
+  box-shadow: 0 0 0 3px rgba(30, 158, 134, 0.1);
+  background: #fafffe;
+}
+
+textarea,
+.textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Checkbox & Radio */
+input[type="checkbox"],
+input[type="radio"] {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+input[type="checkbox"]:hover,
+input[type="radio"]:hover {
+  accent-color: var(--primary-dark);
 }

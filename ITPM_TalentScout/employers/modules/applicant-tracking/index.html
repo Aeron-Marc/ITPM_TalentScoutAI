@@ -3,179 +3,394 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Applicant Tracking | Employers - TalentScout AI</title>
+  <title>Application Tracker — TalentScout AI</title>
+  <link rel="stylesheet" href="../../../styles/global.css">
+  <link rel="stylesheet" href="../../../styles/page-layout.css">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 2.5rem; }
     
-    .navbar { background: white; border-bottom: 1px solid #e0e0e0; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
-    .nav-logo { font-size: 1.25rem; font-weight: 700; color: #1a1a1a; text-decoration: none; }
-    .nav-logo span { color: #98FBCB; }
-    .nav-links { list-style: none; display: flex; gap: 2rem; }
-    .nav-links a { text-decoration: none; color: #666; font-weight: 500; }
-    
-    .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-    
-    .header { margin-bottom: 2rem; }
-    .header h1 { font-size: 2rem; color: #1a1a1a; }
-    
-    .kanban { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
-    
-    .column {
+    .page-header {
+      margin-bottom: 2.5rem;
+    }
+    .page-header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 0.5rem;
+    }
+    .page-header p {
+      color: var(--text-light);
+      font-size: 0.95rem;
+    }
+
+    /* Stats Block */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+    .stat-card {
       background: white;
-      border-radius: 4px;
-      border-top: 4px solid #98FBCB;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
       padding: 1.5rem;
     }
-    
-    .column-title { font-weight: 700; color: #1a1a1a; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
-    .column-count { color: #98FBCB; font-weight: 700; }
-    
-    .card {
-      background: #f9f9f9;
-      border-radius: 4px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border: 1px solid #e0e0e0;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
+    .stat-value {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      margin-bottom: 0.5rem;
     }
-    
-    .card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-    
-    .card-name { font-weight: 700; color: #1a1a1a; }
-    .card-role { color: #98FBCB; font-size: 0.85rem; margin-top: 0.25rem; }
-    .card-time { color: #999; font-size: 0.8rem; margin-top: 0.5rem; }
-    
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-weight: 600;
+    }
+
+    /* Table */
+    .table-wrapper {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: #f5f5f5;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      padding: 1rem 1.25rem;
+      text-align: left;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: all 0.2s ease;
+    }
+
+    tbody tr:hover {
+      background-color: #fafafa;
+      box-shadow: inset 0 0 12px rgba(30, 158, 134, 0.08);
+    }
+
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    td {
+      padding: 1.25rem;
+      font-size: 0.95rem;
+      color: var(--text-dark);
+    }
+
+    .candidate-col {
+      font-weight: 600;
+    }
+
+    .position-col {
+      color: var(--text-light);
+      font-size: 0.9rem;
+    }
+
+    .status-col {
+      font-weight: 600;
+      padding: 0.5rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      display: inline-block;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .status-applied { background: #e8e8e8; color: #666; }
+    .status-review { background: #fff3cd; color: #865c00; }
+    .status-interview { background: #d1ecf1; color: #0c5460; }
+    .status-offer { background: #d4edda; color: #155724; }
+    .status-hired { background: #98FBCB; color: #1a1a1a; font-weight: 700; }
+
+    .match-score {
+      font-weight: 700;
+      color: var(--primary-dark);
+    }
+
+    .date-col {
+      color: var(--text-light);
+      font-size: 0.9rem;
+    }
+
+    .action-col {
+      text-align: center;
+    }
+
+    .btn-small {
+      background: white;
+      border: 1px solid var(--border);
+      padding: 0.4rem 0.8rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    .btn-small:hover {
+      background: var(--primary-dark);
+      color: white;
+      border-color: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(30, 158, 134, 0.15);
+    }
+
+    .btn-small:active {
+      transform: translateY(0);
+    }
+
     .footer { background: #1a1a1a; color: white; padding: 2rem; margin-top: 3rem; text-align: center; }
   </style>
 </head>
 <body>
   <nav class="navbar">
-    <a href="../../index.html" class="nav-logo">Talent<span>Scout</span> AI</a>
+    <a href="../../index.html" class="nav-logo">
+      <div class="nav-logo-icon">TS</div>
+      <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
+    </a>
     <ul class="nav-links">
       <li><a href="../../index.html">Home</a></li>
       <li><a href="../post-jobs/">Post Jobs</a></li>
       <li><a href="../employee-finder/">Find Talent</a></li>
-      <li><a href="./" style="color: #98FBCB; font-weight: 700;">Pipeline</a></li>
+      <li><a href="./" class="active">Hiring Pipeline</a></li>
       <li><a href="../chat-sms/">Messages</a></li>
     </ul>
+    <div class="nav-actions">
+      <a href="#" class="btn btn-outline">Login</a>
+      <a href="#" class="btn btn-primary">Get Started</a>
+    </div>
   </nav>
 
   <div class="container">
-    <div class="header">
-      <h1>📊 Job Application Tracker</h1>
-      <p style="color: #666; margin-top: 0.5rem;">Manage your entire hiring pipeline</p>
+    <div class="page-header">
+      <h1>[TRACK] Job Application Tracker</h1>
+      <p>Manage your entire hiring pipeline from application to hire</p>
     </div>
 
-    <div class="kanban">
-      <!-- Applied -->
-      <div class="column">
-        <div class="column-title">📥 Applied <span class="column-count">8</span></div>
-        
-        <div class="card">
-          <div class="card-name">John Dela Cruz</div>
-          <div class="card-role">Senior React Developer</div>
-          <div class="card-time">Applied 2 days ago</div>
-        </div>
-
-        <div class="card">
-          <div class="card-name">Maria Santos</div>
-          <div class="card-role">Full Stack Engineer</div>
-          <div class="card-time">Applied 1 day ago</div>
-        </div>
-
-        <div class="card">
-          <div class="card-name">Roberto Garcia</div>
-          <div class="card-role">Backend Developer</div>
-          <div class="card-time">Applied today</div>
-        </div>
-
-        <div class="card">
-          <div class="card-name">Angela Santos</div>
-          <div class="card-role">UI/UX Designer</div>
-          <div class="card-time">Applied today</div>
-        </div>
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">19</div>
+        <div class="stat-label">Total Applications</div>
       </div>
-
-      <!-- Screening -->
-      <div class="column">
-        <div class="column-title">👀 In Review <span class="column-count">5</span></div>
-        
-        <div class="card">
-          <div class="card-name">Carlos Reyes</div>
-          <div class="card-role">Senior React Developer</div>
-          <div class="card-time">In review since yesterday</div>
-        </div>
-
-        <div class="card">
-          <div class="card-name">Lisa Wong</div>
-          <div class="card-role">Full Stack Developer</div>
-          <div class="card-time">In review since 2 days ago</div>
-        </div>
-
-        <div class="card">
-          <div class="card-name">David Kim</div>
-          <div class="card-role">Backend Developer</div>
-          <div class="card-time">In review since 1 day ago</div>
-        </div>
+      <div class="stat-card">
+        <div class="stat-value">8</div>
+        <div class="stat-label">Ready to Review</div>
       </div>
-
-      <!-- Interview -->
-      <div class="column">
-        <div class="column-title">📞 Interview <span class="column-count">3</span></div>
-        
-        <div class="card">
-          <div class="card-name">Jennifer Lee</div>
-          <div class="card-role">Senior React Developer</div>
-          <div class="card-time">Interview scheduled 24 Mar</div>
-        </div>
-
-        <div class="card">
-          <div class="card-name">Michael Brown</div>
-          <div class="card-role">Full Stack Engineer</div>
-          <div class="card-time">Interview scheduled 25 Mar</div>
-        </div>
-
-        <div class="card">
-          <div class="card-name">Sarah Jones</div>
-          <div class="card-role">UI Designer</div>
-          <div class="card-time">Interview completed 20 Mar</div>
-        </div>
+      <div class="stat-card">
+        <div class="stat-value">3</div>
+        <div class="stat-label">Interviews Scheduled</div>
       </div>
-
-      <!-- Offer -->
-      <div class="column">
-        <div class="column-title">✅ Offer <span class="column-count">1</span></div>
-        
-        <div class="card">
-          <div class="card-name">Jennifer Lee</div>
-          <div class="card-role">Senior React Developer</div>
-          <div class="card-time">Offer sent 21 Mar</div>
-        </div>
+      <div class="stat-card">
+        <div class="stat-value">2</div>
+        <div class="stat-label">Offers Sent</div>
       </div>
+    </div>
 
-      <!-- Hired -->
-      <div class="column">
-        <div class="column-title">🎉 Hired <span class="column-count">2</span></div>
-        
-        <div class="card">
-          <div class="card-name">Michael Chen</div>
-          <div class="card-role">Full Stack Developer</div>
-          <div class="card-time">Hired on 15 Mar</div>
-        </div>
+    <!-- Kanban Board -->
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 20%;">Candidate Name</th>
+            <th style="width: 15%;">Position</th>
+            <th style="width: 15%;">Status</th>
+            <th style="width: 12%;">Match Score</th>
+            <th style="width: 18%;">Applied Date</th>
+            <th style="width: 20%;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Applied Candidates -->
+          <tr>
+            <td class="candidate-col">John Dela Cruz</td>
+            <td class="position-col">Senior React Developer</td>
+            <td><span class="status-col status-applied">Applied</span></td>
+            <td class="match-score">92%</td>
+            <td class="date-col">Mar 14, 2026</td>
+            <td class="action-col"><button class="btn-small">View</button></td>
+          </tr>
+          <tr>
+            <td class="candidate-col">Maria Santos</td>
+            <td class="position-col">Full Stack Engineer</td>
+            <td><span class="status-col status-applied">Applied</span></td>
+            <td class="match-score">87%</td>
+            <td class="date-col">Mar 15, 2026</td>
+            <td class="action-col"><button class="btn-small">View</button></td>
+          </tr>
+          <tr>
+            <td class="candidate-col">Roberto Garcia</td>
+            <td class="position-col">Backend Developer</td>
+            <td><span class="status-col status-applied">Applied</span></td>
+            <td class="match-score">78%</td>
+            <td class="date-col">Mar 16, 2026</td>
+            <td class="action-col"><button class="btn-small">View</button></td>
+          </tr>
+          <tr>
+            <td class="candidate-col">Angela Santos</td>
+            <td class="position-col">UI/UX Designer</td>
+            <td><span class="status-col status-applied">Applied</span></td>
+            <td class="match-score">85%</td>
+            <td class="date-col">Mar 16, 2026</td>
+            <td class="action-col"><button class="btn-small">View</button></td>
+          </tr>
 
-        <div class="card">
-          <div class="card-name">Nina Patel</div>
-          <div class="card-role">UI/UX Designer</div>
-          <div class="card-time">Hired on 10 Mar</div>
-        </div>
-      </div>
+          <!-- In Review Candidates -->
+          <tr>
+            <td class="candidate-col">Carlos Reyes</td>
+            <td class="position-col">Senior React Developer</td>
+            <td><span class="status-col status-review">In Review</span></td>
+            <td class="match-score">94%</td>
+            <td class="date-col">Mar 15, 2026</td>
+            <td class="action-col"><button class="btn-small">View</button></td>
+          </tr>
+          <tr>
+            <td class="candidate-col">Lisa Wong</td>
+            <td class="position-col">Full Stack Developer</td>
+            <td><span class="status-col status-review">In Review</span></td>
+            <td class="match-score">89%</td>
+            <td class="date-col">Mar 14, 2026</td>
+            <td class="action-col"><button class="btn-small">View</button></td>
+          </tr>
+          <tr>
+            <td class="candidate-col">David Kim</td>
+            <td class="position-col">Backend Developer</td>
+            <td><span class="status-col status-review">In Review</span></td>
+            <td class="match-score">81%</td>
+            <td class="date-col">Mar 15, 2026</td>
+            <td class="action-col"><button class="btn-small">View</button></td>
+          </tr>
+
+          <!-- Interview Candidates -->
+          <tr>
+            <td class="candidate-col">Jennifer Lee</td>
+            <td class="position-col">Senior React Developer</td>
+            <td><span class="status-col status-interview">Interview</span></td>
+            <td class="match-score">96%</td>
+            <td class="date-col">Mar 14, 2026</td>
+            <td class="action-col"><button class="btn-small">View</button></td>
+          </tr>
+          <tr>
+            <td class="candidate-col">Michael Brown</td>
+            <td class="position-col">Full Stack Engineer</td>
+            <td><span class="status-col status-interview">Interview</span></td>
+            <td class="match-score">91%</td>
+            <td class="date-col">Mar 12, 2026</td>
+            <td class="action-col"><button class="btn-small">View</button></td>
+          </tr>
+          <tr>
+            <td class="candidate-col">Sarah Jones</td>
+            <td class="position-col">UI Designer</td>
+            <td><span class="status-col status-interview">Interview</span></td>
+            <td class="match-score">88%</td>
+            <td class="date-col">Mar 10, 2026</td>
+            <td class="action-col"><button class="btn-small">View</button></td>
+          </tr>
+
+          <!-- Offer Candidates -->
+          <tr>
+            <td class="candidate-col">Michael Chen</td>
+            <td class="position-col">Full Stack Developer</td>
+            <td><span class="status-col status-offer">Offer Sent</span></td>
+            <td class="match-score">95%</td>
+            <td class="date-col">Mar 8, 2026</td>
+            <td class="action-col"><button class="btn-small">View</button></td>
+          </tr>
+          <tr>
+            <td class="candidate-col">Jennifer Lee</td>
+            <td class="position-col">Senior React Developer</td>
+            <td><span class="status-col status-offer">Offer Sent</span></td>
+            <td class="match-score">96%</td>
+            <td class="date-col">Mar 14, 2026</td>
+            <td class="action-col"><button class="btn-small">View</button></td>
+          </tr>
+
+          <!-- Hired -->
+          <tr>
+            <td class="candidate-col">Nina Patel</td>
+            <td class="position-col">UI/UX Designer</td>
+            <td><span class="status-col status-hired">[HIRED]</span></td>
+            <td class="match-score">92%</td>
+            <td class="date-col">Mar 10, 2026</td>
+            <td class="action-col"><button class="btn-small">View</button></td>
+          </tr>
+          <tr>
+            <td class="candidate-col">James Wilson</td>
+            <td class="position-col">Full Stack Developer</td>
+            <td><span class="status-col status-hired">[HIRED]</span></td>
+            <td class="match-score">94%</td>
+            <td class="date-col">Mar 5, 2026</td>
+            <td class="action-col"><button class="btn-small">View</button></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
   <footer class="footer">
     <p>&copy; 2026 TalentScout AI — PESO Nasugbu, Batangas. Streamlined hiring process.</p>
   </footer>
+
+  <script>
+    // Animate table rows on load
+    const rows = document.querySelectorAll('tbody tr');
+    rows.forEach((row, index) => {
+      row.style.opacity = '0';
+      row.style.transform = 'translateY(10px)';
+      row.style.transition = `opacity 0.4s ease ${index * 0.05}s, transform 0.4s ease ${index * 0.05}s`;
+      setTimeout(() => {
+        row.style.opacity = '1';
+        row.style.transform = 'translateY(0)';
+      }, 10);
+    });
+
+    // Enhance button interactions
+    document.querySelectorAll('.btn-small').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        // Prevent default action for demo
+        e.preventDefault();
+        
+        // Add click feedback
+        this.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+          this.style.transform = '';
+        }, 100);
+      });
+    });
+
+    // Add hover effect to rows
+    document.querySelectorAll('tbody tr').forEach(row => {
+      row.addEventListener('mouseenter', function() {
+        this.style.transform = 'scale(1.01)';
+        this.style.transformOrigin = 'center';
+      });
+      row.addEventListener('mouseleave', function() {
+        this.style.transform = 'scale(1)';
+      });
+    });
+  </script>
+
 </body>
 </html>
