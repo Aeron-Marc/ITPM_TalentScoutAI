@@ -192,6 +192,310 @@
         </div>
       </div>
     </footer>
+    <div id="application-details-modal" class="app-details-modal" aria-hidden="true">
+      <div class="app-details-card" role="dialog" aria-modal="true" aria-labelledby="app-details-title">
+        <div class="app-details-head">
+          <div>
+            <h3 id="app-details-title">Application Details</h3>
+            <p>Quick summary of your selected job application.</p>
+          </div>
+          <button type="button" id="app-details-close-btn" aria-label="Close details dialog">×</button>
+        </div>
+        <div id="app-details-body" class="app-details-body"></div>
+        <div class="app-details-footer">
+          <button type="button" id="app-details-ok-btn">Close</button>
+        </div>
+      </div>
+    </div>
+    <style>
+      .app-details-modal {
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(circle at 15% 20%, rgba(79, 191, 164, 0.18) 0%, rgba(79, 191, 164, 0) 45%),
+          rgba(5, 18, 17, 0.56);
+        backdrop-filter: blur(3px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        z-index: 1200;
+      }
+
+      .app-details-modal.is-open {
+        display: flex;
+      }
+
+      .app-details-card {
+        width: 100%;
+        max-width: 640px;
+        background: #ffffff;
+        border-radius: 18px;
+        border: 1px solid #dbe8e3;
+        box-shadow: 0 26px 60px rgba(16, 24, 40, 0.28);
+        padding: 0;
+        text-align: left;
+        overflow: hidden;
+        animation: appDetailsPop 180ms ease-out;
+      }
+
+      @keyframes appDetailsPop {
+        from {
+          opacity: 0;
+          transform: translateY(8px) scale(0.985);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .app-details-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 20px 22px 16px;
+        background: linear-gradient(135deg, #eefcf6 0%, #ffffff 100%);
+        border-bottom: 1px solid #e2eee9;
+      }
+
+      .app-details-head h3 {
+        margin: 0;
+        font-size: 1.18rem;
+        color: #163b34;
+      }
+
+      .app-details-head p {
+        margin: 6px 0 0;
+        font-size: 0.9rem;
+        color: #4f6b63;
+      }
+
+      #app-details-close-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 1px solid #cde0d9;
+        background: #ffffff;
+        color: #37554f;
+        font-size: 1.4rem;
+        line-height: 1;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(23, 83, 72, 0.12);
+        transition: all 140ms ease;
+      }
+
+      #app-details-close-btn:hover {
+        transform: translateY(-1px);
+        border-color: #aac7be;
+      }
+
+      .app-details-body {
+        padding: 18px 22px 4px;
+      }
+
+      .app-details-summary {
+        border: 1px solid #d9e8e2;
+        border-radius: 14px;
+        padding: 14px 14px 12px;
+        background: linear-gradient(145deg, #f7fffc 0%, #ffffff 100%);
+        margin-bottom: 6px;
+      }
+
+      .app-details-summary-top {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 10px;
+      }
+
+      .app-details-summary h4 {
+        margin: 0;
+        font-size: 1.04rem;
+        color: #113630;
+      }
+
+      .app-details-company {
+        display: inline-block;
+        margin-top: 4px;
+        font-size: 0.88rem;
+        color: #5a766d;
+      }
+
+      .app-details-meta {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .app-details-row {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 10px 11px;
+        border: none;
+        border-radius: 10px;
+        background: #f2f7f5;
+        min-height: 86px;
+      }
+
+      .app-details-label {
+        display: block;
+        color: #5b746c;
+        font-weight: 700;
+        font-size: 0.73rem;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+
+      .app-details-value {
+        color: #1c2f29;
+        font-weight: 700;
+        font-size: 0.91rem;
+      }
+
+      .app-details-footer {
+        padding: 0 22px 6px;
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      #app-details-ok-btn {
+        margin: 2px 0 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        border-radius: 10px;
+        color: #ffffff;
+        padding: 11px 24px;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(21, 122, 104, 0.22);
+        transition: all 160ms ease;
+      }
+
+      #app-details-ok-btn:hover {
+        filter: brightness(0.96);
+        transform: translateY(-1px);
+      }
+
+      @media (max-width: 560px) {
+        .app-details-head {
+          padding: 16px 16px 14px;
+        }
+
+        .app-details-body {
+          padding: 14px 16px 2px;
+        }
+
+        .app-details-footer {
+          padding: 0 16px 6px;
+        }
+
+        .app-details-summary-top {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .app-details-meta {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+    <script>
+      const detailsModal = document.getElementById('application-details-modal');
+      const detailsBody = document.getElementById('app-details-body');
+      const detailsOkBtn = document.getElementById('app-details-ok-btn');
+      const detailsCloseBtn = document.getElementById('app-details-close-btn');
+
+      if (detailsOkBtn) {
+        const rootStyle = window.getComputedStyle(document.documentElement);
+        const primaryDark = rootStyle.getPropertyValue('--primary-dark').trim() || '#1e9e86';
+        detailsOkBtn.style.backgroundColor = primaryDark;
+      }
+
+      function escapeHtml(value) {
+        return value
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#39;');
+      }
+
+      function formatAppliedDate(value) {
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) {
+          return value;
+        }
+
+        return parsed.toLocaleDateString('en-PH', {
+          year: 'numeric',
+          month: 'short',
+          day: '2-digit'
+        });
+      }
+
+      function closeDetailsModal() {
+        detailsModal.classList.remove('is-open');
+        detailsModal.setAttribute('aria-hidden', 'true');
+      }
+
+      document.querySelectorAll('.action-btn').forEach((button) => {
+        button.addEventListener('click', () => {
+          const row = button.closest('tr');
+          if (!row) return;
+
+          const jobTitle = row.querySelector('.tracker-job-title')?.textContent?.trim() || 'N/A';
+          const company = row.querySelector('.tracker-company')?.textContent?.trim() || 'N/A';
+          const appliedDate = row.cells[2]?.textContent?.trim() || 'N/A';
+          const status = row.querySelector('.status-badge')?.textContent?.trim() || 'N/A';
+          const formattedDate = formatAppliedDate(appliedDate);
+
+          detailsBody.innerHTML =
+            '<div class="app-details-summary">' +
+            '<div class="app-details-summary-top">' +
+            '<div><h4>' +
+            escapeHtml(jobTitle) +
+            '</h4><span class="app-details-company">' +
+            escapeHtml(company) +
+            '</span></div></div>' +
+            '<div class="app-details-meta">' +
+            '<div class="app-details-row"><span class="app-details-label">Applied Date</span><span class="app-details-value">' +
+            escapeHtml(formattedDate) +
+            '</span></div>' +
+            '<div class="app-details-row"><span class="app-details-label">Current Status</span><span class="app-details-value">' +
+            escapeHtml(status) +
+            '</span></div>' +
+            '</div></div>';
+          detailsModal.classList.add('is-open');
+          detailsModal.setAttribute('aria-hidden', 'false');
+          detailsOkBtn?.focus();
+        });
+      });
+
+      detailsOkBtn?.addEventListener('click', () => {
+        closeDetailsModal();
+      });
+
+      detailsCloseBtn?.addEventListener('click', () => {
+        closeDetailsModal();
+      });
+
+      detailsModal?.addEventListener('click', (event) => {
+        if (event.target === detailsModal) {
+          closeDetailsModal();
+        }
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && detailsModal?.classList.contains('is-open')) {
+          closeDetailsModal();
+        }
+      });
+    </script>
     <script src="../../employee-auth.js"></script>
   </body>
 </html>
