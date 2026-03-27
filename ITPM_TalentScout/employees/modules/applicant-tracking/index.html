@@ -197,7 +197,7 @@
         <div class="app-details-head">
           <div>
             <h3 id="app-details-title">Application Details</h3>
-            <p>Quick summary of your selected job application.</p>
+            <p id="app-details-subtext">Comprehensive snapshot of your selected job application.</p>
           </div>
           <button type="button" id="app-details-close-btn" aria-label="Close details dialog">×</button>
         </div>
@@ -228,11 +228,11 @@
 
       .app-details-card {
         width: 100%;
-        max-width: 640px;
+        max-width: 700px;
         background: #ffffff;
-        border-radius: 18px;
+        border-radius: 20px;
         border: 1px solid #dbe8e3;
-        box-shadow: 0 26px 60px rgba(16, 24, 40, 0.28);
+        box-shadow: 0 30px 70px rgba(16, 24, 40, 0.3);
         padding: 0;
         text-align: left;
         overflow: hidden;
@@ -255,21 +255,24 @@
         align-items: flex-start;
         justify-content: space-between;
         gap: 16px;
-        padding: 20px 22px 16px;
-        background: linear-gradient(135deg, #eefcf6 0%, #ffffff 100%);
+        padding: 22px 24px 18px;
+        background:
+          linear-gradient(120deg, rgba(30, 158, 134, 0.13) 0%, rgba(30, 158, 134, 0.03) 46%, #ffffff 100%),
+          #ffffff;
         border-bottom: 1px solid #e2eee9;
       }
 
       .app-details-head h3 {
         margin: 0;
-        font-size: 1.18rem;
+        font-size: 1.22rem;
         color: #163b34;
       }
 
       .app-details-head p {
-        margin: 6px 0 0;
+        margin: 7px 0 0;
         font-size: 0.9rem;
         color: #4f6b63;
+        max-width: 46ch;
       }
 
       #app-details-close-btn {
@@ -292,51 +295,130 @@
       }
 
       .app-details-body {
-        padding: 18px 22px 4px;
+        padding: 18px 24px 8px;
       }
 
       .app-details-summary {
         border: 1px solid #d9e8e2;
-        border-radius: 14px;
-        padding: 14px 14px 12px;
+        border-radius: 16px;
+        padding: 16px;
         background: linear-gradient(145deg, #f7fffc 0%, #ffffff 100%);
-        margin-bottom: 6px;
+        margin-bottom: 8px;
       }
 
       .app-details-summary-top {
         display: flex;
         align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
         margin-bottom: 10px;
+      }
+
+      .app-details-role-block {
+        min-width: 0;
       }
 
       .app-details-summary h4 {
         margin: 0;
-        font-size: 1.04rem;
+        font-size: 1.08rem;
         color: #113630;
       }
 
       .app-details-company {
         display: inline-block;
         margin-top: 4px;
-        font-size: 0.88rem;
+        font-size: 0.9rem;
         color: #5a766d;
+      }
+
+      .app-details-status-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.2px;
+        text-transform: uppercase;
+        white-space: nowrap;
+        padding: 7px 11px;
+        border: 1px solid transparent;
+      }
+
+      .app-details-status-pill.tone-offer {
+        background: #e7fbf1;
+        color: #116f54;
+        border-color: #a9e3c9;
+      }
+
+      .app-details-status-pill.tone-interview {
+        background: #edf7ff;
+        color: #145ea6;
+        border-color: #c7ddf5;
+      }
+
+      .app-details-status-pill.tone-review {
+        background: #fff7e7;
+        color: #8a5a02;
+        border-color: #f2d9a8;
+      }
+
+      .app-details-status-pill.tone-pending {
+        background: #f4f7fb;
+        color: #4b6075;
+        border-color: #d8e0eb;
+      }
+
+      .app-details-status-pill.tone-rejected {
+        background: #fdeeee;
+        color: #9a2d2d;
+        border-color: #f3c4c4;
+      }
+
+      .app-details-progress {
+        margin: 8px 0 12px;
+      }
+
+      .app-details-progress-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 6px;
+        font-size: 0.79rem;
+        font-weight: 700;
+        color: #4f6961;
+      }
+
+      .app-details-progress-track {
+        width: 100%;
+        height: 8px;
+        border-radius: 999px;
+        background: #eaf2ef;
+        overflow: hidden;
+      }
+
+      .app-details-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #1e9e86 0%, #45bea2 100%);
+        border-radius: 999px;
       }
 
       .app-details-meta {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
+        gap: 10px;
       }
 
       .app-details-row {
         display: flex;
         flex-direction: column;
         justify-content: center;
-        padding: 10px 11px;
+        padding: 11px 12px;
         border: none;
         border-radius: 10px;
         background: #f2f7f5;
-        min-height: 86px;
+        min-height: 88px;
       }
 
       .app-details-label {
@@ -355,8 +437,32 @@
         font-size: 0.91rem;
       }
 
+      .app-details-notes {
+        margin-top: 12px;
+        border: 1px dashed #c6ddd4;
+        border-radius: 12px;
+        background: #fcfffd;
+        padding: 11px 12px;
+      }
+
+      .app-details-notes-label {
+        font-size: 0.73rem;
+        letter-spacing: 0.25px;
+        text-transform: uppercase;
+        font-weight: 800;
+        color: #55766c;
+        margin-bottom: 4px;
+      }
+
+      .app-details-notes p {
+        margin: 0;
+        font-size: 0.87rem;
+        line-height: 1.5;
+        color: #34544b;
+      }
+
       .app-details-footer {
-        padding: 0 22px 6px;
+        padding: 2px 24px 10px;
         display: flex;
         justify-content: flex-end;
       }
@@ -366,7 +472,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        border: none;
+        border: 1px solid #1e9e86;
         border-radius: 10px;
         color: #ffffff;
         padding: 11px 24px;
@@ -387,11 +493,11 @@
         }
 
         .app-details-body {
-          padding: 14px 16px 2px;
+          padding: 14px 16px 4px;
         }
 
         .app-details-footer {
-          padding: 0 16px 6px;
+          padding: 2px 16px 10px;
         }
 
         .app-details-summary-top {
@@ -409,6 +515,7 @@
       const detailsBody = document.getElementById('app-details-body');
       const detailsOkBtn = document.getElementById('app-details-ok-btn');
       const detailsCloseBtn = document.getElementById('app-details-close-btn');
+      const detailsSubtext = document.getElementById('app-details-subtext');
 
       if (detailsOkBtn) {
         const rootStyle = window.getComputedStyle(document.documentElement);
@@ -443,6 +550,63 @@
         detailsModal.setAttribute('aria-hidden', 'true');
       }
 
+      function getStatusMetadata(status) {
+        const normalized = status.toLowerCase();
+
+        if (normalized.includes('offer')) {
+          return {
+            toneClass: 'tone-offer',
+            progress: 96,
+            stage: 'Final Stage',
+            nextStep: 'Review offer package and confirm availability',
+            priority: 'High',
+            note: 'Strong momentum. Keep communication fast and professional to secure the role.'
+          };
+        }
+
+        if (normalized.includes('interview')) {
+          return {
+            toneClass: 'tone-interview',
+            progress: 72,
+            stage: 'Interview Stage',
+            nextStep: 'Prepare portfolio highlights and interview talking points',
+            priority: 'High',
+            note: 'Focus on role-specific achievements and measurable impact during interviews.'
+          };
+        }
+
+        if (normalized.includes('review')) {
+          return {
+            toneClass: 'tone-review',
+            progress: 48,
+            stage: 'Evaluation Stage',
+            nextStep: 'Follow up with a concise and polite status inquiry',
+            priority: 'Medium',
+            note: 'Application is active. A timely follow-up can improve visibility with recruiters.'
+          };
+        }
+
+        if (normalized.includes('not selected') || normalized.includes('reject')) {
+          return {
+            toneClass: 'tone-rejected',
+            progress: 100,
+            stage: 'Closed',
+            nextStep: 'Request feedback and apply learnings to upcoming opportunities',
+            priority: 'Low',
+            note: 'Treat this as a learning checkpoint. Update your resume and target-fit strategy.'
+          };
+        }
+
+        return {
+          toneClass: 'tone-pending',
+          progress: 28,
+          stage: 'Submitted',
+          nextStep: 'Continue monitoring and keep profile documents ready',
+          priority: 'Medium',
+          note: 'No employer action yet. Keep your profile active and continue applying strategically.'
+        };
+      }
+
       document.querySelectorAll('.action-btn').forEach((button) => {
         button.addEventListener('click', () => {
           const row = button.closest('tr');
@@ -453,15 +617,33 @@
           const appliedDate = row.cells[2]?.textContent?.trim() || 'N/A';
           const status = row.querySelector('.status-badge')?.textContent?.trim() || 'N/A';
           const formattedDate = formatAppliedDate(appliedDate);
+          const statusMeta = getStatusMetadata(status);
+
+          if (detailsSubtext) {
+            detailsSubtext.textContent = 'Comprehensive snapshot for ' + jobTitle + ' at ' + company + '.';
+          }
 
           detailsBody.innerHTML =
             '<div class="app-details-summary">' +
             '<div class="app-details-summary-top">' +
-            '<div><h4>' +
+            '<div class="app-details-role-block"><h4>' +
             escapeHtml(jobTitle) +
             '</h4><span class="app-details-company">' +
             escapeHtml(company) +
-            '</span></div></div>' +
+            '</span></div>' +
+            '<span class="app-details-status-pill ' +
+            escapeHtml(statusMeta.toneClass) +
+            '">' +
+            escapeHtml(status) +
+            '</span></div>' +
+            '<div class="app-details-progress">' +
+            '<div class="app-details-progress-head"><span>Stage Progress</span><span>' +
+            String(statusMeta.progress) +
+            '%</span></div>' +
+            '<div class="app-details-progress-track"><div class="app-details-progress-fill" style="width: ' +
+            String(statusMeta.progress) +
+            '%;"></div></div>' +
+            '</div>' +
             '<div class="app-details-meta">' +
             '<div class="app-details-row"><span class="app-details-label">Applied Date</span><span class="app-details-value">' +
             escapeHtml(formattedDate) +
@@ -469,7 +651,19 @@
             '<div class="app-details-row"><span class="app-details-label">Current Status</span><span class="app-details-value">' +
             escapeHtml(status) +
             '</span></div>' +
-            '</div></div>';
+            '<div class="app-details-row"><span class="app-details-label">Application Stage</span><span class="app-details-value">' +
+            escapeHtml(statusMeta.stage) +
+            '</span></div>' +
+            '<div class="app-details-row"><span class="app-details-label">Next Recommended Step</span><span class="app-details-value">' +
+            escapeHtml(statusMeta.nextStep) +
+            '</span></div>' +
+            '<div class="app-details-row"><span class="app-details-label">Response Priority</span><span class="app-details-value">' +
+            escapeHtml(statusMeta.priority) +
+            '</span></div>' +
+            '</div>' +
+            '<div class="app-details-notes"><div class="app-details-notes-label">Hiring Insight</div><p>' +
+            escapeHtml(statusMeta.note) +
+            '</p></div></div>';
           detailsModal.classList.add('is-open');
           detailsModal.setAttribute('aria-hidden', 'false');
           detailsOkBtn?.focus();
