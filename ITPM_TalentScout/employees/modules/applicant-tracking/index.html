@@ -208,6 +208,108 @@
       </div>
     </div>
     <style>
+      .employee-module-shell {
+        padding-top: 2.25rem;
+      }
+
+      .tracker-stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1.05rem;
+        margin-bottom: 1.65rem;
+      }
+
+      .tracker-stat-card {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(160deg, #ffffff 0%, #f6fcfa 100%);
+        border: 1px solid #d6e5df;
+        border-radius: 14px;
+        box-shadow: 0 8px 22px rgba(16, 48, 41, 0.07);
+        padding: 1.28rem 1.2rem 1.18rem;
+        transition: transform 180ms ease, box-shadow 180ms ease;
+      }
+
+      .tracker-stat-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, #1e9e86 0%, #5bc9ae 100%);
+      }
+
+      .tracker-stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 26px rgba(16, 48, 41, 0.1);
+      }
+
+      .tracker-stat-number {
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1.05;
+        color: #0f6f5d;
+        letter-spacing: -0.02em;
+      }
+
+      .tracker-stat-label {
+        margin-top: 0.4rem;
+        color: #5a716a;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.42px;
+        text-transform: uppercase;
+      }
+
+      .tracker-table-wrap {
+        border: 1px solid #d6e5df;
+        border-radius: 14px;
+        box-shadow: 0 14px 28px rgba(12, 43, 37, 0.06);
+      }
+
+      .tracker-table th {
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: #4c635c;
+        text-transform: uppercase;
+        letter-spacing: 0.45px;
+        background: linear-gradient(180deg, #f5fcfa 0%, #eef8f4 100%);
+        border-bottom: 1px solid #dbe8e3;
+      }
+
+      .tracker-table td {
+        border-bottom: 1px solid #e6efec;
+      }
+
+      .tracker-table tbody tr:nth-child(even) {
+        background: #fcfefd;
+      }
+
+      .tracker-table tbody tr:hover {
+        background: #f4fbf8;
+      }
+
+      .action-btn {
+        border: 1px solid #bfd9d0;
+        background: #f6fcfa;
+        color: #135f50;
+        border-radius: 9px;
+        padding: 0.42rem 0.74rem;
+        font-size: 0.79rem;
+        font-weight: 700;
+        letter-spacing: 0.15px;
+        box-shadow: 0 3px 10px rgba(15, 75, 63, 0.08);
+        transition: all 0.18s ease;
+      }
+
+      .action-btn:hover {
+        background: #ffffff;
+        border-color: #1e9e86;
+        color: #0e5345;
+        transform: translateY(-1px);
+      }
+
       .app-details-modal {
         position: fixed;
         inset: 0;
@@ -488,6 +590,10 @@
       }
 
       @media (max-width: 560px) {
+        .tracker-stats {
+          grid-template-columns: 1fr;
+        }
+
         .app-details-head {
           padding: 16px 16px 14px;
         }
