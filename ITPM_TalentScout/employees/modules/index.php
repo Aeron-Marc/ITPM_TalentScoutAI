@@ -1,3 +1,7 @@
+<?php
+session_start();
+require_once __DIR__ . '/../../database/db.php';
+?>
 <!doctype html>
 <html lang="en">
   <head>
@@ -6,6 +10,7 @@
     <title>My Tools — For Job Seekers | TalentScout AI</title>
     <link rel="stylesheet" href="../../styles/global.css" />
     <link rel="stylesheet" href="../../styles/page-layout.css" />
+    <link rel="stylesheet" href="../navbar.css" />
     <style>
       .modules-section {
         padding: 3rem 2.5rem;
@@ -70,22 +75,27 @@
   <body>
     <!-- NAVBAR -->
     <nav class="navbar">
-      <a href="../index.html" class="nav-logo">
+      <a href="../index.php" class="nav-logo">
         <div class="nav-logo-icon">TS</div>
         <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
       </a>
       <ul class="nav-links">
-        <li><a href="../index.html">Home</a></li>
-        <li><a href="./job-postings/">Browse Jobs</a></li>
-        <li><a href="./ai-matching/">AI Matching</a></li>
-        <li><a href="./resume-builder/">Resume Builder</a></li>
-        <li><a href="./skill-gap-analysis/">Skills</a></li>
-        <li><a href="./applicant-tracking/">Applications</a></li>
-        <li><a href="./" class="active">All Tools</a></li>
+        <li><a href="../index.php">Home</a></li>
+        <li><a href="./job-postings/index.php">Browse Jobs</a></li>
+        <li><a href="./ai-matching/index.php">AI Matching</a></li>
+        <li><a href="./resume-builder/index.php">Resume Builder</a></li>
+        <li><a href="./skill-gap-analysis/index.php">Skills</a></li>
+        <li><a href="./applicant-tracking/index.php">Applications</a></li>
+
       </ul>
       <div class="nav-actions">
-        <a href="../login.html" class="btn btn-outline">Login</a>
-        <a href="../signup.html" class="btn btn-primary">Get Started</a>
+        <?php if (isset($_SESSION['employee_id'])): ?>
+          <span class="nav-user">Welcome, <?php echo htmlspecialchars($_SESSION['employee_name'] ?? 'User'); ?></span>
+          <a href="../logout.php" class="btn btn-outline">Logout</a>
+        <?php else: ?>
+          <a href="../login.php" class="btn btn-outline">Login</a>
+          <a href="../signup.php" class="btn btn-primary">Get Started</a>
+        <?php endif; ?>
       </div>
     </nav>
 
@@ -103,7 +113,7 @@
 
         <div class="modules-grid">
           <!-- Browse Jobs -->
-          <a href="./job-postings/" class="module-card">
+          <a href="./job-postings/index.php" class="module-card">
             <span class="module-icon">📋</span>
             <div class="module-title">Job Postings</div>
             <div class="module-desc">
@@ -114,7 +124,7 @@
           </a>
 
           <!-- AI Matching -->
-          <a href="./ai-matching/" class="module-card">
+          <a href="./ai-matching/index.php" class="module-card">
             <span class="module-icon">🤖</span>
             <div class="module-title">AI Job Matching</div>
             <div class="module-desc">
@@ -125,7 +135,7 @@
           </a>
 
           <!-- Skill Gap Analysis -->
-          <a href="./skill-gap-analysis/" class="module-card">
+          <a href="./skill-gap-analysis/index.php" class="module-card">
             <span class="module-icon">📊</span>
             <div class="module-title">Skill Gap Analysis</div>
             <div class="module-desc">
@@ -136,7 +146,7 @@
           </a>
 
           <!-- Application Tracker -->
-          <a href="./applicant-tracking/" class="module-card">
+          <a href="./applicant-tracking/index.php" class="module-card">
             <span class="module-icon">📑</span>
             <div class="module-title">Application Tracker</div>
             <div class="module-desc">
@@ -147,7 +157,7 @@
           </a>
 
           <!-- Resume Builder -->
-          <a href="./resume-builder/" class="module-card">
+          <a href="./resume-builder/index.php" class="module-card">
             <span class="module-icon">✏️</span>
             <div class="module-title">Resume Builder</div>
             <div class="module-desc">
@@ -174,24 +184,24 @@
           <div class="footer-col">
             <h4>For Job Seekers</h4>
             <ul>
-              <li><a href="./job-postings/">Browse Jobs</a></li>
-              <li><a href="./ai-matching/">AI Matching</a></li>
-              <li><a href="./skill-gap-analysis/">Skill Analysis</a></li>
-              <li><a href="./applicant-tracking/">Track Applications</a></li>
-              <li><a href="./resume-builder/">Resume Builder</a></li>
+              <li><a href="./job-postings/index.php">Browse Jobs</a></li>
+              <li><a href="./ai-matching/index.php">AI Matching</a></li>
+              <li><a href="./skill-gap-analysis/index.php">Skill Analysis</a></li>
+              <li><a href="./applicant-tracking/index.php">Track Applications</a></li>
+              <li><a href="./resume-builder/index.php">Resume Builder</a></li>
             </ul>
           </div>
           <div class="footer-col">
             <h4>For Employers</h4>
             <ul>
               <li>
-                <a href="../../employers/modules/post-jobs/">Post Jobs</a>
+                <a href="../../employers/modules/post-jobs/index.php">Post Jobs</a>
               </li>
               <li>
-                <a href="../../employers/modules/blind-hiring/">Blind Hiring</a>
+                <a href="../../employers/modules/blind-hiring/index.php">Blind Hiring</a>
               </li>
               <li>
-                <a href="../../employers/modules/employee-finder/"
+                <a href="../../employers/modules/employee-finder/index.php"
                   >Find Talent</a
                 >
               </li>
@@ -200,7 +210,7 @@
           <div class="footer-col">
             <h4>Resources</h4>
             <ul>
-              <li><a href="../../index.html">Home</a></li>
+              <li><a href="../../index.php">Home</a></li>
               <li><a href="#">About</a></li>
               <li><a href="#">Contact</a></li>
               <li><a href="#">Privacy Policy</a></li>

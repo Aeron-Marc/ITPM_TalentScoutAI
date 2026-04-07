@@ -1,3 +1,98 @@
+<?php
+session_start();
+require_once __DIR__ . '/../../../database/db.php';
+
+// Initialize database connection
+$conn = getConnection();
+
+// Check if user is logged in
+// if (!isset($_SESSION['employee_id'])) {
+//     header('Location: ../../login.php');
+//     exit;
+// }
+
+// Get employee data
+// Use test employee ID 1 for now, or session ID if logged in
+$employee_id = isset($_SESSION['employee_id']) ? $_SESSION['employee_id'] : 1;
+$employee_query = "SELECT e.first_name, e.last_name FROM employee e WHERE e.employee_id = ?";
+$employee_stmt = $conn->prepare($employee_query);
+$employee_stmt->bind_param("i", $employee_id);
+$employee_stmt->execute();
+$employee_result = $employee_stmt->get_result();
+$employee_data = $employee_result->fetch_assoc();
+$employee_name = isset($employee_data) ? $employee_data['first_name'] . ' ' . $employee_data['last_name'] : 'User';
+
+// Get employee's most recent resume and skills
+$resume_query = "SELECT rs.skill_name FROM resumes r 
+                 JOIN resume_skills rs ON r.resume_id = rs.resume_id 
+                 WHERE r.employee_id = ? 
+                 ORDER BY r.updated_at DESC LIMIT 50";
+$resume_stmt = $conn->prepare($resume_query);
+$resume_stmt->bind_param("i", $employee_id);
+$resume_stmt->execute();
+$resume_result = $resume_stmt->get_result();
+
+// Build employee skills array
+$employee_skills = array();
+while ($skill = $resume_result->fetch_assoc()) {
+    $employee_skills[] = strtolower(trim($skill['skill_name']));
+}
+
+// Get all job postings to analyze market demand for skills
+$jobs_query = "SELECT skills FROM job_post WHERE skills IS NOT NULL AND skills != ''";
+$jobs_result = $conn->query($jobs_query);
+
+// Parse job posting skills and count frequency
+$market_skills = array();
+$total_jobs = 0;
+
+while ($job = $jobs_result->fetch_assoc()) {
+    $total_jobs++;
+    $job_skills = explode(',', $job['skills']);
+    foreach ($job_skills as $skill) {
+        $skill_clean = strtolower(trim($skill));
+        if (!empty($skill_clean)) {
+            if (!isset($market_skills[$skill_clean])) {
+                $market_skills[$skill_clean] = 0;
+            }
+            $market_skills[$skill_clean]++;
+        }
+    }
+}
+
+// Sort market skills by frequency (demand)
+arsort($market_skills);
+
+// Calculate skill gaps and current skills
+$current_skills = array();
+$skill_gaps = array();
+
+foreach ($market_skills as $skill => $frequency) {
+    if (in_array($skill, $employee_skills)) {
+        $current_skills[$skill] = array(
+            'name' => ucwords($skill),
+            'proficiency' => 85 // Default proficiency for verified skills
+        );
+    } else {
+        $skill_gaps[$skill] = array(
+            'name' => ucwords($skill),
+            'demand_count' => $frequency,
+            'demand_percent' => round(($frequency / $total_jobs) * 100, 1)
+        );
+    }
+}
+
+// Calculate employability score
+$total_market_skills = count($market_skills);
+$matched_skills = count($current_skills);
+$employability_score = $total_market_skills > 0 ? round(($matched_skills / $total_market_skills) * 100, 0) : 0;
+
+// Take top 7 current skills and top 4 gaps for display
+$current_skills_display = array_slice($current_skills, 0, 7);
+$skill_gaps_display = array_slice($skill_gaps, 0, 4);
+$critical_gaps_count = count($skill_gaps_display);
+
+?>
 <!doctype html>
 <html lang="en">
   <head>
@@ -6,6 +101,7 @@
     <title>Skill Gap Analysis — TalentScout AI</title>
     <link rel="stylesheet" href="../../../styles/global.css" />
     <link rel="stylesheet" href="../../../styles/page-layout.css" />
+    <link rel="stylesheet" href="../../navbar.css" />
     <style>
       .gap-layout {
         max-width: 1200px;
@@ -36,10 +132,6 @@
         width: 100px;
         height: 100px;
         border-radius: 50%;
-        background: conic-gradient(
-          var(--primary-dark) 0% 68%,
-          var(--border) 68% 100%
-        );
         display: flex;
         align-items: center;
         justify-content: center;
@@ -332,22 +424,26 @@
   <body>
     <!-- NAVBAR -->
     <nav class="navbar">
-      <a href="../../index.html" class="nav-logo">
+      <a href="../../index.php" class="nav-logo">
         <div class="nav-logo-icon">TS</div>
         <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
       </a>
       <ul class="nav-links">
-        <li><a href="../../index.html">Home</a></li>
-        <li><a href="../job-postings/">Browse Jobs</a></li>
-        <li><a href="../ai-matching/">AI Matching</a></li>
-        <li><a href="../resume-builder/">Resume Builder</a></li>
-        <li><a href="./" class="active">Skills</a></li>
-        <li><a href="../applicant-tracking/">Applications</a></li>
-        <li><a href="../">All Tools</a></li>
+        <li><a href="../../index.php">Home</a></li>
+        <li><a href="../job-postings/index.php">Browse Jobs</a></li>
+        <li><a href="../ai-matching/index.php">AI Matching</a></li>
+        <li><a href="../resume-builder/index.php">Resume Builder</a></li>
+        <li><a href="./index.php" class="active">Skills</a></li>
+        <li><a href="../applicant-tracking/index.php">Applications</a></li>
       </ul>
       <div class="nav-actions">
-        <a href="../../login.html" class="btn btn-outline">Login</a>
-        <a href="../../signup.html" class="btn btn-primary">Get Started</a>
+        <?php if (isset($_SESSION['employee_id'])): ?>
+          <span class="nav-user">Welcome, <?php echo htmlspecialchars($_SESSION['employee_name'] ?? 'User'); ?></span>
+          <a href="../../logout.php" class="btn btn-outline">Logout</a>
+        <?php else: ?>
+          <a href="../../login.php" class="btn btn-outline">Login</a>
+          <a href="../../signup.php" class="btn btn-primary">Get Started</a>
+        <?php endif; ?>
       </div>
     </nav>
 
@@ -355,7 +451,7 @@
     <div class="page-header">
       <div class="page-header-inner">
         <div class="breadcrumb">
-          <a href="../../index.html">Home</a> / Skill Gap Analysis
+          <a href="../../index.php">Home</a> / Skill Gap Analysis
         </div>
         <h1>📊 Skill Gap Analysis</h1>
         <p>
@@ -371,26 +467,29 @@
         <!-- SUMMARY BANNER -->
         <div class="summary-banner">
           <div class="summary-score">
-            <div class="score-ring">
+            <div class="score-ring" style="background: conic-gradient(var(--primary-dark) 0% <?php echo $employability_score; ?>%, var(--border) <?php echo $employability_score; ?>% 100%);">
               <div class="score-inner">
-                <div class="score-val">68%</div>
+                <div class="score-val"><?php echo $employability_score; ?>%</div>
                 <div class="score-lbl">Readiness</div>
               </div>
             </div>
             <div style="font-size: 0.78rem; color: var(--text-light)">
-              Juan Santos
+              <?php echo htmlspecialchars($employee_name); ?>
             </div>
           </div>
           <div class="summary-info">
-            <h3>Your Employability Score: 68 / 100</h3>
+            <h3>Your Employability Score: <?php echo $employability_score; ?> / 100</h3>
             <p>
-              You have strong foundations in Front-End Development but are
-              missing key skills demanded by Nasugbu tech employers. Closing 3
-              skill gaps could raise your score to <strong>89%</strong>.
+              You have <?php echo count($current_skills); ?> verified skills that match market demand.
+              <?php if ($critical_gaps_count > 0): ?>
+                Closing <?php echo $critical_gaps_count; ?> skill gaps could raise your score to <strong><?php echo min(100, $employability_score + 20); ?>%</strong>.
+              <?php else: ?>
+                You're well-aligned with market demands!
+              <?php endif; ?>
             </p>
             <div class="summary-pills">
-              <span class="summary-pill pill-green">✓ 7 Verified Skills</span>
-              <span class="summary-pill pill-red">✗ 3 Critical Gaps</span>
+              <span class="summary-pill pill-green">✓ <?php echo count($current_skills); ?> Verified Skills</span>
+              <span class="summary-pill pill-red">✗ <?php echo $critical_gaps_count; ?> Critical Gaps</span>
               <span class="summary-pill pill-yellow">⚠ 2 Partial Skills</span>
             </div>
           </div>
@@ -400,72 +499,29 @@
         <div class="skill-section">
           <div class="skill-section-header">
             <div class="skill-section-title">✅ Current Skills</div>
-            <span class="badge badge-green">7 Verified</span>
+            <span class="badge badge-green"><?php echo count($current_skills); ?> Verified</span>
           </div>
           <div class="skill-grid">
-            <div class="skill-item">
-              <div class="skill-label-row">
-                <span class="skill-name">React.js</span
-                ><span class="skill-pct good">90%</span>
+            <?php 
+            $proficiency_levels = [85, 90, 88, 82, 87, 78, 83]; // Varied proficiency levels
+            $index = 0;
+            foreach ($current_skills_display as $skill => $data): 
+              $proficiency = isset($proficiency_levels[$index]) ? $proficiency_levels[$index] : 80;
+              $class = $proficiency >= 70 ? 'good' : 'warn';
+            ?>
+              <div class="skill-item">
+                <div class="skill-label-row">
+                  <span class="skill-name"><?php echo htmlspecialchars($data['name']); ?></span
+                  ><span class="skill-pct <?php echo $class; ?>"><?php echo $proficiency; ?>%</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: <?php echo $proficiency; ?>%"></div>
+                </div>
               </div>
-              <div class="progress-bar">
-                <div class="progress-fill" style="width: 90%"></div>
-              </div>
-            </div>
-            <div class="skill-item">
-              <div class="skill-label-row">
-                <span class="skill-name">JavaScript (ES6+)</span
-                ><span class="skill-pct good">85%</span>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill" style="width: 85%"></div>
-              </div>
-            </div>
-            <div class="skill-item">
-              <div class="skill-label-row">
-                <span class="skill-name">HTML / CSS</span
-                ><span class="skill-pct good">95%</span>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill" style="width: 95%"></div>
-              </div>
-            </div>
-            <div class="skill-item">
-              <div class="skill-label-row">
-                <span class="skill-name">Git / Version Control</span
-                ><span class="skill-pct good">80%</span>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill" style="width: 80%"></div>
-              </div>
-            </div>
-            <div class="skill-item">
-              <div class="skill-label-row">
-                <span class="skill-name">Figma (UI Design)</span
-                ><span class="skill-pct good">75%</span>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill" style="width: 75%"></div>
-              </div>
-            </div>
-            <div class="skill-item">
-              <div class="skill-label-row">
-                <span class="skill-name">Node.js (Basic)</span
-                ><span class="skill-pct warn">55%</span>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill warn" style="width: 55%"></div>
-              </div>
-            </div>
-            <div class="skill-item">
-              <div class="skill-label-row">
-                <span class="skill-name">REST APIs</span
-                ><span class="skill-pct warn">60%</span>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill warn" style="width: 60%"></div>
-              </div>
-            </div>
+            <?php 
+              $index++;
+            endforeach; 
+            ?>
           </div>
         </div>
 
@@ -473,7 +529,7 @@
         <div class="skill-section">
           <div class="skill-section-header">
             <div class="skill-section-title">❌ Identified Skill Gaps</div>
-            <span class="badge badge-red">3 Critical</span>
+            <span class="badge badge-red"><?php echo $critical_gaps_count; ?> Critical</span>
           </div>
           <p
             style="
@@ -482,66 +538,26 @@
               margin-bottom: 1.25rem;
             "
           >
-            These skills are in demand across 42+ job postings in Nasugbu but
+            These skills are in demand across <?php echo $total_jobs; ?>+ job postings but
             are missing from your profile.
           </p>
           <div class="skill-grid">
-            <div class="skill-item">
-              <div class="skill-label-row">
-                <span class="skill-name">TypeScript</span
-                ><span class="skill-pct bad">0%</span>
+            <?php foreach ($skill_gaps_display as $skill => $data): ?>
+              <div class="skill-item">
+                <div class="skill-label-row">
+                  <span class="skill-name"><?php echo htmlspecialchars($data['name']); ?></span
+                  ><span class="skill-pct bad">0%</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill gap" style="width: 5%"></div>
+                </div>
+                <div
+                  style="font-size: 0.78rem; color: #856404; margin-top: 0.3rem"
+                >
+                  Required by <?php echo $data['demand_count']; ?> jobs (<?php echo $data['demand_percent']; ?>%)
+                </div>
               </div>
-              <div class="progress-bar">
-                <div class="progress-fill gap" style="width: 5%"></div>
-              </div>
-              <div
-                style="font-size: 0.78rem; color: #856404; margin-top: 0.3rem"
-              >
-                Required by 28 jobs
-              </div>
-            </div>
-            <div class="skill-item">
-              <div class="skill-label-row">
-                <span class="skill-name">Python (Basic)</span
-                ><span class="skill-pct bad">0%</span>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill gap" style="width: 5%"></div>
-              </div>
-              <div
-                style="font-size: 0.78rem; color: #856404; margin-top: 0.3rem"
-              >
-                Required by 19 jobs
-              </div>
-            </div>
-            <div class="skill-item">
-              <div class="skill-label-row">
-                <span class="skill-name">Docker / DevOps</span
-                ><span class="skill-pct bad">10%</span>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill gap" style="width: 10%"></div>
-              </div>
-              <div
-                style="font-size: 0.78rem; color: #856404; margin-top: 0.3rem"
-              >
-                Required by 15 jobs
-              </div>
-            </div>
-            <div class="skill-item">
-              <div class="skill-label-row">
-                <span class="skill-name">SQL / Database</span
-                ><span class="skill-pct warn">25%</span>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill warn" style="width: 25%"></div>
-              </div>
-              <div
-                style="font-size: 0.78rem; color: #856404; margin-top: 0.3rem"
-              >
-                Required by 35 jobs
-              </div>
-            </div>
+            <?php endforeach; ?>
           </div>
           <div
             style="
@@ -561,20 +577,25 @@
               All Gap Tags
             </div>
             <div>
-              <span class="gap-tag missing">✗ TypeScript</span>
-              <span class="gap-tag missing">✗ Python</span>
-              <span class="gap-tag missing">✗ Docker</span>
-              <span class="gap-tag partial">⚠ SQL (Partial)</span>
-              <span class="gap-tag partial">⚠ Node.js (Partial)</span>
+              <?php 
+              $gap_count = 0;
+              foreach ($skill_gaps as $skill => $data):
+                if ($gap_count >= 5) break;
+              ?>
+                <span class="gap-tag missing">✗ <?php echo htmlspecialchars($data['name']); ?></span>
+              <?php 
+                $gap_count++;
+              endforeach; 
+              ?>
             </div>
           </div>
         </div>
 
-        <!-- RECOMMENDED COURSES -->
+        <!-- SKILL TRENDS VISUALIZATION -->
         <div style="margin-bottom: 1.5rem">
-          <div class="section-label">Upskilling Recommendations</div>
+          <div class="section-label">Market Insights</div>
           <h2 class="section-title" style="font-size: 1.5rem">
-            Recommended Courses for You
+            Current Skill Trends
           </h2>
           <p
             style="
@@ -583,87 +604,183 @@
               margin-top: 0.3rem;
             "
           >
-            Curated free and paid courses aligned to your skill gaps and Nasugbu
-            job market demand.
+            See which skills are most in-demand across job postings in your market.
           </p>
         </div>
 
-        <div class="course-card">
-          <div
-            class="course-banner"
-            style="background: linear-gradient(90deg, #3b82f6, #60a5fa)"
-          ></div>
-          <div class="course-body">
-            <div class="course-provider">Udemy / Online</div>
-            <div class="course-title">TypeScript: Complete Developer Guide</div>
-            <div class="course-meta">
-              <span>⏱ 27 hours</span>
-              <span>🎯 Beginner–Intermediate</span>
-              <span>⭐ 4.8 (12,400 reviews)</span>
-            </div>
-            <div class="course-skills">
-              <span class="chip">TypeScript</span>
-              <span class="chip">OOP Concepts</span>
-              <span class="chip">React + TS</span>
-            </div>
-            <div class="course-footer">
-              <span class="course-price">₱499 (Sale)</span>
-              <a href="#" class="btn btn-primary">Enroll Now</a>
-            </div>
+        <!-- CHARTS CONTAINER -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+          <!-- BAR CHART: Top Skills Demand -->
+          <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem;">
+            <h3 style="margin-bottom: 1rem; font-size: 1rem; font-weight: 700; color: var(--text-dark);">Top Demanded Skills</h3>
+            <canvas id="skillDemandChart" height="250"></canvas>
+          </div>
+
+          <!-- PIE CHART: Skills Distribution -->
+          <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem;">
+            <h3 style="margin-bottom: 1rem; font-size: 1rem; font-weight: 700; color: var(--text-dark);">Skill Distribution</h3>
+            <canvas id="skillDistributionChart" height="250"></canvas>
           </div>
         </div>
 
-        <div class="course-card">
-          <div
-            class="course-banner"
-            style="background: linear-gradient(90deg, #16a34a, #4ade80)"
-          ></div>
-          <div class="course-body">
-            <div class="course-provider">freeCodeCamp / Free</div>
-            <div class="course-title">Python for Beginners — Full Course</div>
-            <div class="course-meta">
-              <span>⏱ 12 hours</span>
-              <span>🎯 Beginner</span>
-              <span>⭐ 4.9 (8,200 reviews)</span>
-            </div>
-            <div class="course-skills">
-              <span class="chip">Python Basics</span>
-              <span class="chip">Scripting</span>
-              <span class="chip">Data Handling</span>
-            </div>
-            <div class="course-footer">
-              <span class="course-price" style="color: #155724">FREE</span>
-              <a href="#" class="btn btn-primary">Start Learning</a>
-            </div>
-          </div>
+        <!-- SKILL STATS TABLE -->
+        <div style="background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 2rem;">
+          <h3 style="margin-bottom: 1rem; font-size: 1rem; font-weight: 700; color: var(--text-dark);">Skill Market Analysis</h3>
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: #f5f5f5; border-bottom: 2px solid var(--border);">
+                <th style="padding: 0.75rem; text-align: left; font-weight: 700; color: var(--text-dark);">Skill</th>
+                <th style="padding: 0.75rem; text-align: center; font-weight: 700; color: var(--text-dark);">Jobs Requiring</th>
+                <th style="padding: 0.75rem; text-align: center; font-weight: 700; color: var(--text-dark);">Demand %</th>
+                <th style="padding: 0.75rem; text-align: center; font-weight: 700; color: var(--text-dark);">Your Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php 
+              $rank = 1;
+              foreach (array_slice($market_skills, 0, 10) as $skill => $frequency):
+                $demand_pct = round(($frequency / $total_jobs) * 100, 1);
+                $has_skill = in_array($skill, $employee_skills) ? true : false;
+                $status_class = $has_skill ? 'style="color: #155724; font-weight: 700;"' : 'style="color: #721c24; font-weight: 700;"';
+                $status_text = $has_skill ? '✓ You have it' : '✗ Need to learn';
+              ?>
+                <tr style="border-bottom: 1px solid var(--border);">
+                  <td style="padding: 0.75rem; color: var(--text-dark); font-weight: 600;">
+                    <span style="background: var(--primary-light); color: var(--primary-dark); padding: 0.25rem 0.5rem; border-radius: 4px; margin-right: 0.5rem;"><?php echo $rank; ?></span>
+                    <?php echo htmlspecialchars(ucwords($skill)); ?>
+                  </td>
+                  <td style="padding: 0.75rem; text-align: center; color: var(--text-dark);"><?php echo $frequency; ?></td>
+                  <td style="padding: 0.75rem; text-align: center; color: var(--text-dark);"><?php echo $demand_pct; ?>%</td>
+                  <td style="padding: 0.75rem; text-align: center;" <?php echo $status_class; ?>><?php echo $status_text; ?></td>
+                </tr>
+              <?php 
+                $rank++;
+              endforeach; 
+              ?>
+            </tbody>
+          </table>
         </div>
 
-        <div class="course-card">
-          <div
-            class="course-banner"
-            style="background: linear-gradient(90deg, #f59e0b, #fbbf24)"
-          ></div>
-          <div class="course-body">
-            <div class="course-provider">Coursera / Google</div>
-            <div class="course-title">
-              SQL for Data Analysis — Google Certificate
-            </div>
-            <div class="course-meta">
-              <span>⏱ 18 hours</span>
-              <span>🎯 Beginner</span>
-              <span>⭐ 4.7 (5,600 reviews)</span>
-            </div>
-            <div class="course-skills">
-              <span class="chip">SQL Basics</span>
-              <span class="chip">Database Design</span>
-              <span class="chip">Queries</span>
-            </div>
-            <div class="course-footer">
-              <span class="course-price">₱0 (Audit Free)</span>
-              <a href="#" class="btn btn-primary">Enroll Free</a>
-            </div>
-          </div>
-        </div>
+        <!-- Chart.js Library -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+          // Prepare data for charts
+          const marketSkills = <?php echo json_encode(array_slice($market_skills, 0, 8)); ?>;
+          const employeeSkills = <?php echo json_encode($employee_skills); ?>;
+          const totalJobs = <?php echo $total_jobs; ?>;
+
+          // Extract labels and data
+          let skillLabels = [];
+          let skillDemand = [];
+          let skillColors = [];
+          
+          for (const [skill, count] of Object.entries(marketSkills)) {
+            skillLabels.push(skill.charAt(0).toUpperCase() + skill.slice(1));
+            skillDemand.push(count);
+            // Color based on if user has skill
+            if (employeeSkills.includes(skill.toLowerCase())) {
+              skillColors.push('rgba(34, 197, 94, 0.7)'); // Green for have
+            } else {
+              skillColors.push('rgba(220, 38, 38, 0.7)'); // Red for need
+            }
+          }
+
+          // Bar Chart: Top Skills Demand
+          const barCtx = document.getElementById('skillDemandChart').getContext('2d');
+          new Chart(barCtx, {
+            type: 'bar',
+            data: {
+              labels: skillLabels,
+              datasets: [{
+                label: 'Job Postings Requiring Skill',
+                data: skillDemand,
+                backgroundColor: skillColors,
+                borderColor: skillColors.map(c => c.replace('0.7', '1')),
+                borderWidth: 2,
+                borderRadius: 5
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              indexAxis: 'y',
+              plugins: {
+                legend: {
+                  display: false
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function(context) {
+                      const pct = ((context.parsed.x / totalJobs) * 100).toFixed(1);
+                      return context.parsed.x + ' jobs (' + pct + '%)';
+                    }
+                  }
+                }
+              },
+              scales: {
+                x: {
+                  beginAtZero: true,
+                  ticks: {
+                    font: { size: 11 }
+                  }
+                },
+                y: {
+                  ticks: {
+                    font: { size: 12 }
+                  }
+                }
+              }
+            }
+          });
+
+          // Pie Chart: Skills Distribution (Have vs Need)
+          const haveCount = skillDemand.reduce((sum, demand, idx) => 
+            sum + (employeeSkills.includes(skillLabels[idx].toLowerCase()) ? 1 : 0), 0
+          );
+          const needCount = skillDemand.length - haveCount;
+
+          const pieCtx = document.getElementById('skillDistributionChart').getContext('2d');
+          new Chart(pieCtx, {
+            type: 'doughnut',
+            data: {
+              labels: ['Skills You Have', 'Skills to Learn'],
+              datasets: [{
+                data: [haveCount, needCount],
+                backgroundColor: [
+                  'rgba(34, 197, 94, 0.8)',  // Green
+                  'rgba(220, 38, 38, 0.8)'   // Red
+                ],
+                borderColor: [
+                  'rgba(34, 197, 94, 1)',
+                  'rgba(220, 38, 38, 1)'
+                ],
+                borderWidth: 2
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              plugins: {
+                legend: {
+                  position: 'bottom',
+                  labels: {
+                    font: { size: 12 },
+                    padding: 15
+                  }
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function(context) {
+                      const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                      const pct = ((context.parsed / total) * 100).toFixed(1);
+                      return context.label + ': ' + context.parsed + ' (' + pct + '%)';
+                    }
+                  }
+                }
+              }
+            }
+          });
+        </script>
       </div>
 
       <!-- SIDEBAR -->
@@ -671,27 +788,25 @@
         <div class="side-card">
           <div class="side-card-title">Your Progress</div>
           <div class="micro-stat">
-            <span>Skills Have</span><span class="micro-val">7</span>
+            <span>Skills Have</span><span class="micro-val"><?php echo count($current_skills); ?></span>
           </div>
           <div class="micro-stat">
             <span>Skills Missing</span
-            ><span class="micro-val" style="color: #721c24">3</span>
+            ><span class="micro-val" style="color: #721c24"><?php echo count($skill_gaps); ?></span>
           </div>
           <div class="micro-stat">
-            <span>Partial Skills</span
-            ><span class="micro-val" style="color: #856404">2</span>
+            <span>Total Market Skills</span
+            ><span class="micro-val" style="color: #856404"><?php echo $total_market_skills; ?></span>
           </div>
           <div class="micro-stat">
-            <span>Courses Enrolled</span><span class="micro-val">1</span>
+            <span>Job Postings</span><span class="micro-val"><?php echo $total_jobs; ?></span>
           </div>
           <div class="micro-stat">
-            <span>Employability Score</span><span class="micro-val">68%</span>
+            <span>Employability Score</span><span class="micro-val"><?php echo $employability_score; ?>%</span>
           </div>
           <div class="micro-stat">
             <span>Potential Score</span
-            ><span class="micro-val" style="color: var(--primary-dark)"
-              >89%</span
-            >
+            ><span class="micro-val" style="color: var(--primary-dark)"><?php echo min(100, $employability_score + 20); ?>%</span>
           </div>
         </div>
 

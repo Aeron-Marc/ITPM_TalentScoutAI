@@ -1,3 +1,4 @@
+<?php session_start(); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -63,12 +64,12 @@
 
 <!-- NAVBAR -->
 <nav class="navbar">
-  <a href="../index.html" class="nav-logo">
+  <a href="../index.php" class="nav-logo">
     <div class="nav-logo-icon">TS</div>
     <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
   </a>
   <ul class="nav-links">
-    <li><a href="../index.html">Home</a></li>
+    <li><a href="../index.php">Home</a></li>
     <li><a href="./post-jobs/">Post Jobs</a></li>
     <li><a href="./employee-finder/">Find Talent</a></li>
     <li><a href="./applicant-tracking/">Hiring Pipeline</a></li>
@@ -144,24 +145,24 @@
       <div class="footer-col">
         <h4>For Job Seekers</h4>
         <ul>
-          <li><a href="../../job-postings/">Browse Jobs</a></li>
-          <li><a href="../../ai-matching/">AI Matching</a></li>
-          <li><a href="../../skill-gap-analysis/">Skill Analysis</a></li>
-          <li><a href="../../applicant-tracking/">Track Applications</a></li>
+          <li><a href="../../employees/modules/job-postings/">Browse Jobs</a></li>
+          <li><a href="../../employees/modules/ai-matching/">AI Matching</a></li>
+          <li><a href="../../employees/modules/skill-gap-analysis/">Skill Analysis</a></li>
+          <li><a href="../../employees/modules/applicant-tracking/">Track Applications</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h4>For Employers</h4>
         <ul>
-          <li><a href="../index.html">Post Jobs</a></li>
-          <li><a href="../../blind-hiring/">Blind Hiring</a></li>
-          <li><a href="../../ai-matching/">Find Talent</a></li>
+          <li><a href="../index.php">Post Jobs</a></li>
+          <li><a href="./blind-hiring/">Blind Hiring</a></li>
+          <li><a href="./employee-finder/">Find Talent</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h4>Resources</h4>
         <ul>
-          <li><a href="../../index.html">Home</a></li>
+          <li><a href="../../index.php">Home</a></li>
           <li><a href="#">About</a></li>
           <li><a href="#">Contact</a></li>
           <li><a href="#">Privacy Policy</a></li>

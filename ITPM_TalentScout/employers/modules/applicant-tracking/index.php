@@ -1,3 +1,67 @@
+<?php 
+session_start();
+require_once('../../../database/db.php');
+
+// Get database connection
+$conn = getConnection();
+$employer_id = isset($_SESSION['employer_id']) ? $_SESSION['employer_id'] : 1; // Default to employer 1 for testing
+
+// Fetch all applications for this employer's jobs
+$applications = [];
+$stmt = $conn->prepare("SELECT 
+  a.application_id, 
+  a.job_post_id,
+  a.employee_id,
+  a.status,
+  a.application_date,
+  e.first_name,
+  e.last_name,
+  jp.title as job_title
+FROM application a
+JOIN job_post jp ON a.job_post_id = jp.job_post_id
+JOIN employee e ON a.employee_id = e.employee_id
+WHERE jp.employer_id = ?
+ORDER BY a.application_date DESC");
+$stmt->bind_param("i", $employer_id);
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
+  $applications[] = $row;
+}
+$stmt->close();
+
+// Calculate stats
+$stats = [
+  'total' => count($applications),
+  'applied' => 0,
+  'review' => 0,
+  'interview' => 0,
+  'offer' => 0,
+  'hired' => 0
+];
+
+foreach ($applications as $app) {
+  switch (strtolower($app['status'])) {
+    case 'applied':
+      $stats['applied']++;
+      break;
+    case 'in review':
+    case 'review':
+      $stats['review']++;
+      break;
+    case 'interview':
+      $stats['interview']++;
+      break;
+    case 'offer sent':
+    case 'offer':
+      $stats['offer']++;
+      break;
+    case 'hired':
+      $stats['hired']++;
+      break;
+  }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -166,12 +230,12 @@
 </head>
 <body>
   <nav class="navbar">
-    <a href="../../index.html" class="nav-logo">
+    <a href="../../index.php" class="nav-logo">
       <div class="nav-logo-icon">TS</div>
       <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
     </a>
     <ul class="nav-links">
-      <li><a href="../../index.html">Home</a></li>
+      <li><a href="../../index.php">Home</a></li>
       <li><a href="../post-jobs/">Post Jobs</a></li>
       <li><a href="../employee-finder/">Find Talent</a></li>
       <li><a href="./" class="active">Hiring Pipeline</a></li>
@@ -185,27 +249,27 @@
 
   <div class="container">
     <div class="page-header">
-      <h1>[TRACK] Job Application Tracker</h1>
+      <h1>Job Application Tracker</h1>
       <p>Manage your entire hiring pipeline from application to hire</p>
     </div>
 
     <!-- Stats Grid -->
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-value">19</div>
+        <div class="stat-value"><?php echo $stats['total']; ?></div>
         <div class="stat-label">Total Applications</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value">8</div>
+        <div class="stat-value"><?php echo ($stats['applied'] + $stats['review']); ?></div>
         <div class="stat-label">Ready to Review</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value">3</div>
+        <div class="stat-value"><?php echo $stats['interview']; ?></div>
         <div class="stat-label">Interviews Scheduled</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value">2</div>
-        <div class="stat-label">Offers Sent</div>
+        <div class="stat-value"><?php echo ($stats['offer'] + $stats['hired']); ?></div>
+        <div class="stat-label">Offers Sent / Hired</div>
       </div>
     </div>
 
@@ -223,127 +287,40 @@
           </tr>
         </thead>
         <tbody>
-          <!-- Applied Candidates -->
-          <tr>
-            <td class="candidate-col">John Dela Cruz</td>
-            <td class="position-col">Senior React Developer</td>
-            <td><span class="status-col status-applied">Applied</span></td>
-            <td class="match-score">92%</td>
-            <td class="date-col">Mar 14, 2026</td>
-            <td class="action-col"><button class="btn-small">View</button></td>
-          </tr>
-          <tr>
-            <td class="candidate-col">Maria Santos</td>
-            <td class="position-col">Full Stack Engineer</td>
-            <td><span class="status-col status-applied">Applied</span></td>
-            <td class="match-score">87%</td>
-            <td class="date-col">Mar 15, 2026</td>
-            <td class="action-col"><button class="btn-small">View</button></td>
-          </tr>
-          <tr>
-            <td class="candidate-col">Roberto Garcia</td>
-            <td class="position-col">Backend Developer</td>
-            <td><span class="status-col status-applied">Applied</span></td>
-            <td class="match-score">78%</td>
-            <td class="date-col">Mar 16, 2026</td>
-            <td class="action-col"><button class="btn-small">View</button></td>
-          </tr>
-          <tr>
-            <td class="candidate-col">Angela Santos</td>
-            <td class="position-col">UI/UX Designer</td>
-            <td><span class="status-col status-applied">Applied</span></td>
-            <td class="match-score">85%</td>
-            <td class="date-col">Mar 16, 2026</td>
-            <td class="action-col"><button class="btn-small">View</button></td>
-          </tr>
-
-          <!-- In Review Candidates -->
-          <tr>
-            <td class="candidate-col">Carlos Reyes</td>
-            <td class="position-col">Senior React Developer</td>
-            <td><span class="status-col status-review">In Review</span></td>
-            <td class="match-score">94%</td>
-            <td class="date-col">Mar 15, 2026</td>
-            <td class="action-col"><button class="btn-small">View</button></td>
-          </tr>
-          <tr>
-            <td class="candidate-col">Lisa Wong</td>
-            <td class="position-col">Full Stack Developer</td>
-            <td><span class="status-col status-review">In Review</span></td>
-            <td class="match-score">89%</td>
-            <td class="date-col">Mar 14, 2026</td>
-            <td class="action-col"><button class="btn-small">View</button></td>
-          </tr>
-          <tr>
-            <td class="candidate-col">David Kim</td>
-            <td class="position-col">Backend Developer</td>
-            <td><span class="status-col status-review">In Review</span></td>
-            <td class="match-score">81%</td>
-            <td class="date-col">Mar 15, 2026</td>
-            <td class="action-col"><button class="btn-small">View</button></td>
-          </tr>
-
-          <!-- Interview Candidates -->
-          <tr>
-            <td class="candidate-col">Jennifer Lee</td>
-            <td class="position-col">Senior React Developer</td>
-            <td><span class="status-col status-interview">Interview</span></td>
-            <td class="match-score">96%</td>
-            <td class="date-col">Mar 14, 2026</td>
-            <td class="action-col"><button class="btn-small">View</button></td>
-          </tr>
-          <tr>
-            <td class="candidate-col">Michael Brown</td>
-            <td class="position-col">Full Stack Engineer</td>
-            <td><span class="status-col status-interview">Interview</span></td>
-            <td class="match-score">91%</td>
-            <td class="date-col">Mar 12, 2026</td>
-            <td class="action-col"><button class="btn-small">View</button></td>
-          </tr>
-          <tr>
-            <td class="candidate-col">Sarah Jones</td>
-            <td class="position-col">UI Designer</td>
-            <td><span class="status-col status-interview">Interview</span></td>
-            <td class="match-score">88%</td>
-            <td class="date-col">Mar 10, 2026</td>
-            <td class="action-col"><button class="btn-small">View</button></td>
-          </tr>
-
-          <!-- Offer Candidates -->
-          <tr>
-            <td class="candidate-col">Michael Chen</td>
-            <td class="position-col">Full Stack Developer</td>
-            <td><span class="status-col status-offer">Offer Sent</span></td>
-            <td class="match-score">95%</td>
-            <td class="date-col">Mar 8, 2026</td>
-            <td class="action-col"><button class="btn-small">View</button></td>
-          </tr>
-          <tr>
-            <td class="candidate-col">Jennifer Lee</td>
-            <td class="position-col">Senior React Developer</td>
-            <td><span class="status-col status-offer">Offer Sent</span></td>
-            <td class="match-score">96%</td>
-            <td class="date-col">Mar 14, 2026</td>
-            <td class="action-col"><button class="btn-small">View</button></td>
-          </tr>
-
-          <!-- Hired -->
-          <tr>
-            <td class="candidate-col">Nina Patel</td>
-            <td class="position-col">UI/UX Designer</td>
-            <td><span class="status-col status-hired">[HIRED]</span></td>
-            <td class="match-score">92%</td>
-            <td class="date-col">Mar 10, 2026</td>
-            <td class="action-col"><button class="btn-small">View</button></td>
-          </tr>
-          <tr>
-            <td class="candidate-col">James Wilson</td>
-            <td class="position-col">Full Stack Developer</td>
-            <td><span class="status-col status-hired">[HIRED]</span></td>
-            <td class="match-score">94%</td>
-            <td class="date-col">Mar 5, 2026</td>
-            <td class="action-col"><button class="btn-small">View</button></td>
-          </tr>
+          <?php if (count($applications) > 0): ?>
+            <?php foreach ($applications as $app): 
+              // Normalize status for display
+              $status = strtolower($app['status']);
+              $status_display = ucfirst($status);
+              if ($status === 'in review') $status_display = 'In Review';
+              if ($status === 'offer sent') $status_display = 'Offer Sent';
+              
+              // Determine status class
+              $status_class = 'status-applied';
+              if (in_array($status, ['in review', 'review'])) $status_class = 'status-review';
+              if ($status === 'interview') $status_class = 'status-interview';
+              if (in_array($status, ['offer sent', 'offer'])) $status_class = 'status-offer';
+              if ($status === 'hired') $status_class = 'status-hired';
+              
+              // Generate match score (random for now, could be calculated from skills later)
+              $match_score = rand(75, 98);
+            ?>
+            <tr>
+              <td class="candidate-col"><?php echo htmlspecialchars($app['first_name'] . ' ' . $app['last_name']); ?></td>
+              <td class="position-col"><?php echo htmlspecialchars($app['job_title']); ?></td>
+              <td><span class="status-col <?php echo $status_class; ?>"><?php echo $status_display; ?></span></td>
+              <td class="match-score"><?php echo $match_score; ?>%</td>
+              <td class="date-col"><?php echo date('M j, Y', strtotime($app['application_date'])); ?></td>
+              <td class="action-col"><button class="btn-small">View</button></td>
+            </tr>
+            <?php endforeach; ?>
+          <?php else: ?>
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--text-light); padding: 2rem;">
+                No applications yet. Share your job postings with candidates to start receiving applications.
+              </td>
+            </tr>
+          <?php endif; ?>
         </tbody>
       </table>
     </div>

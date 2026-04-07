@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+<?php session_start(); ?>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -10,12 +11,12 @@
 
 <!-- NAVBAR -->
 <nav class="navbar">
-  <a href="./index.html" class="nav-logo">
+  <a href="./index.php" class="nav-logo">
     <div class="nav-logo-icon">TS</div>
     <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
   </a>
   <ul class="nav-links">
-    <li><a href="./index.html">Home</a></li>
+    <li><a href="./index.php">Home</a></li>
     <li><a href="./modules/post-jobs/">Post Jobs</a></li>
     <li><a href="./modules/employee-finder/">Find Talent</a></li>
     <li><a href="./modules/applicant-tracking/">Hiring Pipeline</a></li>
@@ -31,7 +32,7 @@
 <section class="hero">
   <div class="hero-inner">
     <div>
-      <div class="hero-label">[HIRE] Hire Smart, Hire Fair</div>
+      <div class="hero-label">Hire Smart, Hire Fair</div>
       <h1>Find Your Perfect <span>Talent</span> in Nasugbu</h1>
       <p class="hero-desc">
         TalentScout AI connects you with pre-vetted talent matched to your job requirements. Post jobs, screen blind profiles, and hire the best fit for your team.
@@ -45,7 +46,7 @@
     <div class="hero-visual">
       <div class="mock-card">
         <div class="mock-top">
-          <span class="mock-title">[HIRE] Top Candidates Found</span>
+          <span class="mock-title">Top Candidates Found</span>
           <span class="mock-badge">5 Matches</span>
         </div>
         <div style="font-weight:700; font-size:1rem; margin-bottom:0.25rem;">Senior Python Developer</div>
@@ -83,37 +84,37 @@
   </div>
   <div class="features-grid">
     <a href="./modules/post-jobs/" class="feature-card">
-      <div class="feature-icon">[POST]</div>
+      <div class="feature-icon">📋</div>
       <div class="feature-title">Post Job Listings</div>
       <p class="feature-desc">Create and publish job posts in minutes. Reach hundreds of qualified candidates across all Nasugbu barangays instantly.</p>
       <span class="feature-link">Post a Job -></span>
     </a>
     <a href="./modules/blind-hiring/" class="feature-card">
-      <div class="feature-icon">[BLIND]</div>
+      <div class="feature-icon">🔒</div>
       <div class="feature-title">Blind Hiring</div>
       <p class="feature-desc">Screen talents anonymously by skills alone. Reduce bias, ensure fair evaluation, and hire based purely on merit and capability.</p>
       <span class="feature-link">Learn More -></span>
     </a>
     <a href="./modules/employee-finder/" class="feature-card">
-      <div class="feature-icon">[SEARCH]</div>
+      <div class="feature-icon">🔍</div>
       <div class="feature-title">Employee Finder</div>
       <p class="feature-desc">Search and filter candidates by skills, experience, location, and salary expectations. Find your perfect match effortlessly.</p>
       <span class="feature-link">Search Talent -></span>
     </a>
     <a href="./modules/applicant-tracking/" class="feature-card">
-      <div class="feature-icon">[TRACK]</div>
+      <div class="feature-icon">📊</div>
       <div class="feature-title">Application Tracker</div>
       <p class="feature-desc">Manage the entire hiring pipeline from applications through interviews to successful hires. Never lose track of a candidate.</p>
       <span class="feature-link">Manage Applicants -></span>
     </a>
     <a href="./modules/company-registration/" class="feature-card">
-      <div class="feature-icon">[VERIFY]</div>
+      <div class="feature-icon">✓</div>
       <div class="feature-title">Company Registration</div>
       <p class="feature-desc">Verify your company with permit/ID registration. Build credibility and access premium employer features and candidate insights.</p>
       <span class="feature-link">Register Company -></span>
     </a>
     <a href="./modules/chat-sms/" class="feature-card">
-      <div class="feature-icon">[CHAT]</div>
+      <div class="feature-icon">💬</div>
       <div class="feature-title">Chat & SMS</div>
       <p class="feature-desc">Communicate directly with candidates via chat or SMS. Schedule interviews, send updates, and close hires faster.</p>
       <span class="feature-link">Start Messaging -></span>
@@ -130,32 +131,32 @@
     </div>
     <div class="benefits-grid">
       <div class="benefit-item">
-        <div class="benefit-icon">[SPEED]</div>
+        <div class="benefit-icon">⚡</div>
         <div class="benefit-title">Fast Hiring</div>
         <div class="benefit-desc">Average hiring time: 8 days. AI matching shortens your recruitment cycle and gets you the right person quickly.</div>
       </div>
       <div class="benefit-item">
-        <div class="benefit-icon">[QUALITY]</div>
+        <div class="benefit-icon">⭐</div>
         <div class="benefit-title">Qualified Candidates</div>
         <div class="benefit-desc">Pre-vetted talent pool with verified skills. No more sifting through hundreds of unqualified applications.</div>
       </div>
       <div class="benefit-item">
-        <div class="benefit-icon">[FAIR]</div>
+        <div class="benefit-icon">🤝</div>
         <div class="benefit-title">Bias-Free Hiring</div>
         <div class="benefit-desc">Blind hiring profiles ensure you evaluate candidates based on merit alone. Build diverse, capable teams.</div>
       </div>
       <div class="benefit-item">
-        <div class="benefit-icon">[COST]</div>
+        <div class="benefit-icon">💰</div>
         <div class="benefit-title">Cost Effective</div>
         <div class="benefit-desc">No expensive recruitment agencies. Direct access to local talent at a fraction of traditional hiring costs.</div>
       </div>
       <div class="benefit-item">
-        <div class="benefit-icon">[CONNECT]</div>
+        <div class="benefit-icon">🔗</div>
         <div class="benefit-title">Seamless Communication</div>
         <div class="benefit-desc">Chat and SMS integration keeps candidates engaged. Reduce no-shows and improve candidate experience.</div>
       </div>
       <div class="benefit-item">
-        <div class="benefit-icon">[DATA]</div>
+        <div class="benefit-icon">📈</div>
         <div class="benefit-title">Analytics & Insights</div>
         <div class="benefit-desc">Track hiring metrics, candidate quality, and time-to-hire. Make data-driven hiring decisions.</div>
       </div>
@@ -187,18 +188,18 @@
       <div class="footer-col">
         <h4>For Job Seekers</h4>
         <ul>
-          <li><a href="../job-postings/">Browse Jobs</a></li>
-          <li><a href="../ai-matching/">AI Matching</a></li>
-          <li><a href="../skill-gap-analysis/">Skill Gap Analysis</a></li>
-          <li><a href="../applicant-tracking/">Track Applications</a></li>
+          <li><a href="../employees/modules/job-postings/">Browse Jobs</a></li>
+          <li><a href="../employees/modules/ai-matching/">AI Matching</a></li>
+          <li><a href="../employees/modules/skill-gap-analysis/">Skill Gap Analysis</a></li>
+          <li><a href="../employees/modules/applicant-tracking/">Track Applications</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h4>For Employers</h4>
         <ul>
-          <li><a href="./index.html">Post Jobs</a></li>
-          <li><a href="../blind-hiring/">Blind Hiring</a></li>
-          <li><a href="#/">Find Talent</a></li>
+          <li><a href="./index.php">Post Jobs</a></li>
+          <li><a href="./modules/blind-hiring/">Blind Hiring</a></li>
+          <li><a href="./modules/employee-finder/">Find Talent</a></li>
         </ul>
       </div>
       <div class="footer-col">
@@ -270,4 +271,3 @@
 
 </body>
 </html>
-

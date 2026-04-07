@@ -335,17 +335,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <body>
   <nav class="navbar">
-    <a href="./index.html" class="nav-logo">
+    <a href="./index.php" class="nav-logo">
       <div class="nav-logo-icon">TS</div>
       <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
     </a>
     <ul class="nav-links">
-      <li><a href="./index.html">Home</a></li>
-      <li><a href="./modules/job-postings/">Browse Jobs</a></li>
-      <li><a href="./modules/ai-matching/">AI Matching</a></li>
-      <li><a href="./modules/skill-gap-analysis/">Skills</a></li>
-      <li><a href="./modules/applicant-tracking/">Applications</a></li>
-      <li><a href="./modules/">All Tools</a></li>
+      <li><a href="./index.php">Home</a></li>
+      <li><a href="./modules/job-postings/index.php">Browse Jobs</a></li>
+      <li><a href="./modules/ai-matching/index.php">AI Matching</a></li>
+      <li><a href="./modules/resume-builder/index.php">Resume Builder</a></li>
+      <li><a href="./modules/skill-gap-analysis/index.php">Skills</a></li>
+      <li><a href="./modules/applicant-tracking/index.php">Applications</a></li>
     </ul>
     <div class="nav-actions">
       <a href="./login.php" class="btn btn-outline">Login</a>

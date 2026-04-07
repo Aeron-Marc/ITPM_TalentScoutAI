@@ -46,6 +46,7 @@ $hasError = !empty($dbError);
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../../styles/global.css" />
     <link rel="stylesheet" href="../../../styles/page-layout.css" />
+    <link rel="stylesheet" href="../../navbar.css" />
     <style>
       * {
         font-family: 'Poppins', sans-serif;
@@ -408,22 +409,26 @@ $hasError = !empty($dbError);
   <body>
     <!-- NAVBAR -->
     <nav class="navbar">
-      <a href="../../index.html" class="nav-logo">
+      <a href="../../index.php" class="nav-logo">
         <div class="nav-logo-icon">TS</div>
         <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
       </a>
       <ul class="nav-links">
-        <li><a href="../../index.html">Home</a></li>
-        <li><a href="./" class="active">Browse Jobs</a></li>
-        <li><a href="../ai-matching/">AI Matching</a></li>
-        <li><a href="../resume-builder/">Resume Builder</a></li>
-        <li><a href="../skill-gap-analysis/">Skills</a></li>
-        <li><a href="../applicant-tracking/">Applications</a></li>
-        <li><a href="../">All Tools</a></li>
+        <li><a href="../../index.php">Home</a></li>
+        <li><a href="./index.php" class="active">Browse Jobs</a></li>
+        <li><a href="../ai-matching/index.php">AI Matching</a></li>
+        <li><a href="../resume-builder/index.php">Resume Builder</a></li>
+        <li><a href="../skill-gap-analysis/index.php">Skills</a></li>
+        <li><a href="../applicant-tracking/index.php">Applications</a></li>
       </ul>
       <div class="nav-actions">
-        <a href="../../login.html" class="btn btn-outline">Login</a>
-        <a href="../../signup.html" class="btn btn-primary">Get Started</a>
+        <?php if (isset($_SESSION['employee_id'])): ?>
+          <span class="nav-user">Welcome, <?php echo htmlspecialchars($_SESSION['employee_name'] ?? 'User'); ?></span>
+          <a href="../../logout.php" class="btn btn-outline">Logout</a>
+        <?php else: ?>
+          <a href="../../login.php" class="btn btn-outline">Login</a>
+          <a href="../../signup.php" class="btn btn-primary">Get Started</a>
+        <?php endif; ?>
       </div>
     </nav>
 
@@ -431,7 +436,7 @@ $hasError = !empty($dbError);
     <div class="page-header">
       <div class="page-header-inner">
         <div class="breadcrumb">
-          <a href="../../index.html">Home</a> / Job Postings
+          <a href="../../index.php">Home</a> / Job Postings
         </div>
         <h1>📋 Job Postings</h1>
         <p>
@@ -1028,7 +1033,7 @@ $hasError = !empty($dbError);
             <div class="job-salary">${job.salaryText}</div>
             <div style="display:flex;align-items:center;gap:1rem">
               <span class="job-date">Application deadline: ${deadline}</span>
-              <a href="../../login.html" class="btn btn-primary">Apply Now</a>
+              <a href="../../login.php" class="btn btn-primary">Apply Now</a>
             </div>
           </div>
         `;

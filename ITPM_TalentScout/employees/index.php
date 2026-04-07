@@ -1,4 +1,8 @@
-﻿<!doctype html>
+﻿<?php
+session_start();
+require_once __DIR__ . '/../database/db.php';
+?>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -6,26 +10,31 @@
     <title>For Job Seekers - TalentScout AI</title>
     <link rel="stylesheet" href="../styles/global.css" />
     <link rel="stylesheet" href="../styles/page-layout.css" />
+    <link rel="stylesheet" href="./navbar.css" />
   </head>
   <body>
     <!-- NAVBAR -->
     <nav class="navbar">
-      <a href="./index.html" class="nav-logo">
+      <a href="./index.php" class="nav-logo">
         <div class="nav-logo-icon">TS</div>
         <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
       </a>
       <ul class="nav-links">
-        <li><a href="./index.html" class="active">Home</a></li>
-        <li><a href="./modules/job-postings/">Browse Jobs</a></li>
-        <li><a href="./modules/ai-matching/">AI Matching</a></li>
-        <li><a href="./modules/resume-builder/">Resume Builder</a></li>
-        <li><a href="./modules/skill-gap-analysis/">Skills</a></li>
-        <li><a href="./modules/applicant-tracking/">Applications</a></li>
-        <li><a href="./modules/">All Tools</a></li>
+        <li><a href="./index.php" class="active">Home</a></li>
+        <li><a href="./modules/job-postings/index.php">Browse Jobs</a></li>
+        <li><a href="./modules/ai-matching/index.php">AI Matching</a></li>
+        <li><a href="./modules/resume-builder/index.php">Resume Builder</a></li>
+        <li><a href="./modules/skill-gap-analysis/index.php">Skills</a></li>
+        <li><a href="./modules/applicant-tracking/index.php">Applications</a></li>
       </ul>
       <div class="nav-actions">
-        <a href="./login.html" class="btn btn-outline">Login</a>
-        <a href="./signup.html" class="btn btn-primary">Get Started</a>
+        <?php if (isset($_SESSION['employee_id'])): ?>
+          <span class="nav-user">Welcome, <?php echo htmlspecialchars($_SESSION['employee_name'] ?? 'User'); ?></span>
+          <a href="./logout.php" class="btn btn-outline">Logout</a>
+        <?php else: ?>
+          <a href="./login.php" class="btn btn-outline">Login</a>
+          <a href="./signup.php" class="btn btn-primary">Get Started</a>
+        <?php endif; ?>
       </div>
     </nav>
 
@@ -33,7 +42,7 @@
     <section class="hero">
       <div class="hero-inner">
         <div>
-          <div class="hero-label">[JOB] Find Your Dream Job</div>
+          <div class="hero-label">Find Your Dream Job</div>
           <h1>Land Your Next <span>Opportunity</span> in Nasugbu</h1>
           <p class="hero-desc">
             TalentScout AI matches you with jobs based on your skills and
@@ -53,7 +62,7 @@
         <div class="hero-visual">
           <div class="mock-card">
             <div class="mock-top">
-              <span class="mock-title">[AI] Perfect Match Found</span>
+              <span class="mock-title">Perfect Match Found</span>
               <span class="mock-badge">92% Match</span>
             </div>
             <div
@@ -122,12 +131,12 @@
           skills, and advance your career.
         </p>
         <div style="margin-top: 1.5rem">
-          <a href="./modules/" class="btn btn-primary">View All Tools</a>
+          <a href="./modules/index.php" class="btn btn-primary">View All Tools</a>
         </div>
       </div>
       <div class="features-grid">
-        <a href="./modules/job-postings/" class="feature-card">
-          <div class="feature-icon">[JOB]</div>
+        <a href="./modules/job-postings/index.php" class="feature-card">
+          <div class="feature-icon">💼</div>
           <div class="feature-title">Browse Job Opportunities</div>
           <p class="feature-desc">
             Explore hundreds of active job postings across all barangays in
@@ -135,8 +144,8 @@
           </p>
           <span class="feature-link">Explore Jobs -></span>
         </a>
-        <a href="./modules/ai-matching/" class="feature-card">
-          <div class="feature-icon">[AI]</div>
+        <a href="./modules/ai-matching/index.php" class="feature-card">
+          <div class="feature-icon">🤖</div>
           <div class="feature-title">AI Job Matching</div>
           <p class="feature-desc">
             Get personalized job recommendations powered by AI that analyzes
@@ -144,8 +153,8 @@
           </p>
           <span class="feature-link">See Your Matches -></span>
         </a>
-        <a href="#" class="feature-card">
-          <div class="feature-icon">[CV]</div>
+        <a href="./modules/resume-builder/index.php" class="feature-card">
+          <div class="feature-icon">📝</div>
           <div class="feature-title">Resume Builder</div>
           <p class="feature-desc">
             Create a professional resume with guided templates. Highlight your
@@ -153,8 +162,8 @@
           </p>
           <span class="feature-link">Build Resume -></span>
         </a>
-        <a href="./modules/skill-gap-analysis/" class="feature-card">
-          <div class="feature-icon">[SKILL]</div>
+        <a href="./modules/skill-gap-analysis/index.php" class="feature-card">
+          <div class="feature-icon">💡</div>
           <div class="feature-title">Skill Gap Analysis</div>
           <p class="feature-desc">
             Get a detailed analysis of your skills and discover exactly what
@@ -163,7 +172,7 @@
           <span class="feature-link">Analyze Skills -></span>
         </a>
         <a href="#" class="feature-card">
-          <div class="feature-icon">[LEARN]</div>
+          <div class="feature-icon">📚</div>
           <div class="feature-title">Upskilling Courses</div>
           <p class="feature-desc">
             Access personalized course recommendations to close your skill gaps
@@ -171,8 +180,8 @@
           </p>
           <span class="feature-link">Find Courses -></span>
         </a>
-        <a href="./modules/applicant-tracking/" class="feature-card">
-          <div class="feature-icon">[TRACK]</div>
+        <a href="./modules/applicant-tracking/index.php" class="feature-card">
+          <div class="feature-icon">📊</div>
           <div class="feature-title">Application Tracker</div>
           <p class="feature-desc">
             Monitor every application in real-time. Track status from Pending
@@ -192,7 +201,7 @@
         </div>
         <div class="benefits-grid">
           <div class="benefit-item">
-            <div class="benefit-icon">[FAST]</div>
+            <div class="benefit-icon">⚡</div>
             <div class="benefit-title">Faster Matching</div>
             <div class="benefit-desc">
               AI-powered matching finds your perfect job in seconds, not weeks.
@@ -200,7 +209,7 @@
             </div>
           </div>
           <div class="benefit-item">
-            <div class="benefit-icon">[FAIR]</div>
+            <div class="benefit-icon">🤝</div>
             <div class="benefit-title">Fair & Unbiased</div>
             <div class="benefit-desc">
               Blind hiring evaluates you based on skills alone. No
@@ -208,7 +217,7 @@
             </div>
           </div>
           <div class="benefit-item">
-            <div class="benefit-icon">[GROWTH]</div>
+            <div class="benefit-icon">📈</div>
             <div class="benefit-title">Skill Development</div>
             <div class="benefit-desc">
               Get upskilling recommendations tailored to what employers in
@@ -216,7 +225,7 @@
             </div>
           </div>
           <div class="benefit-item">
-            <div class="benefit-icon">[LOCAL]</div>
+            <div class="benefit-icon">🏘️</div>
             <div class="benefit-title">Local Opportunities</div>
             <div class="benefit-desc">
               Support local employment. Find jobs within your community or work
@@ -224,7 +233,7 @@
             </div>
           </div>
           <div class="benefit-item">
-            <div class="benefit-icon">[CONNECT]</div>
+            <div class="benefit-icon">🔗</div>
             <div class="benefit-title">Always Connected</div>
             <div class="benefit-desc">
               Chat and SMS support to stay updated on your applications and
@@ -255,16 +264,16 @@
         </p>
         <div class="cta-actions">
           <a
-            href="./modules/job-postings/"
+            href="./modules/job-postings/index.php"
             class="btn btn-primary"
             style="padding: 0.85rem 2rem; font-size: 0.95rem"
             >Browse Job Postings</a
           >
           <a
-            href="#"
+            href="./modules/resume-builder/index.php"
             class="btn btn-outline"
             style="padding: 0.85rem 2rem; font-size: 0.95rem"
-            >Create Profile</a
+            >Build Resume</a
           >
         </div>
       </div>
@@ -284,24 +293,24 @@
           <div class="footer-col">
             <h4>For Job Seekers</h4>
             <ul>
-              <li><a href="./modules/job-postings/">Browse Jobs</a></li>
-              <li><a href="./modules/ai-matching/">AI Matching</a></li>
+              <li><a href="./modules/job-postings/index.php">Browse Jobs</a></li>
+              <li><a href="./modules/ai-matching/index.php">AI Matching</a></li>
               <li>
-                <a href="./modules/skill-gap-analysis/">Skill Gap Analysis</a>
+                <a href="./modules/skill-gap-analysis/index.php">Skill Gap Analysis</a>
               </li>
               <li>
-                <a href="./modules/applicant-tracking/">Track Applications</a>
+                <a href="./modules/applicant-tracking/index.php">Track Applications</a>
               </li>
             </ul>
           </div>
           <div class="footer-col">
             <h4>For Employers</h4>
             <ul>
-              <li><a href="../employers/">Post Jobs</a></li>
+              <li><a href="../employers/index.php">Post Jobs</a></li>
               <li>
-                <a href="../employers/modules/blind-hiring/">Blind Hiring</a>
+                <a href="../employers/modules/blind-hiring/index.php">Blind Hiring</a>
               </li>
-              <li><a href="../employers/">Find Talent</a></li>
+              <li><a href="../employers/index.php">Find Talent</a></li>
             </ul>
           </div>
           <div class="footer-col">

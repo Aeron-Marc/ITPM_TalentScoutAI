@@ -1,3 +1,62 @@
+<?php 
+session_start();
+require_once('../../../database/db.php');
+
+// Get database connection
+$conn = getConnection();
+$employer_id = isset($_SESSION['employer_id']) ? $_SESSION['employer_id'] : 1; // Default to employer 1 for testing
+
+// Handle new message submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'send_message') {
+  $receiver_id = isset($_POST['receiver_id']) ? intval($_POST['receiver_id']) : 0;
+  $message = trim($_POST['message'] ?? '');
+  
+  if ($receiver_id > 0 && !empty($message)) {
+    $stmt = $conn->prepare("INSERT INTO message (sender_id, sender_type, receiver_id, receiver_type, message, timestamp) VALUES (?, 'employer', ?, 'employee', ?, NOW())");
+    $stmt->bind_param("iis", $employer_id, $receiver_id, $message);
+    $stmt->execute();
+    $stmt->close();
+  }
+}
+
+// Fetch all conversations (unique employee IDs who have messages with this employer)
+$conversations = [];
+$stmt = $conn->prepare("SELECT DISTINCT e.employee_id, e.first_name, e.last_name 
+FROM message m
+JOIN employee e ON (m.sender_id = e.employee_id OR m.receiver_id = e.employee_id)
+WHERE (m.sender_id = ? OR m.receiver_id = ?)
+AND (m.sender_type = 'employer' OR m.receiver_type = 'employer')
+ORDER BY m.timestamp DESC");
+$stmt->bind_param("ii", $employer_id, $employer_id);
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
+  $conversations[] = $row;
+}
+$stmt->close();
+
+// Get selected conversation (first one or from request)
+$selected_employee_id = count($conversations) > 0 ? $conversations[0]['employee_id'] : 0;
+$selected_employee_name = count($conversations) > 0 ? ($conversations[0]['first_name'] . ' ' . $conversations[0]['last_name']) : 'No Conversations';
+
+// Fetch messages for selected conversation
+$messages = [];
+if ($selected_employee_id > 0) {
+  $stmt = $conn->prepare("SELECT m.*, e.first_name, e.last_name 
+  FROM message m
+  LEFT JOIN employee e ON m.sender_id = e.employee_id
+  WHERE (m.sender_id = ? AND m.receiver_id = ? AND m.sender_type = 'employer') 
+  OR (m.sender_id = ? AND m.receiver_id = ? AND m.sender_type = 'employee')
+  ORDER BY m.timestamp ASC");
+  $stmt->bind_param("iiii", $employer_id, $selected_employee_id, $selected_employee_id, $employer_id);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  while ($row = $result->fetch_assoc()) {
+    $messages[] = $row;
+  }
+  $stmt->close();
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -395,12 +454,12 @@
 
 <!-- NAVBAR -->
 <nav class="navbar">
-  <a href="../../index.html" class="nav-logo">
+  <a href="../../index.php" class="nav-logo">
     <div class="nav-logo-icon">TS</div>
     <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
   </a>
   <ul class="nav-links">
-    <li><a href="../../index.html">Home</a></li>
+    <li><a href="../../index.php">Home</a></li>
     <li><a href="../post-jobs/">Post Jobs</a></li>
     <li><a href="../employee-finder/">Find Talent</a></li>
     <li><a href="../applicant-tracking/">Hiring Pipeline</a></li>
@@ -416,44 +475,28 @@
 <div class="page-container">
   <!-- Header -->
   <div class="page-header">
-    <h1>[CHAT] Messages & Communications</h1>
+    <h1>Messages & Communications</h1>
     <p>Connect with candidates via chat and SMS</p>
   </div>
 
   <!-- Conversations Sidebar -->
   <div class="conversations-sidebar">
-    <div class="conversations-title">Conversations</div>
+    <div class="conversations-title">Conversations (<?php echo count($conversations); ?>)</div>
     
     <div class="conversation-list">
-      <div class="conversation-item active" onclick="selectConversation(this)">
-        <div class="conversation-name">Jennifer Lee</div>
-        <div class="conversation-preview">Great, I'll be ready for the interview...</div>
-        <div class="conversation-time">Today 2:30 PM</div>
-      </div>
-
-      <div class="conversation-item" onclick="selectConversation(this)">
-        <div class="conversation-name">Michael Brown</div>
-        <div class="conversation-preview">Thank you for the opportunity...</div>
-        <div class="conversation-time">Today 1:15 PM</div>
-      </div>
-
-      <div class="conversation-item" onclick="selectConversation(this)">
-        <div class="conversation-name">Sarah Jones</div>
-        <div class="conversation-preview">When will I hear back about the position...</div>
-        <div class="conversation-time">Yesterday 9:45 AM</div>
-      </div>
-
-      <div class="conversation-item" onclick="selectConversation(this)">
-        <div class="conversation-name">David Kim</div>
-        <div class="conversation-preview">I have a few questions about the role...</div>
-        <div class="conversation-time">23 Mar</div>
-      </div>
-
-      <div class="conversation-item" onclick="selectConversation(this)">
-        <div class="conversation-name">Lisa Wong</div>
-        <div class="conversation-preview">Excited about this opportunity!</div>
-        <div class="conversation-time">22 Mar</div>
-      </div>
+      <?php if (count($conversations) > 0): ?>
+        <?php foreach ($conversations as $conv): ?>
+          <div class="conversation-item <?php echo ($conv['employee_id'] === $selected_employee_id) ? 'active' : ''; ?>" onclick="selectConversation(<?php echo $conv['employee_id']; ?>)">
+            <div class="conversation-name"><?php echo htmlspecialchars($conv['first_name'] . ' ' . $conv['last_name']); ?></div>
+            <div class="conversation-preview">Click to view messages...</div>
+            <div class="conversation-time">Recent</div>
+          </div>
+        <?php endforeach; ?>
+      <?php else: ?>
+        <div style="color: var(--text-light); text-align: center; padding: 1rem; font-size: 0.85rem;">
+          No conversations yet
+        </div>
+      <?php endif; ?>
     </div>
   </div>
 
@@ -461,8 +504,8 @@
   <div class="chat-window">
     <div class="chat-header">
       <div class="chat-info">
-        <div class="chat-title">Jennifer Lee</div>
-        <div class="chat-status">Active now</div>
+        <div class="chat-title"><?php echo htmlspecialchars($selected_employee_name); ?></div>
+        <div class="chat-status">Last message</div>
       </div>
       <div class="chat-actions">
         <button class="action-btn" title="More options">⋮</button>
@@ -470,45 +513,37 @@
     </div>
 
     <div class="messages-area">
-      <div class="message-group other">
-        <div>
-          <div class="message-bubble">Hi! I received your interview invitation. Thank you so much!</div>
-          <div class="message-time">2:15 PM</div>
+      <?php if (count($messages) > 0): ?>
+        <?php foreach ($messages as $msg): ?>
+          <div class="message-group <?php echo ($msg['sender_type'] === 'employer') ? 'own' : 'other'; ?>">
+            <div>
+              <div class="message-bubble"><?php echo htmlspecialchars($msg['message']); ?></div>
+              <div class="message-time"><?php echo date('g:i A', strtotime($msg['timestamp'])); ?></div>
+            </div>
+          </div>
+        <?php endforeach; ?>
+      <?php elseif ($selected_employee_id > 0): ?>
+        <div class="empty-state">
+          <div class="empty-icon">💬</div>
+          <div class="empty-text">No messages yet</div>
+          <div class="empty-subtext">Start a conversation with this candidate</div>
         </div>
-      </div>
-
-      <div class="message-group own">
-        <div>
-          <div class="message-bubble">Great! The interview is scheduled for March 24 at 10 AM. Please confirm you can make it.</div>
-          <div class="message-time">2:20 PM</div>
+      <?php else: ?>
+        <div class="empty-state">
+          <div class="empty-icon">📬</div>
+          <div class="empty-text">No Conversations</div>
+          <div class="empty-subtext">Select or start a conversation to get started</div>
         </div>
-      </div>
-
-      <div class="message-group other">
-        <div>
-          <div class="message-bubble">Yes, I'll be there! Looking forward to meeting the team. Is there anything specific I should prepare?</div>
-          <div class="message-time">2:25 PM</div>
-        </div>
-      </div>
-
-      <div class="message-group own">
-        <div>
-          <div class="message-bubble">Just be yourself and come ready to discuss your experience. We're excited to talk with you!</div>
-          <div class="message-time">2:30 PM</div>
-        </div>
-      </div>
-
-      <div class="message-group other">
-        <div>
-          <div class="message-bubble">Thank you! See you on the 24th! 😊</div>
-          <div class="message-time">2:35 PM</div>
-        </div>
-      </div>
+      <?php endif; ?>
     </div>
 
     <div class="input-area">
-      <input type="text" class="message-input" placeholder="Type your message..." id="messageInput">
-      <button class="send-btn" onclick="sendMessage()">[SEND]</button>
+      <form method="POST" style="display: flex; gap: 0.75rem; width: 100%;">
+        <input type="hidden" name="action" value="send_message">
+        <input type="hidden" name="receiver_id" value="<?php echo $selected_employee_id; ?>">
+        <input type="text" name="message" class="message-input" placeholder="Type your message..." id="messageInput" required>
+        <button type="submit" class="send-btn" <?php echo ($selected_employee_id > 0) ? '' : 'disabled'; ?>>[SEND]</button>
+      </form>
     </div>
   </div>
 </div>
@@ -532,7 +567,7 @@
       <div class="footer-col">
         <h4>For Employers</h4>
         <ul>
-          <li><a href="../../index.html">Home</a></li>
+          <li><a href="../../index.php">Home</a></li>
           <li><a href="../post-jobs/">Post Jobs</a></li>
           <li><a href="../employee-finder/">Find Talent</a></li>
         </ul>

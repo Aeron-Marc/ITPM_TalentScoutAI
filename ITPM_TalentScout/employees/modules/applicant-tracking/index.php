@@ -1,3 +1,7 @@
+<?php
+session_start();
+require_once __DIR__ . '/../../../database/db.php';
+?>
 <!doctype html>
 <html lang="en">
   <head>
@@ -6,32 +10,37 @@
     <title>Application Tracker | Job Seekers - TalentScout AI</title>
     <link rel="stylesheet" href="../../../styles/global.css" />
     <link rel="stylesheet" href="../../../styles/page-layout.css" />
+    <link rel="stylesheet" href="../../navbar.css" />
   </head>
   <body>
     <nav class="navbar">
-      <a href="../../index.html" class="nav-logo">
+      <a href="../../index.php" class="nav-logo">
         <div class="nav-logo-icon">TS</div>
         <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
       </a>
       <ul class="nav-links">
-        <li><a href="../../index.html">Home</a></li>
-        <li><a href="../job-postings/">Browse Jobs</a></li>
-        <li><a href="../ai-matching/">AI Matching</a></li>
-        <li><a href="../resume-builder/">Resume Builder</a></li>
-        <li><a href="../skill-gap-analysis/">Skills</a></li>
-        <li><a href="./" class="active">Applications</a></li>
-        <li><a href="../">All Tools</a></li>
+        <li><a href="../../index.php">Home</a></li>
+        <li><a href="../job-postings/index.php">Browse Jobs</a></li>
+        <li><a href="../ai-matching/index.php">AI Matching</a></li>
+        <li><a href="../resume-builder/index.php">Resume Builder</a></li>
+        <li><a href="../skill-gap-analysis/index.php">Skills</a></li>
+        <li><a href="./index.php" class="active">Applications</a></li>
       </ul>
       <div class="nav-actions">
-        <a href="../../login.html" class="btn btn-outline">Login</a>
-        <a href="../../signup.html" class="btn btn-primary">Get Started</a>
+        <?php if (isset($_SESSION['employee_id'])): ?>
+          <span class="nav-user">Welcome, <?php echo htmlspecialchars($_SESSION['employee_name'] ?? 'User'); ?></span>
+          <a href="../../logout.php" class="btn btn-outline">Logout</a>
+        <?php else: ?>
+          <a href="../../login.php" class="btn btn-outline">Login</a>
+          <a href="../../signup.php" class="btn btn-primary">Get Started</a>
+        <?php endif; ?>
       </div>
     </nav>
 
     <div class="page-header">
       <div class="page-header-inner">
         <div class="breadcrumb">
-          <a href="../../index.html">Home</a> / Application Tracker
+          <a href="../../index.php">Home</a> / Application Tracker
         </div>
         <h1>Application Tracker</h1>
         <p>
@@ -174,8 +183,8 @@
           <div class="footer-col">
             <h4>Account</h4>
             <ul>
-              <li><a href="../../login.html">Login</a></li>
-              <li><a href="../../signup.html">Sign Up</a></li>
+              <li><a href="../../login.php">Login</a></li>
+              <li><a href="../../signup.php">Sign Up</a></li>
             </ul>
           </div>
           <div class="footer-col">

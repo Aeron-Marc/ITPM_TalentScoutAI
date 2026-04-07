@@ -1,3 +1,6 @@
+<?php 
+session_start();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -77,14 +80,15 @@
 </head>
 <body>
   <nav class="navbar">
-    <div class="nav-container">
-      <a href="../../index.html" class="nav-logo">TalentScout AI</a>
-      <div class="nav-links">
-        <a href="../../index.html">Home</a>
-        <a href="../../employees/index.html">Job Seekers</a>
-        <a href="../../employers/index.html">Employers</a>
-        <a href="../../peso-dashboard/index.html" class="active">Admin</a>
-      </div>
+    <a href="../../index.php" class="nav-logo">
+      <div class="nav-logo-icon">TS</div>
+      <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
+    </a>
+    <div class="nav-links">
+      <a href="../../index.php">Home</a>
+      <a href="../../employees/index.php">Job Seekers</a>
+      <a href="../../employers/index.php">Employers</a>
+      <a href="../../peso-dashboard/index.php" class="active">Admin</a>
     </div>
   </nav>
 
@@ -95,35 +99,35 @@
     </div>
 
     <div class="modules-grid">
-      <a href="../index.html" class="module-card">
+      <a href="../index.php" class="module-card">
         <span class="module-icon">📊</span>
         <div class="module-title">Dashboard Overview</div>
         <div class="module-desc">View key metrics, platform statistics, and system health at a glance.</div>
         <span class="module-link">View Dashboard →</span>
       </a>
 
-      <a href="#" class="module-card">
+      <a href="./employer-management/" class="module-card">
         <span class="module-icon">🏢</span>
         <div class="module-title">Employer Management</div>
         <div class="module-desc">Manage employer accounts, approvals, and registration verification.</div>
         <span class="module-link">Manage Employers →</span>
       </a>
 
-      <a href="#" class="module-card">
+      <a href="./employee-management/" class="module-card">
         <span class="module-icon">👥</span>
         <div class="module-title">Job Seeker Management</div>
         <div class="module-desc">Monitor user activities, profiles, and manage job seeker accounts.</div>
         <span class="module-link">Manage Job Seekers →</span>
       </a>
 
-      <a href="../../applicant-tracking/" class="module-card">
+      <a href="./application-tracking/" class="module-card">
         <span class="module-icon">📋</span>
         <div class="module-title">Application Tracking</div>
         <div class="module-desc">Monitor all job applications, track hiring pipeline, and view hiring metrics.</div>
         <span class="module-link">View Applications →</span>
       </a>
 
-      <a href="#" class="module-card">
+      <a href="./analytics/" class="module-card">
         <span class="module-icon">📈</span>
         <div class="module-title">Analytics & Reports</div>
         <div class="module-desc">Detailed insights on platform usage, job market trends, and user engagement.</div>
@@ -140,29 +144,26 @@
   </div>
 
   <footer class="footer">
-    <div class="footer-container">
+    <div class="footer-inner">
       <div class="footer-brand">
         <h3>TalentScout AI</h3>
         <p>Intelligent talent matching for the modern workforce</p>
       </div>
       <div class="footer-col">
         <h4>For Job Seekers</h4>
-        <a href="../../employees/index.html">Find Jobs</a>
-        <a href="../../skill-gap-analysis/">Skill Development</a>
+        <a href="../../employees/index.php">Find Jobs</a>
+        <a href="../../employees/modules/ai-matching/">AI Matching</a>
       </div>
       <div class="footer-col">
         <h4>For Employers</h4>
-        <a href="../../employers/index.html">Post Jobs</a>
-        <a href="../../ai-matching/">Find Talent</a>
+        <a href="../../employers/index.php">Home</a>
+        <a href="../../employers/modules/post-jobs/">Post Jobs</a>
       </div>
       <div class="footer-col">
-        <h4>Admin</h4>
-        <a href="../../peso-dashboard/index.html">Dashboard</a>
-        <a href="./index.html">Tools</a>
+        <h4>PESO Admin</h4>
+        <a href="../index.php">Dashboard</a>
+        <a href="#">Settings</a>
       </div>
-    </div>
-    <div class="footer-bottom">
-      <p>&copy; 2026 TalentScout AI. All rights reserved.</p>
     </div>
   </footer>
 </body>

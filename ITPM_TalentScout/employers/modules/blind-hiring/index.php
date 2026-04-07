@@ -1,3 +1,4 @@
+<?php session_start(); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -67,12 +68,12 @@
 </head>
 <body>
   <nav class="navbar">
-    <a href="../../index.html" class="nav-logo">
+    <a href="../../index.php" class="nav-logo">
       <div class="nav-logo-icon">TS</div>
       <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
     </a>
     <ul class="nav-links">
-      <li><a href="../../index.html">Home</a></li>
+      <li><a href="../../index.php">Home</a></li>
       <li><a href="../post-jobs/">Post Jobs</a></li>
       <li><a href="../employee-finder/">Find Talent</a></li>
       <li><a href="../applicant-tracking/">Hiring Pipeline</a></li>
