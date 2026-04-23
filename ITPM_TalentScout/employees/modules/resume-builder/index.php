@@ -428,10 +428,16 @@ if ($apiAction === 'save' || $apiAction === 'load') {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Resume Builder | Job Seekers - TalentScout AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../../styles/global.css" />
   <link rel="stylesheet" href="../../../styles/page-layout.css" />
   <link rel="stylesheet" href="../../navbar.css" />
   <style>
+    * {
+      font-family: 'Poppins', sans-serif;
+    }
     .builder-shell {
       max-width: 1400px;
       margin: 0 auto;
@@ -506,7 +512,7 @@ if ($apiAction === 'save' || $apiAction === 'load') {
       padding: 1.25rem;
       color: #2b2b2b;
       background: #fefefe;
-      font-family: "Segoe UI", Arial, sans-serif;
+      font-family: 'Poppins', sans-serif;
       line-height: 1.32;
       overflow-y: auto;
       flex: 1;

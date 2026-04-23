@@ -7,7 +7,7 @@ $successMessage = '';
 $emailValue = '';
 
 if (isset($_GET['registered']) && $_GET['registered'] === '1') {
-  $successMessage = 'Account created successfully. You can now log in.';
+  $successMessage = 'Company account created successfully. You can now log in.';
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $errorMessage = 'Please enter both email and password.';
   } else {
     $conn = getConnection();
-    $stmt = $conn->prepare('SELECT employee_id, first_name, last_name, email, password, is_active FROM employee WHERE email = ? LIMIT 1');
+    $stmt = $conn->prepare('SELECT employer_id, company_name, email, password, status FROM employer WHERE email = ? LIMIT 1');
 
     if (!$stmt) {
       $errorMessage = 'Unable to process login right now. Please try again.';
@@ -26,29 +26,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $stmt->bind_param('s', $emailValue);
       $stmt->execute();
       $result = $stmt->get_result();
-      $employee = $result ? $result->fetch_assoc() : null;
+      $employer = $result ? $result->fetch_assoc() : null;
 
-      if (!$employee) {
+      if (!$employer) {
         $errorMessage = 'Invalid email or password.';
       } else {
-        $storedPassword = (string)($employee['password'] ?? '');
+        $storedPassword = (string)($employer['password'] ?? '');
         $isValidPassword = password_verify($password, $storedPassword) || hash_equals($storedPassword, $password);
-        $isActive = !isset($employee['is_active']) || (int)$employee['is_active'] === 1;
+        $isActive = strtolower($employer['status'] ?? 'active') === 'active';
 
         if (!$isValidPassword) {
           $errorMessage = 'Invalid email or password.';
         } elseif (!$isActive) {
           $errorMessage = 'Your account is inactive. Please contact support.';
         } else {
-          $_SESSION['employee_id'] = (int)$employee['employee_id'];
-          $_SESSION['employee_name'] = trim(($employee['first_name'] ?? '') . ' ' . ($employee['last_name'] ?? ''));
-          $_SESSION['employee_email'] = $employee['email'] ?? '';
+          $_SESSION['employer_id'] = (int)$employer['employer_id'];
+          $_SESSION['employer_name'] = $employer['company_name'] ?? '';
+          $_SESSION['employer_email'] = $employer['email'] ?? '';
 
           // Prepare data to pass to client after redirect
           $loginData = [
             'isLoggedIn' => true,
-            'employeeName' => $_SESSION['employee_name'],
-            'employeeId' => $_SESSION['employee_id']
+            'employerName' => $_SESSION['employer_name'],
+            'employerId' => $_SESSION['employer_id']
           ];
           $loginDataJson = json_encode($loginData);
           
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <body>
             <script>
               try {
-                localStorage.setItem('employee_auth_state', <?php echo $loginDataJson; ?>);
+                localStorage.setItem('employer_auth_state', <?php echo $loginDataJson; ?>);
               } catch (e) {
                 // Ignore if localStorage is unavailable
               }
@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Employee Login | TalentScout AI</title>
+  <title>Employer Login | TalentScout AI</title>
   <link rel="stylesheet" href="../styles/global.css" />
   <link rel="stylesheet" href="../styles/page-layout.css" />
   <style>
@@ -283,11 +283,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </a>
     <ul class="nav-links">
       <li><a href="./index.php">Home</a></li>
-      <li><a href="./modules/job-postings/index.php">Browse Jobs</a></li>
-      <li><a href="./modules/ai-matching/index.php">AI Matching</a></li>
-      <li><a href="./modules/resume-builder/index.php">Resume Builder</a></li>
-      <li><a href="./modules/skill-gap-analysis/index.php">Skills</a></li>
-      <li><a href="./modules/applicant-tracking/index.php">Applications</a></li>
+      <li><a href="./modules/post-jobs/">Post Jobs</a></li>
+      <li><a href="./modules/employee-finder/">Find Talent</a></li>
+      <li><a href="./modules/applicant-tracking/">Hiring Pipeline</a></li>
+      <li><a href="./modules/chat-sms/">Messages</a></li>
     </ul>
     <div class="nav-actions">
       <a href="./login.php" class="btn btn-outline">Login</a>
@@ -299,28 +298,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <section class="auth-grid">
       <aside class="auth-info">
         <span class="auth-kicker">Welcome Back</span>
-        <h1>Sign in to continue your job search</h1>
+        <h1>Sign in to start hiring</h1>
         <p>
-          Access your personalized matches, monitor your applications, and
-          keep building your profile with TalentScout AI.
+          Access your hiring dashboard, manage job postings, screen candidates, and collaborate with your team using TalentScout AI.
         </p>
         <ul class="auth-points">
           <li>
-            <span>✓</span><span>Track applications in one dashboard</span>
+            <span>✓</span><span>Post jobs and reach pre-vetted talent</span>
           </li>
           <li>
-            <span>✓</span><span>Get fresh AI job recommendations weekly</span>
+            <span>✓</span><span>Manage applications in one dashboard</span>
           </li>
           <li>
-            <span>✓</span><span>Receive alerts from local employers</span>
+            <span>✓</span><span>Use blind hiring for fair assessment</span>
           </li>
         </ul>
       </aside>
 
       <div class="auth-card">
-        <h1 class="auth-title">Employee Login</h1>
+        <h1 class="auth-title">Employer Login</h1>
         <p class="auth-subtitle">
-          Enter your credentials to open your account.
+          Enter your credentials to access your hiring dashboard.
         </p>
 
         <form class="auth-form" action="" method="post">
@@ -330,7 +328,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               id="email"
               name="email"
               type="email"
-              placeholder="you@example.com"
+              placeholder="company@example.com"
               value="<?php echo htmlspecialchars($emailValue, ENT_QUOTES, 'UTF-8'); ?>"
               required />
           </div>
