@@ -161,6 +161,13 @@ a {
   align-items: center;
 }
 
+.nav-user {
+  font-size: 0.9rem;
+  color: var(--text-mid);
+  font-weight: 500;
+  margin-right: 0.5rem;
+}
+
 /* ===== BUTTONS ===== */
 .btn {
   padding: 0.6rem 1.2rem;

@@ -71,6 +71,30 @@ foreach ($applications as $app) {
   <link rel="stylesheet" href="../../../styles/global.css">
   <link rel="stylesheet" href="../../../styles/page-layout.css">
   <style>
+    /* ===== STICKY FOOTER LAYOUT ===== */
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Main content area expands to fill available space */
+    .page-container,
+    main {
+      flex: 1 0 auto;
+    }
+
+    /* Footer stays at the bottom */
+    .footer {
+      flex-shrink: 0;
+    }
+
     .container { max-width: 1400px; margin: 0 auto; padding: 2.5rem; }
     
     .page-header {
@@ -242,8 +266,13 @@ foreach ($applications as $app) {
       <li><a href="../chat-sms/">Messages</a></li>
     </ul>
     <div class="nav-actions">
-      <a href="#" class="btn btn-outline">Login</a>
-      <a href="#" class="btn btn-primary">Get Started</a>
+      <?php if (isset($_SESSION['employer_id'])): ?>
+        <span class="nav-user">Welcome, <?php echo htmlspecialchars($_SESSION['employer_name'] ?? 'Employer'); ?></span>
+        <a href="../../logout.php" class="btn btn-outline">Logout</a>
+      <?php else: ?>
+        <a href="../../login.php" class="btn btn-outline">Login</a>
+        <a href="../../signup.php" class="btn btn-primary">Get Started</a>
+      <?php endif; ?>
     </div>
   </nav>
 

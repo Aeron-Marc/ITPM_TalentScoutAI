@@ -99,10 +99,16 @@ $critical_gaps_count = count($skill_gaps_display);
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Skill Gap Analysis — TalentScout AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../../styles/global.css" />
     <link rel="stylesheet" href="../../../styles/page-layout.css" />
     <link rel="stylesheet" href="../../navbar.css" />
     <style>
+      * {
+        font-family: 'Poppins', sans-serif;
+      }
       .gap-layout {
         max-width: 1200px;
         margin: 0 auto;

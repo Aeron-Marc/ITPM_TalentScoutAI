@@ -1,6 +1,66 @@
 <?php
 session_start();
 require_once __DIR__ . '/../../../database/db.php';
+
+// Check if user is logged in
+$employee_id = $_SESSION['employee_id'] ?? null;
+if (!$employee_id) {
+  header('Location: ../../login.php');
+  exit;
+}
+
+// Get database connection
+$conn = getConnection();
+
+// Fetch all applications for the logged-in employee with job details
+$applications = [];
+$query = "SELECT 
+  a.application_id,
+  a.job_post_id,
+  a.employee_id,
+  a.application_date,
+  a.status,
+  j.title as job_title,
+  e.company_name
+FROM application a
+JOIN job_post j ON a.job_post_id = j.job_post_id
+JOIN employer e ON j.employer_id = e.employer_id
+WHERE a.employee_id = ?
+ORDER BY a.application_date DESC";
+
+$stmt = $conn->prepare($query);
+if (!$stmt) {
+  die("Prepare failed: " . $conn->error);
+}
+
+$stmt->bind_param("i", $employee_id);
+if (!$stmt->execute()) {
+  die("Execute failed: " . $stmt->error);
+}
+
+$result = $stmt->get_result();
+
+while ($row = $result->fetch_assoc()) {
+  $applications[] = $row;
+}
+
+$stmt->close();
+
+// Calculate statistics from database
+$totalApplications = count($applications);
+$interviewsScheduled = count(array_filter($applications, function($app) {
+  return stripos($app['status'], 'interview') !== false;
+}));
+$jobOffers = count(array_filter($applications, function($app) {
+  return stripos($app['status'], 'offer') !== false;
+}));
+$underReview = count(array_filter($applications, function($app) {
+  $status = strtolower($app['status']);
+  return $status === 'under review' || $status === 'pending' || 
+         (!in_array($status, ['interview scheduled', 'offer received', 'rejected', 'not selected']));
+}));
+
+closeConnection($conn);
 ?>
 <!doctype html>
 <html lang="en">
@@ -8,9 +68,17 @@ require_once __DIR__ . '/../../../database/db.php';
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Application Tracker | Job Seekers - TalentScout AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../../styles/global.css" />
     <link rel="stylesheet" href="../../../styles/page-layout.css" />
     <link rel="stylesheet" href="../../navbar.css" />
+    <style>
+      * {
+        font-family: 'Poppins', sans-serif;
+      }
+    </style>
   </head>
   <body>
     <nav class="navbar">
@@ -53,19 +121,19 @@ require_once __DIR__ . '/../../../database/db.php';
     <main class="employee-module-shell">
       <div class="tracker-stats">
         <div class="tracker-stat-card">
-          <div class="tracker-stat-number">8</div>
+          <div class="tracker-stat-number" id="totalAppCount"><?php echo $totalApplications; ?></div>
           <div class="tracker-stat-label">Total Applications</div>
         </div>
         <div class="tracker-stat-card">
-          <div class="tracker-stat-number">2</div>
+          <div class="tracker-stat-number" id="interviewCount"><?php echo $interviewsScheduled; ?></div>
           <div class="tracker-stat-label">Interviews Scheduled</div>
         </div>
         <div class="tracker-stat-card">
-          <div class="tracker-stat-number">1</div>
+          <div class="tracker-stat-number" id="offersCount"><?php echo $jobOffers; ?></div>
           <div class="tracker-stat-label">Job Offer</div>
         </div>
         <div class="tracker-stat-card">
-          <div class="tracker-stat-number">5</div>
+          <div class="tracker-stat-number" id="reviewCount"><?php echo $underReview; ?></div>
           <div class="tracker-stat-label">Under Review</div>
         </div>
       </div>
@@ -81,81 +149,42 @@ require_once __DIR__ . '/../../../database/db.php';
               <th>Action</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td class="tracker-job-title">Senior React Developer</td>
-              <td class="tracker-company">Tech Solutions PH</td>
-              <td>2026-03-10</td>
-              <td>
-                <span class="status-badge status-approved">Offer Received</span>
-              </td>
-              <td><button class="action-btn">View Details</button></td>
-            </tr>
-            <tr>
-              <td class="tracker-job-title">Full Stack Developer</td>
-              <td class="tracker-company">WebDev Studios</td>
-              <td>2026-03-08</td>
-              <td>
-                <span class="status-badge status-interview"
-                  >Interview Scheduled</span
-                >
-              </td>
-              <td><button class="action-btn">View Details</button></td>
-            </tr>
-            <tr>
-              <td class="tracker-job-title">UI Component Engineer</td>
-              <td class="tracker-company">Design Systems Co</td>
-              <td>2026-03-07</td>
-              <td>
-                <span class="status-badge status-interview"
-                  >Interview Scheduled</span
-                >
-              </td>
-              <td><button class="action-btn">View Details</button></td>
-            </tr>
-            <tr>
-              <td class="tracker-job-title">Frontend Team Lead</td>
-              <td class="tracker-company">Digital Innovation Inc</td>
-              <td>2026-03-05</td>
-              <td>
-                <span class="status-badge status-reviewed">Under Review</span>
-              </td>
-              <td><button class="action-btn">View Details</button></td>
-            </tr>
-            <tr>
-              <td class="tracker-job-title">Data Analyst</td>
-              <td class="tracker-company">Analytics Pro</td>
-              <td>2026-03-03</td>
-              <td>
-                <span class="status-badge status-reviewed">Under Review</span>
-              </td>
-              <td><button class="action-btn">View Details</button></td>
-            </tr>
-            <tr>
-              <td class="tracker-job-title">Junior Developer</td>
-              <td class="tracker-company">StartUp Lab</td>
-              <td>2026-02-28</td>
-              <td>
-                <span class="status-badge status-rejected">Not Selected</span>
-              </td>
-              <td><button class="action-btn">View Details</button></td>
-            </tr>
-            <tr>
-              <td class="tracker-job-title">Backend Engineer</td>
-              <td class="tracker-company">Cloud Systems Inc</td>
-              <td>2026-02-25</td>
-              <td><span class="status-badge status-pending">Pending</span></td>
-              <td><button class="action-btn">View Details</button></td>
-            </tr>
-            <tr>
-              <td class="tracker-job-title">API Developer</td>
-              <td class="tracker-company">Tech Innovations Ltd</td>
-              <td>2026-02-22</td>
-              <td>
-                <span class="status-badge status-reviewed">Under Review</span>
-              </td>
-              <td><button class="action-btn">View Details</button></td>
-            </tr>
+          <tbody id="applicationsTableBody">
+            <?php if (empty($applications)): ?>
+              <tr id="emptyStateRow">
+                <td colspan="5" style="text-align: center; padding: 2rem; color: #5a716a;">
+                  No applications yet. <a href="../job-postings/" style="color: #1e9e86; text-decoration: none; font-weight: 600;">Browse jobs</a> and start applying!
+                </td>
+              </tr>
+            <?php else: ?>
+              <?php foreach ($applications as $app): ?>
+                <?php
+                  $status = $app['status'];
+                  $statusClass = 'status-pending';
+                  
+                  if (stripos($status, 'offer') !== false) {
+                    $statusClass = 'status-approved';
+                  } elseif (stripos($status, 'interview') !== false) {
+                    $statusClass = 'status-interview';
+                  } elseif (stripos($status, 'review') !== false) {
+                    $statusClass = 'status-reviewed';
+                  } elseif (stripos($status, 'rejected') !== false || stripos($status, 'not selected') !== false) {
+                    $statusClass = 'status-rejected';
+                  }
+                  
+                  $appliedDate = date('Y-m-d', strtotime($app['application_date']));
+                ?>
+                <tr>
+                  <td class="tracker-job-title"><?php echo htmlspecialchars($app['job_title']); ?></td>
+                  <td class="tracker-company"><?php echo htmlspecialchars($app['company_name']); ?></td>
+                  <td><?php echo htmlspecialchars($appliedDate); ?></td>
+                  <td>
+                    <span class="status-badge <?php echo $statusClass; ?>"><?php echo htmlspecialchars($status); ?></span>
+                  </td>
+                  <td><button class="action-btn">View Details</button></td>
+                </tr>
+              <?php endforeach; ?>
+            <?php endif; ?>
           </tbody>
         </table>
       </div>
@@ -217,8 +246,35 @@ require_once __DIR__ . '/../../../database/db.php';
       </div>
     </div>
     <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      .navbar {
+        flex-shrink: 0;
+      }
+
+      .page-header {
+        flex-shrink: 0;
+      }
+
       .employee-module-shell {
+        flex: 1;
         padding-top: 2.25rem;
+      }
+
+      .footer {
+        flex-shrink: 0;
+        margin-top: auto;
       }
 
       .tracker-stats {
@@ -803,6 +859,103 @@ require_once __DIR__ . '/../../../database/db.php';
         if (event.key === 'Escape' && detailsModal?.classList.contains('is-open')) {
           closeDetailsModal();
         }
+      });
+    </script>
+
+    <script>
+      // ─── Dynamic Application Loading ──────────────────────────────────
+      
+      async function loadApplications() {
+        try {
+          const response = await fetch('./get-applications.php');
+          const data = await response.json();
+
+          if (!data.success) {
+            console.error('Failed to load applications:', data.message);
+            return;
+          }
+
+          const applications = data.applications;
+          const stats = data.stats;
+
+          // Update statistics
+          document.getElementById('totalAppCount').textContent = stats.totalApplications;
+          document.getElementById('interviewCount').textContent = stats.interviewsScheduled;
+          document.getElementById('offersCount').textContent = stats.jobOffers;
+          document.getElementById('reviewCount').textContent = stats.underReview;
+
+          // Update table
+          const tableBody = document.getElementById('applicationsTableBody');
+          const emptyState = document.getElementById('emptyStateRow');
+
+          if (applications.length === 0) {
+            // Show empty state
+            tableBody.innerHTML = '<tr id="emptyStateRow"><td colspan="5" style="text-align: center; padding: 2rem; color: #5a716a;">No applications yet. <a href="../job-postings/" style="color: #1e9e86; text-decoration: none; font-weight: 600;">Browse jobs</a> and start applying!</td></tr>';
+          } else {
+            // Hide empty state and populate table
+            tableBody.innerHTML = applications.map(app => {
+              const status = app.status;
+              let statusClass = 'status-pending';
+
+              if (status.toLowerCase().includes('offer')) {
+                statusClass = 'status-approved';
+              } else if (status.toLowerCase().includes('interview')) {
+                statusClass = 'status-interview';
+              } else if (status.toLowerCase().includes('review')) {
+                statusClass = 'status-reviewed';
+              } else if (status.toLowerCase().includes('rejected') || status.toLowerCase().includes('not selected')) {
+                statusClass = 'status-rejected';
+              }
+
+              const appliedDate = new Date(app.application_date).toLocaleDateString('en-CA');
+
+              return `
+                <tr>
+                  <td class="tracker-job-title">${escapeHtml(app.job_title)}</td>
+                  <td class="tracker-company">${escapeHtml(app.company_name)}</td>
+                  <td>${escapeHtml(appliedDate)}</td>
+                  <td>
+                    <span class="status-badge ${statusClass}">${escapeHtml(status)}</span>
+                  </td>
+                  <td><button class="action-btn">View Details</button></td>
+                </tr>
+              `;
+            }).join('');
+          }
+        } catch (error) {
+          console.error('Error loading applications:', error);
+        }
+      }
+
+      function escapeHtml(text) {
+        const map = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        };
+        return String(text).replace(/[&<>"']/g, m => map[m]);
+      }
+
+      // Load applications on page load
+      document.addEventListener('DOMContentLoaded', () => {
+        loadApplications();
+
+        // Reload applications periodically (every 30 seconds)
+        setInterval(loadApplications, 30000);
+
+        // Also reload when the page comes into focus (user comes back from job listings)
+        document.addEventListener('visibilitychange', () => {
+          if (!document.hidden) {
+            loadApplications();
+          }
+        });
+
+        // Listen for custom event from job-postings (if they trigger it)
+        window.addEventListener('applicationSubmitted', () => {
+          loadApplications();
+        });
       });
     </script>
     <script src="../../employee-auth.js"></script>

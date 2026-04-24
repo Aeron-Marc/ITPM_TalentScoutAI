@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 // Database Connection
 $servername = "localhost";
 $username = "root";
@@ -50,6 +52,31 @@ $hasError = !empty($dbError);
   <link rel="stylesheet" href="../../navbar.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
+    /* ===== STICKY FOOTER LAYOUT ===== */
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Main content area expands to fill available space */
+    .tab-content,
+    main,
+    .page-container {
+      flex: 1 0 auto;
+    }
+
+    /* Footer stays at the bottom */
+    .footer {
+      flex-shrink: 0;
+    }
+
     * {
       font-family: 'Poppins', sans-serif;
     }
@@ -584,6 +611,164 @@ $hasError = !empty($dbError);
       padding: 1rem 1.4rem 1.35rem;
       border-top: 1px solid var(--border);
     }
+
+    /* Success Animation Styles */
+    .success-modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      z-index: 3000;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+      backdrop-filter: blur(2px);
+    }
+
+    .success-modal-backdrop.active {
+      display: flex;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .success-modal {
+      width: min(480px, 100%);
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+      text-align: center;
+      padding: 2.5rem;
+      animation: slideUp 0.4s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .success-checkmark {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1.5rem;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: scaleIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    @keyframes scaleIn {
+      from {
+        transform: scale(0);
+      }
+      to {
+        transform: scale(1);
+      }
+    }
+
+    .success-checkmark svg {
+      width: 48px;
+      height: 48px;
+      stroke: white;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .success-checkmark-line {
+      stroke-dasharray: 50;
+      stroke-dashoffset: 50;
+      animation: drawLine 0.6s ease-out forwards;
+      animation-delay: 0.3s;
+    }
+
+    .success-checkmark-circle {
+      stroke-dasharray: 166;
+      stroke-dashoffset: 166;
+      animation: drawCircle 0.6s ease-out forwards;
+      animation-delay: 0.2s;
+    }
+
+    @keyframes drawCircle {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    @keyframes drawLine {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    .success-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 0.5rem;
+    }
+
+    .success-message {
+      font-size: 0.95rem;
+      color: var(--text-mid);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+
+    .success-details {
+      background: var(--bg-light);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+
+    .success-detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .success-detail-row:last-child {
+      border-bottom: none;
+    }
+
+    .success-detail-label {
+      font-weight: 600;
+      color: var(--text-mid);
+      font-size: 0.85rem;
+    }
+
+    .success-detail-value {
+      font-weight: 700;
+      color: var(--text-dark);
+      text-align: right;
+    }
+
+    .success-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+    }
   </style>
 </head>
 
@@ -844,7 +1029,45 @@ $hasError = !empty($dbError);
         </div>
       </div>
       <div class="job-modal-footer">
-        <a href="../../login.php" class="btn btn-primary" id="jobDetailsApply">Apply Now</a>
+        <button type="button" class="btn btn-primary" id="jobDetailsApply" onclick="handleApplyClick()">Apply Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Animation Modal -->
+  <div id="successModal" class="success-modal-backdrop" aria-hidden="true">
+    <div class="success-modal" role="dialog" aria-modal="true">
+      <div class="success-checkmark">
+        <svg viewBox="0 0 24 24">
+          <circle class="success-checkmark-circle" cx="12" cy="12" r="10"></circle>
+          <polyline class="success-checkmark-line" points="8 12 11 15 16 9"></polyline>
+        </svg>
+      </div>
+      <h3 class="success-title">Application Submitted!</h3>
+      <p class="success-message">
+        Your application has been successfully submitted. Check your Application Tracker for updates.
+      </p>
+      <div class="success-details" id="successDetails">
+        <div class="success-detail-row">
+          <span class="success-detail-label">Job Title</span>
+          <span class="success-detail-value" id="successJobTitle">—</span>
+        </div>
+        <div class="success-detail-row">
+          <span class="success-detail-label">Company</span>
+          <span class="success-detail-value" id="successCompany">—</span>
+        </div>
+        <div class="success-detail-row">
+          <span class="success-detail-label">Applied Date</span>
+          <span class="success-detail-value" id="successDate">—</span>
+        </div>
+        <div class="success-detail-row">
+          <span class="success-detail-label">Status</span>
+          <span class="success-detail-value" id="successStatus">Pending</span>
+        </div>
+      </div>
+      <div class="success-actions">
+        <button type="button" class="btn btn-secondary" id="viewApplicationsBtn">View Applications</button>
+        <button type="button" class="btn btn-primary" id="closeSuccessBtn">Browse More Jobs</button>
       </div>
     </div>
   </div>
@@ -853,6 +1076,9 @@ $hasError = !empty($dbError);
   <script>
     window.dbJobs = <?php echo $jobsJson; ?>;
     window.dbError = <?php echo json_encode($dbError); ?>;
+    window.isLoggedIn = <?php echo isset($_SESSION['employee_id']) ? 'true' : 'false'; ?>;
+    window.employeeName = <?php echo json_encode($_SESSION['employee_name'] ?? ''); ?>;
+    window.employeeId = <?php echo isset($_SESSION['employee_id']) ? (int)$_SESSION['employee_id'] : 0; ?>;
   </script>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -984,7 +1210,7 @@ $hasError = !empty($dbError);
       document.getElementById('jobDetailsSkills').textContent = details.skills;
       document.getElementById('jobDetailsLocation').textContent = details.location;
       document.getElementById('jobDetailsSalary').textContent = `${details.salary} | Application deadline: ${details.deadline}`;
-      document.getElementById('jobDetailsApply').href = '../../login.php';
+      document.getElementById('jobDetailsApply').href = window.isLoggedIn ? '../applicant-tracking/index.php' : '../../login.php';
 
       const meta = document.getElementById('jobDetailsMeta');
       meta.innerHTML = '';
@@ -1010,6 +1236,67 @@ $hasError = !empty($dbError);
       document.getElementById('jobDetailsModal').classList.remove('active');
       document.getElementById('jobDetailsModal').setAttribute('aria-hidden', 'true');
       activeJobForDetails = null;
+    }
+
+    function showSuccessAnimation(applicationData) {
+      const modal = document.getElementById('successModal');
+      
+      // Populate success modal with application data
+      document.getElementById('successJobTitle').textContent = applicationData.job_title;
+      document.getElementById('successCompany').textContent = applicationData.company_name;
+      document.getElementById('successDate').textContent = new Date(applicationData.application_date).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+      document.getElementById('successStatus').textContent = applicationData.status;
+
+      // Close job details modal
+      closeJobDetailsModal();
+
+      // Show success modal with animation
+      modal.classList.add('active');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeSuccessModal() {
+      const modal = document.getElementById('successModal');
+      modal.classList.remove('active');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    async function submitApplication(jobPostId) {
+      if (!window.isLoggedIn) {
+        window.location.href = '../../login.php';
+        return;
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append('job_post_id', jobPostId);
+
+        const response = await fetch('./submit-application.php', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          showSuccessAnimation(data.application);
+        } else {
+          alert(data.message || 'Failed to submit application. Please try again.');
+        }
+      } catch (error) {
+        console.error('Application submission error:', error);
+        alert('An error occurred. Please try again.');
+      }
+    }
+
+    function handleApplyClick() {
+      if (activeJobForDetails) {
+        submitApplication(activeJobForDetails.id);
+      }
     }
 
     function getCachedGeoKey(locationText) {
@@ -1493,7 +1780,7 @@ $hasError = !empty($dbError);
             <div style="display:flex;align-items:center;gap:1rem">
               <span class="job-date">Application deadline: ${deadline}</span>
               <button type="button" class="btn btn-secondary" style="padding:0.65rem 1rem" data-view-job="${job.id}">View Details</button>
-              <a href="../../login.php" class="btn btn-primary">Apply Now</a>
+              <button type="button" class="btn btn-primary" onclick="submitApplication(${job.id})">Apply Now</button>
             </div>
           </div>
         `;
@@ -1791,6 +2078,31 @@ $hasError = !empty($dbError);
           closeJobDetailsModal();
         }
       });
+
+      // Success Modal Event Listeners
+      const successModal = document.getElementById('successModal');
+      const closeSuccessBtn = document.getElementById('closeSuccessBtn');
+      const viewApplicationsBtn = document.getElementById('viewApplicationsBtn');
+
+      if (successModal) {
+        successModal.addEventListener('click', event => {
+          if (event.target === successModal) {
+            closeSuccessModal();
+          }
+        });
+      }
+
+      if (closeSuccessBtn) {
+        closeSuccessBtn.addEventListener('click', () => {
+          closeSuccessModal();
+        });
+      }
+
+      if (viewApplicationsBtn) {
+        viewApplicationsBtn.addEventListener('click', () => {
+          window.location.href = '../applicant-tracking/index.php';
+        });
+      }
     });
   </script>
 </body>
