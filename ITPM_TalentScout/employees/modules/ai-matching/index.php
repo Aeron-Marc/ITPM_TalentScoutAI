@@ -1,6 +1,29 @@
 <?php
 session_start();
 require_once __DIR__ . '/../../../database/db.php';
+require_once __DIR__ . '/match-engine.php';
+
+// Check if user is logged in
+if (!isset($_SESSION['employee_id'])) {
+    header('Location: ../../login.php');
+    exit;
+}
+
+// Initialize database connection
+$conn = getConnection();
+
+// Initialize match engine
+$engine = new MatchEngine($conn, $_SESSION['employee_id']);
+
+// Get employee profile and matches
+$employee_profile = $engine->getEmployeeProfile();
+$matched_jobs = $engine->getMatchedJobs();
+$employee_skills = $engine->getEmployeeSkills();
+
+// Calculate profile score (50% skills, 50% experience)
+$skills_score = min(100, count($employee_skills) * 10);
+$experience_score = min(100, ($employee_profile['experience_count'] ?? 0) * 20);
+$profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
 ?>
 <!doctype html>
 <html lang="en">
@@ -290,6 +313,52 @@ require_once __DIR__ . '/../../../database/db.php';
         line-height: 1.65;
       }
 
+      /* Chips / Tags */
+      .chip {
+        display: inline-block;
+        background: var(--primary-light);
+        color: var(--primary-darker);
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      .chip-outline {
+        display: inline-block;
+        background: transparent;
+        color: var(--text-light);
+        padding: 0.4rem 0.8rem;
+        border: 1px dashed var(--border);
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+
+      /* Job Skills Section */
+      .job-skills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+      }
+
+      /* Progress Bar */
+      .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: var(--border);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary-dark), var(--primary));
+        border-radius: 4px;
+        transition: width 0.3s ease;
+      }
+
       @media (max-width: 1024px) {
         .match-layout {
           grid-template-columns: 1fr;
@@ -407,15 +476,17 @@ require_once __DIR__ . '/../../../database/db.php';
       <aside class="profile-panel">
         <div class="profile-card">
           <div class="profile-header">
-            <div class="profile-avatar">JS</div>
-            <div class="profile-name">Juan Santos</div>
-            <div class="profile-loc">📍 Barangay Kaylaway, Nasugbu</div>
+            <div class="profile-avatar"><?php 
+              echo strtoupper(substr($employee_profile['first_name'], 0, 1) . substr($employee_profile['last_name'], 0, 1));
+            ?></div>
+            <div class="profile-name"><?php echo htmlspecialchars($employee_profile['first_name'] . ' ' . $employee_profile['last_name']); ?></div>
+            <div class="profile-loc">📍 <?php echo htmlspecialchars($employee_profile['address']); ?></div>
           </div>
           <div class="profile-body">
             <div class="profile-section">
               <div style="text-align: center; margin-bottom: 0.6rem">
-                <div class="match-score-ring">
-                  <div class="match-score-inner">87%</div>
+                <div class="match-score-ring" style="background: conic-gradient(var(--primary-dark) 0% <?php echo $profile_score; ?>%, var(--border) <?php echo $profile_score; ?>% 100%)">
+                  <div class="match-score-inner"><?php echo $profile_score; ?>%</div>
                 </div>
                 <div style="font-size: 0.82rem; color: var(--text-light)">
                   Overall Profile Score
@@ -424,39 +495,46 @@ require_once __DIR__ . '/../../../database/db.php';
             </div>
 
             <div class="profile-section">
-              <div class="profile-section-title">Skills</div>
-              <div class="skills-grid">
-                <span class="chip">React</span>
-                <span class="chip">JavaScript</span>
-                <span class="chip">HTML/CSS</span>
-                <span class="chip">Node.js</span>
-                <span class="chip">Git</span>
-                <span class="chip">Figma</span>
-                <span class="chip-outline">TypeScript</span>
+              <div class="profile-section-title">Skills (<?php echo count($employee_skills); ?>)</div>
+              <div class="skills-grid" id="skillsList">
+                <?php 
+                if (!empty($employee_skills)) {
+                    foreach (array_slice($employee_skills, 0, 6) as $skill) {
+                        echo '<span class="chip" data-skill="' . htmlspecialchars($skill) . '">' . htmlspecialchars($skill) . ' <button type="button" class="chip-remove" onclick="removeSkill(this)" style="background: none; border: none; color: inherit; cursor: pointer; margin-left: 0.3rem; font-weight: bold;">×</button></span>';
+                    }
+                    if (count($employee_skills) > 6) {
+                        echo '<span class="chip-outline">+' . (count($employee_skills) - 6) . ' more</span>';
+                    }
+                } else {
+                    echo '<span class="chip-outline">No skills added yet</span>';
+                }
+                ?>
+              </div>
+              <div style="margin-top: 0.75rem; position: relative;">
+                <input 
+                  type="text" 
+                  id="skillInput" 
+                  class="input" 
+                  placeholder="Add a skill..." 
+                  style="width: 100%; padding: 0.5rem;" 
+                />
+                <div id="skillSuggestions" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius-sm) var(--radius-sm); max-height: 200px; overflow-y: auto; display: none; z-index: 10;"></div>
               </div>
             </div>
 
             <div class="profile-section">
               <div class="profile-section-title">Profile Info</div>
               <div class="profile-info-row">
-                <span class="profile-info-label">Experience</span
-                ><span class="profile-info-val">2 Years</span>
+                <span class="profile-info-label">Skills Count</span>
+                <span class="profile-info-val"><?php echo $employee_profile['skill_count']; ?></span>
               </div>
               <div class="profile-info-row">
-                <span class="profile-info-label">Education</span
-                ><span class="profile-info-val">BS IT</span>
+                <span class="profile-info-label">Experience</span>
+                <span class="profile-info-val"><?php echo $employee_profile['experience_count']; ?> Job<?php echo $employee_profile['experience_count'] != 1 ? 's' : ''; ?></span>
               </div>
               <div class="profile-info-row">
-                <span class="profile-info-label">Preferred Setup</span
-                ><span class="profile-info-val">Remote / Hybrid</span>
-              </div>
-              <div class="profile-info-row">
-                <span class="profile-info-label">Barangay</span
-                ><span class="profile-info-val">Kaylaway</span>
-              </div>
-              <div class="profile-info-row">
-                <span class="profile-info-label">Expected Salary</span
-                ><span class="profile-info-val">₱25K–₱35K</span>
+                <span class="profile-info-label">Email</span>
+                <span class="profile-info-val" style="font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($employee_profile['email']); ?></span>
               </div>
             </div>
 
@@ -486,50 +564,85 @@ require_once __DIR__ . '/../../../database/db.php';
                 margin-top: 0.2rem;
               "
             >
-              12 jobs matched to your profile today
+              <?php echo count($matched_jobs); ?> job<?php echo count($matched_jobs) != 1 ? 's' : ''; ?> matched to your profile
             </div>
           </div>
           <div style="display: flex; gap: 0.75rem; align-items: center">
-            <select class="input select" style="width: 175px">
-              <option>All Barangays</option>
-              <option>Barangay Kaylaway</option>
-              <option>Barangay Natipuan</option>
-              <option>Barangay Bucana</option>
+            <select class="input select" style="width: 175px" id="locationFilter">
+              <option value="">All Locations</option>
+              <option value="remote">Remote</option>
+              <option value="hybrid">Hybrid</option>
+              <option value="on-site">On-site</option>
             </select>
             <div class="matches-tabs">
-              <button class="tab-btn active">All</button>
-              <button class="tab-btn">90%+</button>
-              <button class="tab-btn">Remote</button>
+              <button class="tab-btn active" data-filter="all">All</button>
+              <button class="tab-btn" data-filter="90">90%+</button>
+              <button class="tab-btn" data-filter="75">75%+</button>
             </div>
           </div>
         </div>
 
-        <!-- Match Card 1 -->
-        <div class="match-card">
+        <?php 
+        if (empty($matched_jobs)): 
+        ?>
+          <div class="match-card" style="text-align: center; padding: 2rem;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem">🔍</div>
+            <div style="font-weight: 600; margin-bottom: 0.5rem">No Matches Found</div>
+            <p style="color: var(--text-light); font-size: 0.9rem">
+              Add more skills to your profile to see job matches. 
+              <a href="../resume-builder/" style="color: var(--primary-dark); font-weight: 600;">Update your resume →</a>
+            </p>
+          </div>
+        <?php else: 
+          foreach ($matched_jobs as $job):
+            $match_class = $job['overall_match'] >= 85 ? 'high' : ($job['overall_match'] >= 70 ? 'mid' : 'low');
+            $employer_name = $engine->getEmployerName($job['employer_id']);
+            $initials = strtoupper(substr($employer_name, 0, 1) . (strpos($employer_name, ' ') !== false ? substr($employer_name, strpos($employer_name, ' ') + 1, 1) : ''));
+            
+            // Generate random color for employer logo
+            $colors = [
+              ['bg' => '#e8f5e9', 'text' => '#2e7d32'],
+              ['bg' => '#e3f2fd', 'text' => '#1565c0'],
+              ['bg' => '#f3e5f5', 'text' => '#6a1b9a'],
+              ['bg' => '#fff3e0', 'text' => '#e65100'],
+              ['bg' => '#fce4ec', 'text' => '#c2185b'],
+              ['bg' => '#e0f2f1', 'text' => '#00796b'],
+            ];
+            $color = $colors[crc32($job['employer_id']) % count($colors)];
+        ?>
+        <!-- Match Card -->
+        <div class="match-card" data-match-score="<?php echo $job['overall_match']; ?>" data-work-type="<?php echo strtolower($job['work_type']); ?>">
           <div class="match-card-top">
-            <div class="match-logo" style="background: #e8f5e9; color: #2e7d32">
-              TS
+            <div class="match-logo" style="background: <?php echo $color['bg']; ?>; color: <?php echo $color['text']; ?>">
+              <?php echo htmlspecialchars($initials); ?>
             </div>
             <div class="match-info">
-              <div class="match-title">Front-End Developer</div>
+              <div class="match-title"><?php echo htmlspecialchars($job['title']); ?></div>
               <div class="match-company">
-                Tech Solutions PH &bull; Barangay Kaylaway
+                <?php echo htmlspecialchars($employer_name); ?> &bull; <?php echo htmlspecialchars($job['location']); ?>
               </div>
             </div>
-            <span class="match-pct high">94% Match</span>
+            <span class="match-pct <?php echo $match_class; ?>"><?php echo $job['overall_match']; ?>% Match</span>
           </div>
           <div class="match-meta">
-            <span>📍 Same Barangay</span>
-            <span>💼 Full-time</span>
-            <span>🌐 Remote-OK</span>
-            <span>₱25,000 – ₱35,000</span>
+            <span>📍 <?php echo $job['work_type']; ?></span>
+            <span>💼 <?php echo htmlspecialchars($job['job_category']); ?></span>
+            <span>₱<?php echo htmlspecialchars($job['salary']); ?></span>
           </div>
+          
+          <?php if (!empty($job['matched_skills']) || !empty($job['missing_skills'])): ?>
           <div class="job-skills">
-            <span class="chip">React</span>
-            <span class="chip">JavaScript</span>
-            <span class="chip">HTML/CSS</span>
-            <span class="chip-outline">TypeScript ← Missing</span>
+            <?php 
+            foreach (array_slice($job['matched_skills'], 0, 3) as $skill) {
+                echo '<span class="chip">' . htmlspecialchars($skill) . '</span>';
+            }
+            foreach (array_slice($job['missing_skills'], 0, 2) as $skill) {
+                echo '<span class="chip-outline">' . htmlspecialchars($skill) . ' ← Missing</span>';
+            }
+            ?>
           </div>
+          <?php endif; ?>
+          
           <div class="match-bars">
             <div
               style="
@@ -543,173 +656,41 @@ require_once __DIR__ . '/../../../database/db.php';
             </div>
             <div class="match-bar-row">
               <div class="match-bar-label">
-                <span>Skills Match</span><span>96%</span>
+                <span>Skills Match</span><span><?php echo $job['skill_match']; ?>%</span>
               </div>
               <div class="progress-bar">
-                <div class="progress-fill" style="width: 96%"></div>
+                <div class="progress-fill" style="width: <?php echo $job['skill_match']; ?>%"></div>
               </div>
             </div>
             <div class="match-bar-row">
               <div class="match-bar-label">
-                <span>Location Match</span><span>100%</span>
+                <span>Location Match</span><span><?php echo $job['location_match']; ?>%</span>
               </div>
               <div class="progress-bar">
-                <div class="progress-fill" style="width: 100%"></div>
+                <div class="progress-fill" style="width: <?php echo $job['location_match']; ?>%"></div>
               </div>
             </div>
             <div class="match-bar-row">
               <div class="match-bar-label">
-                <span>Experience Match</span><span>85%</span>
+                <span>Experience Match</span><span><?php echo $job['experience_match']; ?>%</span>
               </div>
               <div class="progress-bar">
-                <div class="progress-fill" style="width: 85%"></div>
+                <div class="progress-fill" style="width: <?php echo $job['experience_match']; ?>%"></div>
               </div>
             </div>
           </div>
           <div style="margin-top: 1rem; display: flex; gap: 0.75rem">
-            <a href="../job-postings/" class="btn btn-outline"
-              >View Full Posting</a
-            >
+            <a href="../job-postings/index.php?id=<?php echo $job['job_post_id']; ?>" class="btn btn-outline">
+              View Full Posting
+            </a>
+            <a href="../applicant-tracking/submit-application.php?job_id=<?php echo $job['job_post_id']; ?>" class="btn btn-primary">
+              Apply Now
+            </a>
           </div>
         </div>
-
-        <!-- Match Card 2 -->
-        <div class="match-card">
-          <div class="match-card-top">
-            <div class="match-logo" style="background: #e3f2fd; color: #1565c0">
-              WD
-            </div>
-            <div class="match-info">
-              <div class="match-title">UI/UX Designer + Developer</div>
-              <div class="match-company">
-                WebDev Studio &bull; Barangay Natipuan
-              </div>
-            </div>
-            <span class="match-pct high">89% Match</span>
-          </div>
-          <div class="match-meta">
-            <span>📍 3.2km away</span>
-            <span>💼 Full-time</span>
-            <span>🏢 On-site</span>
-            <span>₱28,000 – ₱38,000</span>
-          </div>
-          <div class="job-skills">
-            <span class="chip">Figma</span>
-            <span class="chip">HTML/CSS</span>
-            <span class="chip">JavaScript</span>
-            <span class="chip-outline">Vue.js ← Missing</span>
-          </div>
-          <div class="match-bars">
-            <div
-              style="
-                font-size: 0.8rem;
-                font-weight: 700;
-                color: var(--text-mid);
-                margin-bottom: 0.6rem;
-              "
-            >
-              Match Breakdown
-            </div>
-            <div class="match-bar-row">
-              <div class="match-bar-label">
-                <span>Skills Match</span><span>88%</span>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill" style="width: 88%"></div>
-              </div>
-            </div>
-            <div class="match-bar-row">
-              <div class="match-bar-label">
-                <span>Location Match</span><span>90%</span>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill" style="width: 90%"></div>
-              </div>
-            </div>
-            <div class="match-bar-row">
-              <div class="match-bar-label">
-                <span>Experience Match</span><span>90%</span>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill" style="width: 90%"></div>
-              </div>
-            </div>
-          </div>
-          <div style="margin-top: 1rem; display: flex; gap: 0.75rem">
-            <a href="../job-postings/" class="btn btn-outline"
-              >View Full Posting</a
-            >
-          </div>
-        </div>
-
-        <!-- Match Card 3 -->
-        <div class="match-card">
-          <div class="match-card-top">
-            <div class="match-logo" style="background: #f3e5f5; color: #6a1b9a">
-              SF
-            </div>
-            <div class="match-info">
-              <div class="match-title">Junior Software Developer</div>
-              <div class="match-company">
-                SoftForge Inc. &bull; Barangay Bucana
-              </div>
-            </div>
-            <span class="match-pct mid">76% Match</span>
-          </div>
-          <div class="match-meta">
-            <span>📍 5.8km away</span>
-            <span>💼 Full-time</span>
-            <span>🌐 Remote</span>
-            <span>₱22,000 – ₱30,000</span>
-          </div>
-          <div class="job-skills">
-            <span class="chip">JavaScript</span>
-            <span class="chip">Node.js</span>
-            <span class="chip-outline">Python ← Missing</span>
-            <span class="chip-outline">AWS ← Missing</span>
-          </div>
-          <div class="match-bars">
-            <div
-              style="
-                font-size: 0.8rem;
-                font-weight: 700;
-                color: var(--text-mid);
-                margin-bottom: 0.6rem;
-              "
-            >
-              Match Breakdown
-            </div>
-            <div class="match-bar-row">
-              <div class="match-bar-label">
-                <span>Skills Match</span><span>70%</span>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill" style="width: 70%"></div>
-              </div>
-            </div>
-            <div class="match-bar-row">
-              <div class="match-bar-label">
-                <span>Location Match</span><span>80%</span>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill" style="width: 80%"></div>
-              </div>
-            </div>
-            <div class="match-bar-row">
-              <div class="match-bar-label">
-                <span>Experience Match</span><span>80%</span>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill" style="width: 80%"></div>
-              </div>
-            </div>
-          </div>
-          <div style="margin-top: 1rem; display: flex; gap: 0.75rem">
-            <a href="../job-postings/" class="btn btn-outline"
-              >View Full Posting</a
-            >
-          </div>
-        </div>
+        <?php endforeach; 
+        endif; 
+        ?>
       </main>
     </div>
 
@@ -790,5 +771,241 @@ require_once __DIR__ . '/../../../database/db.php';
     </footer>
 
     <script src="../../employee-auth.js"></script>
+    <script>
+      // Match filtering functionality
+      const matchCards = document.querySelectorAll('.match-card[data-match-score]');
+      const tabButtons = document.querySelectorAll('.tab-btn[data-filter]');
+      const locationFilter = document.getElementById('locationFilter');
+      
+      function applyFilters() {
+        const activeTab = document.querySelector('.tab-btn.active');
+        const minScore = activeTab.dataset.filter === 'all' ? 0 : parseInt(activeTab.dataset.filter);
+        const location = locationFilter.value.toLowerCase();
+        
+        matchCards.forEach(card => {
+          const score = parseInt(card.dataset.matchScore);
+          const workType = card.dataset.workType;
+          
+          let scoreMatch = score >= minScore;
+          let locationMatch = !location || 
+                              location === 'remote' && workType.includes('remote') ||
+                              location === 'hybrid' && workType.includes('hybrid') ||
+                              location === 'on-site' && workType.includes('on-site');
+          
+          card.style.display = (scoreMatch && locationMatch) ? 'block' : 'none';
+        });
+        
+        // Show/hide "no matches" message
+        const visibleCards = Array.from(matchCards).filter(card => card.style.display !== 'none');
+        const noMatchesMsg = document.querySelector('.match-card:last-child');
+      }
+      
+      tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          tabButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          applyFilters();
+        });
+      });
+      
+      locationFilter.addEventListener('change', applyFilters);
+
+      // ===== SKILL MANAGEMENT =====
+      const skillInput = document.getElementById('skillInput');
+      const skillSuggestions = document.getElementById('skillSuggestions');
+      let suggestionsTimeout;
+
+      // Show suggestions on input
+      skillInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        clearTimeout(suggestionsTimeout);
+        
+        if (query.length < 2) {
+          skillSuggestions.style.display = 'none';
+          return;
+        }
+        
+        // Debounce the suggestion fetch
+        suggestionsTimeout = setTimeout(() => {
+          fetch(`./skills-api.php?action=suggest&q=${encodeURIComponent(query)}`)
+            .then(res => res.json())
+            .then(data => {
+              if (data.suggestions && data.suggestions.length > 0) {
+                skillSuggestions.innerHTML = data.suggestions
+                  .map(skill => `<div class="suggestion-item" onclick="selectSkill('${skill}')" style="padding: 0.6rem 0.75rem; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 0.9rem;">${skill}</div>`)
+                  .join('');
+                skillSuggestions.style.display = 'block';
+              } else {
+                skillSuggestions.style.display = 'none';
+              }
+            })
+            .catch(err => console.error('Suggestion error:', err));
+        }, 300);
+      });
+
+      // Add skill on Enter or button click
+      skillInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          addSkill();
+        }
+      });
+
+      // Hide suggestions when clicking outside
+      document.addEventListener('click', function(e) {
+        if (e.target !== skillInput && !skillSuggestions.contains(e.target)) {
+          skillSuggestions.style.display = 'none';
+        }
+      });
+
+      function selectSkill(skill) {
+        skillInput.value = skill;
+        skillSuggestions.style.display = 'none';
+        addSkill();
+      }
+
+      function addSkill() {
+        const skill = skillInput.value.trim();
+        
+        if (!skill) {
+          alert('Please enter a skill');
+          return;
+        }
+        
+        if (skill.length < 2) {
+          alert('Skill must be at least 2 characters');
+          return;
+        }
+
+        fetch('./skills-api.php?action=add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ skill: skill })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            // Clear input
+            skillInput.value = '';
+            skillSuggestions.style.display = 'none';
+            
+            // Add to skills list
+            addSkillChip(data.skill);
+            
+            // Show success message
+            showNotification('Skill added!', 'success');
+            
+            // Reload page to update matches
+            setTimeout(() => location.reload(), 1500);
+          } else {
+            showNotification(data.message || 'Failed to add skill', 'error');
+          }
+        })
+        .catch(err => {
+          console.error('Add skill error:', err);
+          showNotification('Error adding skill', 'error');
+        });
+      }
+
+      function addSkillChip(skill) {
+        const skillsList = document.getElementById('skillsList');
+        
+        // Remove "No skills added yet" message
+        const noSkillsMsg = skillsList.querySelector('.chip-outline');
+        if (noSkillsMsg && noSkillsMsg.textContent.includes('No skills')) {
+          noSkillsMsg.remove();
+        }
+        
+        // Create new chip
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.setAttribute('data-skill', skill);
+        chip.innerHTML = skill + ' <button type="button" class="chip-remove" onclick="removeSkill(this)" style="background: none; border: none; color: inherit; cursor: pointer; margin-left: 0.3rem; font-weight: bold;">×</button>';
+        
+        skillsList.appendChild(chip);
+      }
+
+      function removeSkill(btn) {
+        const chip = btn.closest('.chip');
+        const skill = chip.getAttribute('data-skill');
+        
+        if (!confirm(`Remove "${skill}"?`)) {
+          return;
+        }
+
+        fetch('./skills-api.php?action=remove', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ skill: skill })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            chip.remove();
+            showNotification('Skill removed', 'success');
+            
+            // Reload page to update matches
+            setTimeout(() => location.reload(), 1500);
+          } else {
+            showNotification('Failed to remove skill', 'error');
+          }
+        })
+        .catch(err => {
+          console.error('Remove skill error:', err);
+          showNotification('Error removing skill', 'error');
+        });
+      }
+
+      function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+          position: fixed;
+          top: 1rem;
+          right: 1rem;
+          padding: 1rem 1.5rem;
+          background: ${type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : '#d1ecf1'};
+          color: ${type === 'success' ? '#155724' : type === 'error' ? '#721c24' : '#0c5460'};
+          border-radius: var(--radius);
+          box-shadow: var(--shadow);
+          font-weight: 500;
+          z-index: 1000;
+          animation: slideIn 0.3s ease-out;
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.style.animation = 'slideOut 0.3s ease-out';
+          setTimeout(() => notification.remove(), 300);
+        }, 3000);
+      }
+    </script>
+    <style>
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
+    </style>
   </body>
 </html>
