@@ -2,9 +2,15 @@
 session_start();
 require_once('../../../database/db.php');
 
+// Check if employer is logged in
+if (!isset($_SESSION['employer_id'])) {
+  header('Location: ../../login.php');
+  exit;
+}
+
 // Get database connection
 $conn = getConnection();
-$employer_id = isset($_SESSION['employer_id']) ? $_SESSION['employer_id'] : 1; // Default to employer 1 for testing
+$employer_id = (int)$_SESSION['employer_id'];
 
 // Fetch all employees with their resumes and skills
 $employees = [];

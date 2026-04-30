@@ -454,11 +454,24 @@ closeConnection($conn);
         cursor: pointer;
         box-shadow: 0 4px 12px rgba(23, 83, 72, 0.12);
         transition: all 140ms ease;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 10;
+        pointer-events: auto;
       }
 
       #app-details-close-btn:hover {
         transform: translateY(-1px);
         border-color: #aac7be;
+        background: #f8fafb;
+      }
+
+      #app-details-close-btn:active {
+        transform: translateY(0);
       }
 
       .app-details-body {
@@ -845,9 +858,13 @@ closeConnection($conn);
         closeDetailsModal();
       });
 
-      detailsCloseBtn?.addEventListener('click', () => {
-        closeDetailsModal();
-      });
+      if (detailsCloseBtn) {
+        detailsCloseBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          closeDetailsModal();
+        });
+      }
 
       detailsModal?.addEventListener('click', (event) => {
         if (event.target === detailsModal) {
@@ -921,6 +938,70 @@ closeConnection($conn);
                 </tr>
               `;
             }).join('');
+
+            // Re-attach event listeners to dynamically created buttons
+            document.querySelectorAll('.action-btn').forEach((button) => {
+              button.addEventListener('click', () => {
+                const row = button.closest('tr');
+                if (!row) return;
+
+                const jobTitle = row.querySelector('.tracker-job-title')?.textContent?.trim() || 'N/A';
+                const company = row.querySelector('.tracker-company')?.textContent?.trim() || 'N/A';
+                const appliedDate = row.cells[2]?.textContent?.trim() || 'N/A';
+                const status = row.querySelector('.status-badge')?.textContent?.trim() || 'N/A';
+                const formattedDate = formatAppliedDate(appliedDate);
+                const statusMeta = getStatusMetadata(status);
+
+                if (detailsSubtext) {
+                  detailsSubtext.textContent = 'Comprehensive snapshot for ' + jobTitle + ' at ' + company + '.';
+                }
+
+                detailsBody.innerHTML =
+                  '<div class="app-details-summary">' +
+                  '<div class="app-details-summary-top">' +
+                  '<div class="app-details-role-block"><h4>' +
+                  escapeHtml(jobTitle) +
+                  '</h4><span class="app-details-company">' +
+                  escapeHtml(company) +
+                  '</span></div>' +
+                  '<span class="app-details-status-pill ' +
+                  escapeHtml(statusMeta.toneClass) +
+                  '">' +
+                  escapeHtml(status) +
+                  '</span></div>' +
+                  '<div class="app-details-progress">' +
+                  '<div class="app-details-progress-head"><span>Stage Progress</span><span>' +
+                  String(statusMeta.progress) +
+                  '%</span></div>' +
+                  '<div class="app-details-progress-track"><div class="app-details-progress-fill" style="width: ' +
+                  String(statusMeta.progress) +
+                  '%;"></div></div>' +
+                  '</div>' +
+                  '<div class="app-details-meta">' +
+                  '<div class="app-details-row"><span class="app-details-label">Applied Date</span><span class="app-details-value">' +
+                  escapeHtml(formattedDate) +
+                  '</span></div>' +
+                  '<div class="app-details-row"><span class="app-details-label">Current Status</span><span class="app-details-value">' +
+                  escapeHtml(status) +
+                  '</span></div>' +
+                  '<div class="app-details-row"><span class="app-details-label">Application Stage</span><span class="app-details-value">' +
+                  escapeHtml(statusMeta.stage) +
+                  '</span></div>' +
+                  '<div class="app-details-row"><span class="app-details-label">Next Recommended Step</span><span class="app-details-value">' +
+                  escapeHtml(statusMeta.nextStep) +
+                  '</span></div>' +
+                  '<div class="app-details-row"><span class="app-details-label">Response Priority</span><span class="app-details-value">' +
+                  escapeHtml(statusMeta.priority) +
+                  '</span></div>' +
+                  '</div>' +
+                  '<div class="app-details-notes"><div class="app-details-notes-label">Hiring Insight</div><p>' +
+                  escapeHtml(statusMeta.note) +
+                  '</p></div></div>';
+                detailsModal.classList.add('is-open');
+                detailsModal.setAttribute('aria-hidden', 'false');
+                detailsOkBtn?.focus();
+              });
+            });
           }
         } catch (error) {
           console.error('Error loading applications:', error);

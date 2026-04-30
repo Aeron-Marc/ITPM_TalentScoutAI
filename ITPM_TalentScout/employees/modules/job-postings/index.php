@@ -575,6 +575,23 @@ $hasError = !empty($dbError);
       cursor: pointer;
       font-size: 1.2rem;
       line-height: 1;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 140ms ease;
+      pointer-events: auto;
+      position: relative;
+      z-index: 10;
+    }
+
+    .job-modal-close:hover {
+      background: white;
+      transform: translateY(-1px);
+    }
+
+    .job-modal-close:active {
+      transform: translateY(0);
     }
 
     .job-modal-body {
@@ -1037,6 +1054,7 @@ $hasError = !empty($dbError);
   <!-- Success Animation Modal -->
   <div id="successModal" class="success-modal-backdrop" aria-hidden="true">
     <div class="success-modal" role="dialog" aria-modal="true">
+      <button type="button" id="closeSuccessXBtn" class="job-modal-close" aria-label="Close success dialog" style="position: absolute; top: 16px; right: 16px; z-index: 20;">×</button>
       <div class="success-checkmark">
         <svg viewBox="0 0 24 24">
           <circle class="success-checkmark-circle" cx="12" cy="12" r="10"></circle>
@@ -2070,7 +2088,11 @@ $hasError = !empty($dbError);
       }
 
       if (closeDetailsBtn) {
-        closeDetailsBtn.addEventListener('click', closeJobDetailsModal);
+        closeDetailsBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          closeJobDetailsModal();
+        });
       }
 
       document.addEventListener('keydown', event => {
@@ -2082,6 +2104,7 @@ $hasError = !empty($dbError);
       // Success Modal Event Listeners
       const successModal = document.getElementById('successModal');
       const closeSuccessBtn = document.getElementById('closeSuccessBtn');
+      const closeSuccessXBtn = document.getElementById('closeSuccessXBtn');
       const viewApplicationsBtn = document.getElementById('viewApplicationsBtn');
 
       if (successModal) {
@@ -2093,7 +2116,17 @@ $hasError = !empty($dbError);
       }
 
       if (closeSuccessBtn) {
-        closeSuccessBtn.addEventListener('click', () => {
+        closeSuccessBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          closeSuccessModal();
+        });
+      }
+
+      if (closeSuccessXBtn) {
+        closeSuccessXBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
           closeSuccessModal();
         });
       }

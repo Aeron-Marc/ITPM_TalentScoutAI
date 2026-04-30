@@ -846,6 +846,86 @@ if ($apiAction === 'save' || $apiAction === 'load') {
       }
     }
 
+    .success-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .success-modal.show {
+      display: flex;
+    }
+
+    .success-modal-content {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .success-modal-icon {
+      width: 60px;
+      height: 60px;
+      background: #10b981;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      font-size: 1.8rem;
+      color: white;
+    }
+
+    .success-modal-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 0.5rem;
+    }
+
+    .success-modal-message {
+      color: var(--text-light);
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    .success-modal-btn {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+
+    .success-modal-btn:hover {
+      background: #059669;
+    }
+
     @media (max-width: 700px) {
       .builder-shell {
         padding: 1rem;
@@ -1113,6 +1193,19 @@ if ($apiAction === 'save' || $apiAction === 'load') {
         </form>
       </section>
     </div>
+
+    <div class="success-modal" id="successModal">
+      <div class="success-modal-content">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+          <div></div>
+          <button type="button" id="successModalClose" style="background: none; border: none; font-size: 1.8rem; color: #999; cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">×</button>
+        </div>
+        <div class="success-modal-icon">✓</div>
+        <div class="success-modal-title">Resume Saved!</div>
+        <div class="success-modal-message">Your resume has been saved successfully to the database.</div>
+        <button class="success-modal-btn" onclick="closeSuccessModal()">Great!</button>
+      </div>
+    </div>
   </main>
 
   <script
@@ -1166,6 +1259,16 @@ if ($apiAction === 'save' || $apiAction === 'load') {
       "skillFieldsContainer",
     );
     const resumeForm = document.getElementById("resumeForm");
+
+    function showSuccessModal() {
+      const modal = document.getElementById("successModal");
+      modal.classList.add("show");
+    }
+
+    function closeSuccessModal() {
+      const modal = document.getElementById("successModal");
+      modal.classList.remove("show");
+    }
 
     function getStoredAccount() {
       try {
@@ -1996,6 +2099,16 @@ if ($apiAction === 'save' || $apiAction === 'load') {
 
     resumeForm.addEventListener("input", updatePreview);
 
+    // Close success modal when X button is clicked
+    document.getElementById("successModalClose")?.addEventListener("click", closeSuccessModal);
+
+    // Close success modal when clicking outside of it
+    document.getElementById("successModal")?.addEventListener("click", function(e) {
+      if (e.target === this) {
+        closeSuccessModal();
+      }
+    });
+
     resumeForm.addEventListener("submit", async function(event) {
       event.preventDefault();
 
@@ -2004,7 +2117,7 @@ if ($apiAction === 'save' || $apiAction === 'load') {
 
       try {
         await saveResumeToDatabase(data);
-        alert("Resume saved successfully to database.");
+        showSuccessModal();
       } catch (error) {
         alert(
           "Saved locally, but database save failed. Please check XAMPP MySQL and try again.",
