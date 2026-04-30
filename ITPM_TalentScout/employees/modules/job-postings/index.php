@@ -46,44 +46,219 @@ $hasError = !empty($dbError);
   <title>Job Postings — TalentScout AI</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../../../styles/global.css" />
-  <link rel="stylesheet" href="../../../styles/page-layout.css" />
-  <link rel="stylesheet" href="../../navbar.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
+    /* ===== WARM EARTHY DESIGN SYSTEM ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sand:        #f5f0e8;
+      --sand-dark:   #ece5d5;
+      --sage:        #6b8f71;
+      --sage-light:  #9ab89f;
+      --sage-pale:   #d4e6d6;
+      --sage-deep:   #4a6b50;
+      --stone:       #8a8070;
+      --stone-light: #c4b9a8;
+      --cream:       #faf8f3;
+      --charcoal:    #2a2a22;
+      --warm-mid:    #5a5448;
+      --warm-light:  #9a9288;
+      --gold:        #c8a96e;
+      --gold-pale:   #f0e4c8;
+      --white-t:     rgba(255,255,255,0.92);
+      --radius-xl:   24px;
+      --radius-lg:   16px;
+      --radius-md:   10px;
+      --radius-pill: 999px;
+      --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--charcoal);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* ── GRAIN OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+
     /* ===== STICKY FOOTER LAYOUT ===== */
-    html,
-    body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
+    html, body { height: 100%; margin: 0; padding: 0; }
+    body { display: flex; flex-direction: column; }
+    .tab-content, main, .page-container { flex: 1 0 auto; }
+    .footer { flex-shrink: 0; }
 
-    body {
+    /* ── NAVBAR ── */
+    .navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 3rem;
+      height: 64px;
+      background: rgba(250, 248, 243, 0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(139, 128, 112, 0.12);
+      animation: slideDown 0.6s var(--ease-out) both;
     }
 
-    /* Main content area expands to fill available space */
-    .tab-content,
-    main,
-    .page-container {
-      flex: 1 0 auto;
+    @keyframes slideDown {
+      from { transform: translateY(-100%); opacity: 0; }
+      to   { transform: translateY(0); opacity: 1; }
     }
 
-    /* Footer stays at the bottom */
-    .footer {
-      flex-shrink: 0;
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: var(--charcoal);
+      letter-spacing: -0.01em;
     }
 
-    * {
-      font-family: 'Poppins', sans-serif;
+    .nav-logo-mark {
+      width: 34px; height: 34px;
+      background: var(--sage-deep);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0.04em;
     }
 
+    .nav-logo-text { font-style: normal; }
+    .nav-logo-text span { font-style: italic; color: var(--sage); }
+
+    .nav-links {
+      display: flex;
+      list-style: none;
+      gap: 0.15rem;
+    }
+
+    .nav-links a {
+      padding: 0.38rem 0.85rem;
+      border-radius: var(--radius-pill);
+      font-size: 0.84rem;
+      font-weight: 400;
+      color: var(--warm-mid);
+      transition: background 0.2s, color 0.2s;
+      letter-spacing: 0.01em;
+    }
+
+    .nav-links a:hover, .nav-links a.active {
+      background: var(--sage-pale);
+      color: var(--sage-deep);
+    }
+
+    .nav-actions {
+      display: flex; align-items: center; gap: 0.7rem;
+    }
+
+    .nav-user {
+      font-size: 0.83rem;
+      color: var(--warm-mid);
+    }
+
+    .btn-nav-ghost {
+      padding: 0.4rem 1rem;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stone-light);
+      color: var(--warm-mid);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.83rem;
+      font-weight: 500;
+      background: transparent;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .btn-nav-ghost:hover { background: var(--sand); border-color: var(--stone); }
+
+    .btn-nav-solid {
+      padding: 0.44rem 1.2rem;
+      border-radius: var(--radius-pill);
+      background: var(--sage-deep);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.83rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      display: inline-flex; align-items: center; gap: 0.35rem;
+    }
+
+    .btn-nav-solid:hover { background: var(--sage); transform: translateY(-1px); }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      padding: 5.5rem 2rem 2.5rem;
+      background: linear-gradient(180deg, var(--sand) 0%, var(--cream) 100%);
+      border-bottom: 1px solid var(--sand-dark);
+    }
+
+    .page-header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .breadcrumb {
+      font-size: 0.78rem;
+      color: var(--warm-light);
+      margin-bottom: 0.8rem;
+    }
+
+    .breadcrumb a {
+      color: var(--sage);
+      transition: color 0.15s;
+    }
+
+    .breadcrumb a:hover { color: var(--sage-deep); }
+
+    .page-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 900;
+      color: var(--charcoal);
+      letter-spacing: -0.025em;
+      line-height: 1.2;
+      margin-bottom: 0.6rem;
+    }
+
+    .page-header p {
+      font-size: 0.9rem;
+      color: var(--warm-mid);
+      line-height: 1.7;
+      max-width: 520px;
+    }
+
+    /* ── SEARCH BAR ── */
     .search-bar-wrap {
-      background: white;
-      border-bottom: 1px solid var(--border);
+      background: var(--cream);
+      border-bottom: 1px solid var(--sand-dark);
       padding: 1.25rem 2.5rem;
     }
 
@@ -93,11 +268,13 @@ $hasError = !empty($dbError);
       display: flex;
       gap: 0.75rem;
       align-items: center;
+      flex-wrap: wrap;
     }
 
     .search-input-rel {
       position: relative;
       flex: 2;
+      min-width: 220px;
     }
 
     .search-icon {
@@ -105,14 +282,68 @@ $hasError = !empty($dbError);
       left: 1rem;
       top: 50%;
       transform: translateY(-50%);
-      color: var(--text-light);
+      color: var(--warm-light);
       font-size: 0.9rem;
+      pointer-events: none;
     }
 
     .search-input-rel .input {
       padding-left: 2.5rem;
     }
 
+    .input, .select {
+      padding: 0.65rem 1rem;
+      border: 1.5px solid var(--sand-dark);
+      border-radius: var(--radius-pill);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.86rem;
+      color: var(--charcoal);
+      background: #fff;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+
+    .input:focus, .select:focus {
+      border-color: var(--sage);
+      box-shadow: 0 0 0 3px var(--sage-pale);
+    }
+
+    .input::placeholder { color: var(--warm-light); }
+
+    .select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a8070' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.85rem center; padding-right: 2.2rem; }
+
+    .btn-primary {
+      padding: 0.65rem 1.5rem;
+      background: var(--sage-deep);
+      color: #fff;
+      border-radius: var(--radius-pill);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.86rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 14px rgba(74,107,80,0.22);
+    }
+
+    .btn-primary:hover { background: var(--sage); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(74,107,80,0.3); }
+
+    .btn-secondary {
+      padding: 0.65rem 1.5rem;
+      background: transparent;
+      color: var(--warm-mid);
+      border-radius: var(--radius-pill);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.86rem;
+      font-weight: 500;
+      border: 1.5px solid var(--stone-light);
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    }
+
+    .btn-secondary:hover { background: var(--sand); border-color: var(--stone); transform: translateY(-1px); }
+
+    /* ── MAIN LAYOUT ── */
     .main-layout {
       max-width: 1200px;
       margin: 0 auto;
@@ -122,24 +353,25 @@ $hasError = !empty($dbError);
       gap: 2rem;
     }
 
-    /* Sidebar */
+    /* ── SIDEBAR ── */
     .sidebar-card {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
+      background: #fff;
+      border: 1px solid var(--sand-dark);
+      border-radius: var(--radius-xl);
       padding: 0.75rem;
       margin-bottom: 0.75rem;
+      box-shadow: 0 2px 12px rgba(42,42,34,0.04);
     }
 
     .sidebar-title {
+      font-family: 'Playfair Display', serif;
       font-weight: 700;
       font-size: 0.88rem;
-      color: var(--text-dark);
+      color: var(--charcoal);
       margin-bottom: 0.6rem;
       padding-bottom: 0.4rem;
-      border-bottom: 1px solid var(--border);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--sand-dark);
+      letter-spacing: -0.01em;
     }
 
     .filter-item {
@@ -147,11 +379,15 @@ $hasError = !empty($dbError);
       align-items: center;
       justify-content: space-between;
       font-size: 0.87rem;
-      color: var(--text-mid);
-      padding: 0.25rem 0;
+      color: var(--warm-mid);
+      padding: 0.35rem 0.5rem;
       cursor: pointer;
       user-select: none;
+      border-radius: var(--radius-md);
+      transition: background 0.15s;
     }
+
+    .filter-item:hover { background: var(--sand); }
 
     .filter-left {
       display: flex;
@@ -162,26 +398,27 @@ $hasError = !empty($dbError);
     .fcheck {
       width: 16px;
       height: 16px;
-      border: 1.5px solid var(--border);
+      border: 1.5px solid var(--stone-light);
       border-radius: 4px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 0.65rem;
       flex-shrink: 0;
+      transition: background 0.15s, border-color 0.15s;
     }
 
     .fcheck.on {
-      background: var(--primary-dark);
-      border-color: var(--primary-dark);
+      background: var(--sage);
+      border-color: var(--sage);
       color: white;
     }
 
     .fcount {
-      background: var(--bg-light);
-      color: var(--text-light);
+      background: var(--sand);
+      color: var(--warm-light);
       padding: 0.1rem 0.5rem;
-      border-radius: 100px;
+      border-radius: var(--radius-pill);
       font-size: 0.75rem;
     }
 
@@ -199,16 +436,25 @@ $hasError = !empty($dbError);
 
     .salary-inputs input {
       flex: 1;
-      padding: 0.4rem;
-      border: 1px solid var(--border);
-      border-radius: 4px;
+      padding: 0.4rem 0.6rem;
+      border: 1.5px solid var(--sand-dark);
+      border-radius: var(--radius-md);
       font-size: 0.8rem;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--charcoal);
+      background: var(--cream);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .salary-inputs input:focus {
+      border-color: var(--sage);
     }
 
     .range-bar {
       position: relative;
       height: 5px;
-      background: var(--border);
+      background: var(--sand-dark);
       border-radius: 5px;
       margin: 0.75rem 0;
     }
@@ -216,7 +462,7 @@ $hasError = !empty($dbError);
     .range-track {
       position: absolute;
       height: 100%;
-      background: var(--primary-dark);
+      background: var(--sage);
       border-radius: 5px;
     }
 
@@ -239,9 +485,9 @@ $hasError = !empty($dbError);
       width: 18px;
       height: 18px;
       border-radius: 50%;
-      background: var(--primary-dark);
+      background: var(--sage);
       cursor: pointer;
-      border: 2px solid white;
+      border: 2px solid #fff;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
@@ -250,9 +496,9 @@ $hasError = !empty($dbError);
       width: 18px;
       height: 18px;
       border-radius: 50%;
-      background: var(--primary-dark);
+      background: var(--sage);
       cursor: pointer;
-      border: 2px solid white;
+      border: 2px solid #fff;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
@@ -260,10 +506,10 @@ $hasError = !empty($dbError);
       display: flex;
       justify-content: space-between;
       font-size: 0.75rem;
-      color: var(--text-light);
+      color: var(--warm-light);
     }
 
-    /* Jobs column */
+    /* ── JOBS COLUMN ── */
     .jobs-header {
       display: flex;
       justify-content: space-between;
@@ -272,12 +518,12 @@ $hasError = !empty($dbError);
     }
 
     .jobs-map-section {
-      background: white;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
+      background: #fff;
+      border: 1.5px solid var(--sand-dark);
+      border-radius: var(--radius-xl);
       padding: 1rem;
       margin-bottom: 1.25rem;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.03);
+      box-shadow: 0 4px 20px rgba(42,42,34,0.05);
     }
 
     .jobs-map-header {
@@ -289,44 +535,46 @@ $hasError = !empty($dbError);
     }
 
     .jobs-map-title {
+      font-family: 'Playfair Display', serif;
       font-size: 1rem;
       font-weight: 700;
-      color: var(--text-dark);
+      color: var(--charcoal);
     }
 
     .jobs-map-subtitle {
       font-size: 0.84rem;
-      color: var(--text-light);
+      color: var(--warm-light);
     }
 
     .jobs-map {
       width: 100%;
       height: 360px;
-      border-radius: var(--radius-sm);
+      border-radius: var(--radius-lg);
       overflow: hidden;
-      border: 1px solid var(--border);
-      background: #eef5f2;
+      border: 1px solid var(--sand-dark);
+      background: var(--sage-pale);
     }
 
     .jobs-count {
       font-size: 0.9rem;
-      color: var(--text-light);
+      color: var(--warm-light);
     }
 
     .jobs-count strong {
-      color: var(--text-dark);
+      color: var(--charcoal);
       font-weight: 700;
     }
 
     .job-card {
-      background: white;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
+      background: #fff;
+      border: 1.5px solid var(--sand-dark);
+      border-radius: var(--radius-xl);
       padding: 1.5rem;
       margin-bottom: 1rem;
-      transition: all 0.2s;
+      transition: all 0.3s var(--ease-out);
       cursor: pointer;
       animation: fadeInSlide 0.4s ease-out;
+      box-shadow: 0 2px 12px rgba(42,42,34,0.04);
     }
 
     .job-card .btn,
@@ -335,8 +583,9 @@ $hasError = !empty($dbError);
     }
 
     .job-card:hover {
-      border-color: var(--primary-dark);
-      box-shadow: var(--shadow);
+      border-color: var(--sage-pale);
+      box-shadow: 0 18px 48px rgba(42,42,34,0.12);
+      transform: translateY(-7px);
     }
 
     .job-top {
@@ -349,11 +598,11 @@ $hasError = !empty($dbError);
     .job-logo {
       width: 48px;
       height: 48px;
-      border-radius: 10px;
+      border-radius: var(--radius-md);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 800;
+      font-weight: 700;
       font-size: 1rem;
       flex-shrink: 0;
     }
@@ -363,15 +612,18 @@ $hasError = !empty($dbError);
     }
 
     .job-title {
+      font-family: 'Playfair Display', serif;
       font-weight: 700;
       font-size: 1.05rem;
-      color: var(--text-dark);
+      color: var(--charcoal);
       margin-bottom: 0.2rem;
+      letter-spacing: -0.01em;
     }
 
     .job-company {
       font-size: 0.87rem;
-      color: var(--text-mid);
+      color: var(--warm-mid);
+      line-height: 1.5;
     }
 
     .job-meta {
@@ -379,7 +631,7 @@ $hasError = !empty($dbError);
       gap: 1.2rem;
       flex-wrap: wrap;
       font-size: 0.83rem;
-      color: var(--text-light);
+      color: var(--warm-light);
       margin: 0.6rem 0;
     }
 
@@ -396,36 +648,40 @@ $hasError = !empty($dbError);
     }
 
     .chip {
-      background: var(--bg-light);
-      color: var(--text-mid);
-      padding: 0.3rem 0.6rem;
-      border-radius: 4px;
+      background: var(--sand);
+      color: var(--warm-mid);
+      padding: 0.3rem 0.7rem;
+      border-radius: var(--radius-pill);
       font-size: 0.8rem;
+      font-weight: 500;
       display: inline-block;
+      transition: background 0.15s;
     }
+
+    .chip:hover { background: var(--sage-pale); color: var(--sage-deep); }
 
     .badge {
       display: inline-block;
       padding: 0.4rem 0.8rem;
-      border-radius: 4px;
+      border-radius: var(--radius-pill);
       font-size: 0.75rem;
       font-weight: 600;
       white-space: nowrap;
     }
 
     .badge-blue {
-      background: #e3f2fd;
-      color: #1565c0;
+      background: var(--sage-pale);
+      color: var(--sage-deep);
     }
 
     .badge-gray {
-      background: #f5f5f5;
-      color: #616161;
+      background: var(--sand);
+      color: var(--warm-mid);
     }
 
     .badge-purple {
-      background: #f3e5f5;
-      color: #6a1b9a;
+      background: var(--gold-pale);
+      color: var(--stone);
     }
 
     .job-footer {
@@ -434,18 +690,18 @@ $hasError = !empty($dbError);
       align-items: center;
       margin-top: 1rem;
       padding-top: 0.75rem;
-      border-top: 1px solid var(--border);
+      border-top: 1px solid var(--sand-dark);
     }
 
     .job-salary {
       font-weight: 700;
       font-size: 0.95rem;
-      color: var(--primary-darker);
+      color: var(--sage-deep);
     }
 
     .job-date {
       font-size: 0.8rem;
-      color: var(--text-light);
+      color: var(--warm-light);
     }
 
     .job-footer-actions {
@@ -457,35 +713,26 @@ $hasError = !empty($dbError);
     .loading-state {
       text-align: center;
       padding: 3rem 2rem;
-      color: var(--text-light);
+      color: var(--warm-light);
     }
 
     .loading-spinner {
       width: 40px;
       height: 40px;
-      border: 3px solid var(--border);
-      border-top-color: var(--primary-dark);
+      border: 3px solid var(--sand-dark);
+      border-top-color: var(--sage);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
       margin: 0 auto 1rem;
     }
 
     @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
+      to { transform: rotate(360deg); }
     }
 
     @keyframes fadeInSlide {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     /* Pagination */
@@ -495,7 +742,7 @@ $hasError = !empty($dbError);
       gap: 0.4rem;
       margin-top: 3rem;
       padding-top: 2rem;
-      border-top: 1px solid var(--border);
+      border-top: 1px solid var(--sand-dark);
     }
 
     .pg-btn {
@@ -504,36 +751,42 @@ $hasError = !empty($dbError);
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: var(--radius-sm);
+      border-radius: var(--radius-pill);
       font-size: 0.87rem;
       font-weight: 500;
-      border: 1.5px solid var(--border);
-      background: white;
-      color: var(--text-mid);
+      border: 1.5px solid var(--sand-dark);
+      background: #fff;
+      color: var(--warm-mid);
       cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s;
     }
 
+    .pg-btn:hover { background: var(--sand); border-color: var(--stone-light); }
+
     .pg-btn.active {
-      background: var(--primary-dark);
-      border-color: var(--primary-dark);
+      background: var(--sage);
+      border-color: var(--sage);
       color: white;
     }
 
     .no-results {
       text-align: center;
       padding: 3rem 2rem;
-      color: var(--text-light);
+      color: var(--warm-light);
     }
 
+    /* ── JOB DETAILS MODAL ── */
     .job-modal-backdrop {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.55);
+      background: rgba(42, 42, 34, 0.55);
       z-index: 2500;
       align-items: center;
       justify-content: center;
       padding: 1.25rem;
+      backdrop-filter: blur(4px);
     }
 
     .job-modal-backdrop.active {
@@ -542,9 +795,9 @@ $hasError = !empty($dbError);
 
     .job-modal {
       width: min(760px, 100%);
-      background: white;
-      border-radius: 18px;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+      background: #fff;
+      border-radius: var(--radius-xl);
+      box-shadow: 0 24px 60px rgba(42,42,34,0.25);
       overflow: hidden;
     }
 
@@ -554,24 +807,26 @@ $hasError = !empty($dbError);
       align-items: flex-start;
       gap: 1rem;
       padding: 1.25rem 1.4rem;
-      border-bottom: 1px solid var(--border);
-      background: linear-gradient(135deg, #f8fffc 0%, #eefcf7 100%);
+      border-bottom: 1px solid var(--sand-dark);
+      background: linear-gradient(135deg, var(--cream) 0%, var(--sage-pale) 100%);
     }
 
     .job-modal-title {
       margin: 0;
+      font-family: 'Playfair Display', serif;
       font-size: 1.25rem;
       font-weight: 800;
-      color: var(--text-dark);
+      color: var(--charcoal);
+      letter-spacing: -0.01em;
     }
 
     .job-modal-close {
       border: none;
-      background: rgba(255, 255, 255, 0.85);
-      color: var(--text-dark);
+      background: var(--white-t);
+      color: var(--charcoal);
       width: 36px;
       height: 36px;
-      border-radius: 999px;
+      border-radius: var(--radius-pill);
       cursor: pointer;
       font-size: 1.2rem;
       line-height: 1;
@@ -586,7 +841,7 @@ $hasError = !empty($dbError);
     }
 
     .job-modal-close:hover {
-      background: white;
+      background: #fff;
       transform: translateY(-1px);
     }
 
@@ -611,13 +866,14 @@ $hasError = !empty($dbError);
 
     .job-modal-section h4 {
       margin: 0 0 0.45rem;
+      font-family: 'Playfair Display', serif;
       font-size: 0.95rem;
-      color: var(--text-dark);
+      color: var(--charcoal);
     }
 
     .job-modal-section p {
       margin: 0;
-      color: var(--text-mid);
+      color: var(--warm-mid);
       line-height: 1.6;
     }
 
@@ -626,20 +882,20 @@ $hasError = !empty($dbError);
       justify-content: flex-end;
       gap: 0.75rem;
       padding: 1rem 1.4rem 1.35rem;
-      border-top: 1px solid var(--border);
+      border-top: 1px solid var(--sand-dark);
     }
 
-    /* Success Animation Styles */
+    /* ── SUCCESS MODAL ── */
     .success-modal-backdrop {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.55);
+      background: rgba(42, 42, 34, 0.55);
       z-index: 3000;
       align-items: center;
       justify-content: center;
       padding: 1.25rem;
-      backdrop-filter: blur(2px);
+      backdrop-filter: blur(4px);
     }
 
     .success-modal-backdrop.active {
@@ -648,19 +904,15 @@ $hasError = !empty($dbError);
     }
 
     @keyframes fadeIn {
-      from {
-        opacity: 0;
-      }
-      to {
-        opacity: 1;
-      }
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     .success-modal {
       width: min(480px, 100%);
-      background: white;
-      border-radius: 18px;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+      background: #fff;
+      border-radius: var(--radius-xl);
+      box-shadow: 0 24px 60px rgba(42,42,34,0.25);
       overflow: hidden;
       text-align: center;
       padding: 2.5rem;
@@ -668,21 +920,15 @@ $hasError = !empty($dbError);
     }
 
     @keyframes slideUp {
-      from {
-        transform: translateY(20px);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
 
     .success-checkmark {
       width: 80px;
       height: 80px;
       margin: 0 auto 1.5rem;
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      background: linear-gradient(135deg, var(--sage) 0%, var(--sage-deep) 100%);
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -691,12 +937,8 @@ $hasError = !empty($dbError);
     }
 
     @keyframes scaleIn {
-      from {
-        transform: scale(0);
-      }
-      to {
-        transform: scale(1);
-      }
+      from { transform: scale(0); }
+      to { transform: scale(1); }
     }
 
     .success-checkmark svg {
@@ -724,34 +966,31 @@ $hasError = !empty($dbError);
     }
 
     @keyframes drawCircle {
-      to {
-        stroke-dashoffset: 0;
-      }
+      to { stroke-dashoffset: 0; }
     }
 
     @keyframes drawLine {
-      to {
-        stroke-dashoffset: 0;
-      }
+      to { stroke-dashoffset: 0; }
     }
 
     .success-title {
+      font-family: 'Playfair Display', serif;
       font-size: 1.5rem;
       font-weight: 800;
-      color: var(--text-dark);
+      color: var(--charcoal);
       margin-bottom: 0.5rem;
     }
 
     .success-message {
       font-size: 0.95rem;
-      color: var(--text-mid);
+      color: var(--warm-mid);
       margin-bottom: 1.5rem;
       line-height: 1.5;
     }
 
     .success-details {
-      background: var(--bg-light);
-      border-radius: 12px;
+      background: var(--sand);
+      border-radius: var(--radius-lg);
       padding: 1.25rem;
       margin-bottom: 1.5rem;
       text-align: left;
@@ -762,7 +1001,7 @@ $hasError = !empty($dbError);
       justify-content: space-between;
       align-items: center;
       padding: 0.6rem 0;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--sand-dark);
     }
 
     .success-detail-row:last-child {
@@ -771,13 +1010,13 @@ $hasError = !empty($dbError);
 
     .success-detail-label {
       font-weight: 600;
-      color: var(--text-mid);
+      color: var(--warm-mid);
       font-size: 0.85rem;
     }
 
     .success-detail-value {
       font-weight: 700;
-      color: var(--text-dark);
+      color: var(--charcoal);
       text-align: right;
     }
 
@@ -786,6 +1025,102 @@ $hasError = !empty($dbError);
       gap: 0.75rem;
       justify-content: center;
     }
+
+    /* ── FOOTER ── */
+    .footer {
+      background: #1e1e18;
+      color: rgba(255,255,255,0.5);
+      padding: 4rem 2rem 2rem;
+      margin-top: 3rem;
+    }
+
+    .footer-inner { max-width: 1080px; margin: 0 auto; }
+
+    .footer-top {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 2.5rem;
+      padding-bottom: 2.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      margin-bottom: 1.8rem;
+    }
+
+    .footer-brand h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.7rem;
+    }
+
+    .footer-brand p {
+      font-size: 0.81rem;
+      line-height: 1.68;
+      color: rgba(255,255,255,0.42);
+    }
+
+    .footer-col h4 {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.7);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 1rem;
+    }
+
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .footer-col ul a {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.4);
+      transition: color 0.15s;
+    }
+
+    .footer-col ul a:hover { color: var(--sage-light); }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.77rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    /* ── SCROLL REVEAL ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+    .reveal-delay-5 { transition-delay: 0.5s; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 960px) {
+      .main-layout { grid-template-columns: 1fr; }
+      .footer-top { grid-template-columns: 1fr 1fr; }
+      .nav-links { display: none; }
+    }
+
+    @media (max-width: 600px) {
+      .navbar { padding: 0 1.2rem; }
+      .search-bar-wrap { padding: 1rem 1.2rem; }
+      .main-layout { padding: 1.2rem; }
+      .footer-top { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+      .search-bar { flex-direction: column; }
+      .search-input-rel { width: 100%; }
+    }
   </style>
 </head>
 
@@ -793,7 +1128,7 @@ $hasError = !empty($dbError);
   <!-- NAVBAR -->
   <nav class="navbar">
     <a href="../../index.php" class="nav-logo">
-      <div class="nav-logo-icon">TS</div>
+      <div class="nav-logo-mark">TS</div>
       <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
     </a>
     <ul class="nav-links">
@@ -808,10 +1143,10 @@ $hasError = !empty($dbError);
     <div class="nav-actions">
       <?php if (isset($_SESSION['employee_id'])): ?>
         <span class="nav-user">Welcome, <?php echo htmlspecialchars($_SESSION['employee_name'] ?? 'User'); ?></span>
-        <a href="../../logout.php" class="btn btn-outline">Logout</a>
+        <a href="../../logout.php" class="btn-nav-ghost">Logout</a>
       <?php else: ?>
-        <a href="../../login.php" class="btn btn-outline">Login</a>
-        <a href="../../signup.php" class="btn btn-primary">Get Started</a>
+        <a href="../../login.php" class="btn-nav-ghost">Login</a>
+        <a href="../../signup.php" class="btn-nav-solid">Get Started →</a>
       <?php endif; ?>
     </div>
   </nav>
@@ -822,7 +1157,7 @@ $hasError = !empty($dbError);
       <div class="breadcrumb">
         <a href="../../index.php">Home</a> / Job Postings
       </div>
-      <h1>📋 Job Postings</h1>
+      <h1>Job Postings</h1>
       <p>
         Explore available jobs across all barangays in Nasugbu, Batangas.
         Centralized, digitized, and updated daily.
@@ -834,7 +1169,7 @@ $hasError = !empty($dbError);
   <div class="search-bar-wrap">
     <div class="search-bar">
       <div class="search-input-rel">
-        <span class="search-icon">🔍</span>
+        <span class="search-icon">&#128269;</span>
         <input
           id="searchInput"
           type="text"
@@ -878,12 +1213,10 @@ $hasError = !empty($dbError);
       </select>
       <button
         id="searchBtn"
-        class="btn btn-primary"
-        style="white-space: nowrap; padding: 0.65rem 1.5rem">Search Jobs</button>
+        class="btn-primary">Search Jobs</button>
       <button
         id="resetBtn"
-        class="btn btn-secondary"
-        style="white-space: nowrap; padding: 0.65rem 1.5rem; background: #e0e0e0; color: #333; border-color: #d0d0d0; margin-left: 0.75rem">Reset Filters</button>
+        class="btn-secondary">Reset Filters</button>
     </div>
   </div>
 
@@ -898,21 +1231,21 @@ $hasError = !empty($dbError);
             <div class="fcheck"></div>
             <span>On-site</span>
           </div>
-          <span class="fcount">—</span>
+          <span class="fcount">&#8212;</span>
         </div>
         <div class="filter-item" data-group="workSetup" data-value="Remote">
           <div class="filter-left">
             <div class="fcheck"></div>
             <span>Remote</span>
           </div>
-          <span class="fcount">—</span>
+          <span class="fcount">&#8212;</span>
         </div>
         <div class="filter-item" data-group="workSetup" data-value="Hybrid">
           <div class="filter-left">
             <div class="fcheck"></div>
             <span>Hybrid</span>
           </div>
-          <span class="fcount">—</span>
+          <span class="fcount">&#8212;</span>
         </div>
       </div>
 
@@ -929,8 +1262,8 @@ $hasError = !empty($dbError);
             <input type="range" id="maxRange" class="range-input" min="0" max="60000" value="60000" />
           </div>
           <div class="range-labels">
-            <span>₱<span id="minLabel">0</span></span>
-            <span>₱<span id="maxLabel">60,000</span></span>
+            <span>&#8369;<span id="minLabel">0</span></span>
+            <span>&#8369;<span id="maxLabel">60,000</span></span>
           </div>
         </div>
       </div>
@@ -942,21 +1275,21 @@ $hasError = !empty($dbError);
             <div class="fcheck"></div>
             <span>Entry Level</span>
           </div>
-          <span class="fcount">—</span>
+          <span class="fcount">&#8212;</span>
         </div>
         <div class="filter-item" data-group="experienceLevel" data-value="Mid Level">
           <div class="filter-left">
             <div class="fcheck"></div>
             <span>Mid Level</span>
           </div>
-          <span class="fcount">—</span>
+          <span class="fcount">&#8212;</span>
         </div>
         <div class="filter-item" data-group="experienceLevel" data-value="Senior Level">
           <div class="filter-left">
             <div class="fcheck"></div>
             <span>Senior Level</span>
           </div>
-          <span class="fcount">—</span>
+          <span class="fcount">&#8212;</span>
         </div>
       </div>
 
@@ -967,21 +1300,21 @@ $hasError = !empty($dbError);
             <div class="fcheck"></div>
             <span>Last 7 days</span>
           </div>
-          <span class="fcount">—</span>
+          <span class="fcount">&#8212;</span>
         </div>
         <div class="filter-item" data-group="postedWithin" data-value="Last 30 days">
           <div class="filter-left">
             <div class="fcheck"></div>
             <span>Last 30 days</span>
           </div>
-          <span class="fcount">—</span>
+          <span class="fcount">&#8212;</span>
         </div>
         <div class="filter-item" data-group="postedWithin" data-value="All time">
           <div class="filter-left">
             <div class="fcheck"></div>
             <span>All time</span>
           </div>
-          <span class="fcount">—</span>
+          <span class="fcount">&#8212;</span>
         </div>
       </div>
     </aside>
@@ -1042,12 +1375,12 @@ $hasError = !empty($dbError);
           <p id="jobDetailsLocation"></p>
         </div>
         <div class="job-modal-section">
-          <h4>Salary & Deadline</h4>
+          <h4>Salary &amp; Deadline</h4>
           <p id="jobDetailsSalary"></p>
         </div>
       </div>
       <div class="job-modal-footer">
-        <button type="button" class="btn btn-primary" id="jobDetailsApply" onclick="handleApplyClick()">Apply Now</button>
+        <button type="button" class="btn-primary" id="jobDetailsApply" onclick="handleApplyClick()">Apply Now</button>
       </div>
     </div>
   </div>
@@ -1055,7 +1388,7 @@ $hasError = !empty($dbError);
   <!-- Success Animation Modal -->
   <div id="successModal" class="success-modal-backdrop" aria-hidden="true">
     <div class="success-modal" role="dialog" aria-modal="true">
-      <button type="button" id="closeSuccessXBtn" class="job-modal-close" aria-label="Close success dialog" style="position: absolute; top: 16px; right: 16px; z-index: 20;">×</button>
+      <button type="button" id="closeSuccessXBtn" class="job-modal-close" aria-label="Close success dialog" style="position: absolute; top: 16px; right: 16px; z-index: 20;">&times;</button>
       <div class="success-checkmark">
         <svg viewBox="0 0 24 24">
           <circle class="success-checkmark-circle" cx="12" cy="12" r="10"></circle>
@@ -1069,15 +1402,15 @@ $hasError = !empty($dbError);
       <div class="success-details" id="successDetails">
         <div class="success-detail-row">
           <span class="success-detail-label">Job Title</span>
-          <span class="success-detail-value" id="successJobTitle">—</span>
+          <span class="success-detail-value" id="successJobTitle">&#8212;</span>
         </div>
         <div class="success-detail-row">
           <span class="success-detail-label">Company</span>
-          <span class="success-detail-value" id="successCompany">—</span>
+          <span class="success-detail-value" id="successCompany">&#8212;</span>
         </div>
         <div class="success-detail-row">
           <span class="success-detail-label">Applied Date</span>
-          <span class="success-detail-value" id="successDate">—</span>
+          <span class="success-detail-value" id="successDate">&#8212;</span>
         </div>
         <div class="success-detail-row">
           <span class="success-detail-label">Status</span>
@@ -1085,8 +1418,8 @@ $hasError = !empty($dbError);
         </div>
       </div>
       <div class="success-actions">
-        <button type="button" class="btn btn-secondary" id="viewApplicationsBtn">View Applications</button>
-        <button type="button" class="btn btn-primary" id="closeSuccessBtn">Browse More Jobs</button>
+        <button type="button" class="btn-secondary" id="viewApplicationsBtn">View Applications</button>
+        <button type="button" class="btn-primary" id="closeSuccessBtn">Browse More Jobs</button>
       </div>
     </div>
   </div>
@@ -1153,8 +1486,8 @@ $hasError = !empty($dbError);
         min,
         max,
         text: min === max ?
-          `₱${min.toLocaleString()} / mo` :
-          `₱${min.toLocaleString()} – ₱${max.toLocaleString()} / mo`
+          `&#8369;${min.toLocaleString()} / mo` :
+          `&#8369;${min.toLocaleString()} &#8211; &#8369;${max.toLocaleString()} / mo`
       };
     }
 
@@ -1399,7 +1732,7 @@ $hasError = !empty($dbError);
             <div style="font-size:0.82rem;color:#64748b;margin-bottom:0.4rem">${location}</div>
             <div style="font-size:0.82rem;margin-bottom:0.35rem">${salary}</div>
             <div style="font-size:0.8rem;color:#64748b;margin-bottom:0.65rem">${type}</div>
-            <button type="button" class="btn btn-primary" onclick="window.openJobDetailsById(${job.id})" style="padding:0.45rem 0.75rem;font-size:0.82rem;width:100%">View Details</button>
+            <button type="button" class="btn-primary" onclick="window.openJobDetailsById(${job.id})" style="padding:0.45rem 0.75rem;font-size:0.82rem;width:100%">View Details</button>
           </div>
         `;
     }
@@ -1550,7 +1883,7 @@ $hasError = !empty($dbError);
         }
 
         allJobs = dbJobs.map(normalizeRow);
-        console.log(`📦 Loaded ${allJobs.length} jobs from database`);
+        console.log(`Loaded ${allJobs.length} jobs from database`);
         loadErrorMessage = '';
 
         // Keep salary filters wide enough for actual DB data
@@ -1561,7 +1894,7 @@ $hasError = !empty($dbError);
       } catch (err) {
         allJobs = [];
         loadErrorMessage = (err && err.message) ? err.message : 'Failed to load jobs from database.';
-        console.error('❌ Error loading jobs:', err);
+        console.error('Error loading jobs:', err);
       }
       updateSidebarCounts();
       applyFilters();
@@ -1727,7 +2060,7 @@ $hasError = !empty($dbError);
         if (!jobs.length) {
           const empty = document.createElement('div');
           empty.className = 'no-results';
-          empty.style.cssText = 'text-align:center;padding:3rem 2rem;color:var(--text-light);';
+          empty.style.cssText = 'text-align:center;padding:3rem 2rem;color:var(--warm-light);';
           empty.innerHTML = `<p>${loadErrorMessage || 'No jobs found matching your filters. Try adjusting your search criteria.'}</p>`;
           main.appendChild(empty);
           return;
@@ -1749,8 +2082,8 @@ $hasError = !empty($dbError);
 
     // ─── Build a single job card ───────────────────────────────────────────
     function createJobCard(job) {
-      const bgColors = ['#e8f5e9', '#e3f2fd', '#f3e5f5', '#fff8e1', '#ffe0b2', '#fce4ec'];
-      const textColors = ['#2e7d32', '#1565c0', '#6a1b9a', '#e65100', '#e65100', '#c2185b'];
+      const bgColors = ['#d4e6d6', '#c8d8e8', '#e8d4e8', '#f0e4c8', '#f0d8c0', '#e8d0d8'];
+      const textColors = ['#4a6b50', '#3a5a7a', '#6a3a6a', '#8a7040', '#8a5a3a', '#8a3a4a'];
       const idx = job.id % 6;
 
       const setupBadgeClass = job.setup === 'Remote' ?
@@ -1787,19 +2120,19 @@ $hasError = !empty($dbError);
             <span class="badge ${setupBadgeClass}">${job.setup}</span>
           </div>
           <div class="job-meta">
-            <span>📍 ${job.location}</span>
-            <span>💼 ${job.type}</span>
-            <span>📊 ${job.level || 'Not specified'}</span>
-            <span>🏢 ${job.category || 'Not specified'}</span>
-            <span>📅 ${createdDate}</span>
+            <span>&#128205; ${job.location}</span>
+            <span>&#128188; ${job.type}</span>
+            <span>&#128202; ${job.level || 'Not specified'}</span>
+            <span>&#127970; ${job.category || 'Not specified'}</span>
+            <span>&#128197; ${createdDate}</span>
           </div>
           <div class="job-skills">${skillsHtml}</div>
           <div class="job-footer">
             <div class="job-salary">${job.salaryText}</div>
             <div style="display:flex;align-items:center;gap:1rem">
               <span class="job-date">Application deadline: ${deadline}</span>
-              <button type="button" class="btn btn-secondary" style="padding:0.65rem 1rem" data-view-job="${job.id}">View Details</button>
-              <button type="button" class="btn btn-primary" onclick="submitApplication(${job.id})">Apply Now</button>
+              <button type="button" class="btn-secondary" style="padding:0.65rem 1rem" data-view-job="${job.id}">View Details</button>
+              <button type="button" class="btn-primary" onclick="submitApplication(${job.id})">Apply Now</button>
             </div>
           </div>
         `;
@@ -1822,7 +2155,7 @@ $hasError = !empty($dbError);
       // Previous button
       const prevBtn = document.createElement('button');
       prevBtn.className = 'pg-btn';
-      prevBtn.textContent = '‹';
+      prevBtn.textContent = '\u2039';
       prevBtn.onclick = () => {
         if (activePage > 1) {
           currentPage = activePage - 1;
@@ -1847,7 +2180,7 @@ $hasError = !empty($dbError);
       if (totalPages > 5) {
         const ellipsis = document.createElement('button');
         ellipsis.className = 'pg-btn';
-        ellipsis.textContent = '…';
+        ellipsis.textContent = '\u2026';
         ellipsis.style.pointerEvents = 'none';
         pag.appendChild(ellipsis);
 
@@ -1864,7 +2197,7 @@ $hasError = !empty($dbError);
       // Next button
       const nextBtn = document.createElement('button');
       nextBtn.className = 'pg-btn';
-      nextBtn.textContent = '›';
+      nextBtn.textContent = '\u203A';
       nextBtn.onclick = () => {
         if (activePage < totalPages) {
           currentPage = activePage + 1;
@@ -2015,7 +2348,7 @@ $hasError = !empty($dbError);
           const box = item.querySelector('.fcheck');
 
           box.classList.toggle('on');
-          box.textContent = box.classList.contains('on') ? '✓' : '';
+          box.textContent = box.classList.contains('on') ? '\u2713' : '';
 
           if (box.classList.contains('on')) {
             if (!filterState[group].includes(value)) filterState[group].push(value);
@@ -2138,6 +2471,64 @@ $hasError = !empty($dbError);
         });
       }
     });
+  </script>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <h3>TalentScout AI</h3>
+          <p>Smart AI-powered recruitment platform for PESO Nasugbu, Batangas. Connecting local talent with local opportunities.</p>
+        </div>
+        <div class="footer-col">
+          <h4>For Job Seekers</h4>
+          <ul>
+            <li><a href="../job-postings/index.php">Browse Jobs</a></li>
+            <li><a href="../ai-matching/index.php">AI Matching</a></li>
+            <li><a href="../skill-gap-analysis/index.php">Skill Gap Analysis</a></li>
+            <li><a href="../applicant-tracking/index.php">Track Applications</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>For Employers</h4>
+          <ul>
+            <li><a href="../../employers/index.php">Post Jobs</a></li>
+            <li><a href="../../employers/modules/blind-hiring/index.php">Blind Hiring</a></li>
+            <li><a href="../../employers/index.php">Find Talent</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>PESO Nasugbu</h4>
+          <ul>
+            <li><a href="#">Nasugbu, Batangas</a></li>
+            <li><a href="#">About PESO</a></li>
+            <li><a href="#">Contact Us</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 TalentScout AI — PESO Nasugbu, Batangas</span>
+        <span>Built for Local Employment &amp; Community Growth</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ── Scroll reveal
+    const reveals = document.querySelectorAll('.reveal');
+    if (reveals.length) {
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.classList.add('visible');
+            io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.12 });
+      reveals.forEach(el => io.observe(el));
+    }
   </script>
 </body>
 

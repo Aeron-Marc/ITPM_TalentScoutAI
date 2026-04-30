@@ -33,14 +33,221 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
     <title>AI Job Matching — TalentScout AI</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../../styles/global.css" />
-    <link rel="stylesheet" href="../../../styles/page-layout.css" />
-    <link rel="stylesheet" href="../../navbar.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-      * {
-        font-family: 'Poppins', sans-serif;
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --sand:        #f5f0e8;
+        --sand-dark:   #ece5d5;
+        --sage:        #6b8f71;
+        --sage-light:  #9ab89f;
+        --sage-pale:   #d4e6d6;
+        --sage-deep:   #4a6b50;
+        --stone:       #8a8070;
+        --stone-light: #c4b9a8;
+        --cream:       #faf8f3;
+        --charcoal:    #2a2a22;
+        --warm-mid:    #5a5448;
+        --warm-light:  #9a9288;
+        --gold:        #c8a96e;
+        --gold-pale:   #f0e4c8;
+        --white-t:     rgba(255,255,255,0.92);
+        --radius-xl:   24px;
+        --radius-lg:   16px;
+        --radius-md:   10px;
+        --radius-pill: 999px;
+        --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+        --nav-height:  64px;
       }
+
+      html { scroll-behavior: smooth; }
+
+      body {
+        font-family: 'DM Sans', sans-serif;
+        background: var(--cream);
+        color: var(--charcoal);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      a { text-decoration: none; color: inherit; }
+
+      /* ── GRAIN OVERLAY ── */
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 9999;
+        opacity: 0.03;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      }
+
+      /* ── NAVBAR ── */
+      .navbar {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 3rem;
+        height: 64px;
+        background: rgba(250, 248, 243, 0.88);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(139, 128, 112, 0.12);
+        animation: slideDown 0.6s var(--ease-out) both;
+      }
+
+      @keyframes slideDown {
+        from { transform: translateY(-100%); opacity: 0; }
+        to   { transform: translateY(0); opacity: 1; }
+      }
+
+      .nav-logo {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 1.15rem;
+        color: var(--charcoal);
+        letter-spacing: -0.01em;
+      }
+
+      .nav-logo-mark {
+        width: 34px; height: 34px;
+        background: var(--sage-deep);
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: #fff;
+        letter-spacing: 0.04em;
+      }
+
+      .nav-logo em { font-style: italic; color: var(--sage); }
+
+      .nav-links {
+        display: flex;
+        list-style: none;
+        gap: 0.15rem;
+      }
+
+      .nav-links a {
+        padding: 0.38rem 0.85rem;
+        border-radius: var(--radius-pill);
+        font-size: 0.84rem;
+        font-weight: 400;
+        color: var(--warm-mid);
+        transition: background 0.2s, color 0.2s;
+        letter-spacing: 0.01em;
+      }
+
+      .nav-links a:hover, .nav-links a.active {
+        background: var(--sage-pale);
+        color: var(--sage-deep);
+      }
+
+      .nav-right {
+        display: flex; align-items: center; gap: 0.7rem;
+      }
+
+      .nav-user {
+        font-size: 0.83rem;
+        color: var(--warm-mid);
+      }
+
+      .btn-nav-ghost {
+        padding: 0.4rem 1rem;
+        border-radius: var(--radius-pill);
+        border: 1px solid var(--stone-light);
+        color: var(--warm-mid);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.83rem;
+        font-weight: 500;
+        background: transparent;
+        cursor: pointer;
+        transition: border-color 0.2s, background 0.2s;
+      }
+
+      .btn-nav-ghost:hover { background: var(--sand); border-color: var(--stone); }
+
+      .btn-nav-solid {
+        padding: 0.44rem 1.2rem;
+        border-radius: var(--radius-pill);
+        background: var(--sage-deep);
+        color: #fff;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.83rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.15s;
+        display: inline-flex; align-items: center; gap: 0.35rem;
+      }
+
+      .btn-nav-solid:hover { background: var(--sage); transform: translateY(-1px); }
+
+      /* ── PAGE HEADER ── */
+      .page-header {
+        padding-top: calc(var(--nav-height) + 3rem);
+        padding-bottom: 2rem;
+        background: var(--sand);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .page-header::before {
+        content: '';
+        position: absolute;
+        top: -60px; right: -60px;
+        width: 240px; height: 240px;
+        border-radius: 50%;
+        background: radial-gradient(circle, var(--sage-pale) 0%, transparent 70%);
+        pointer-events: none;
+      }
+
+      .page-header-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2.5rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      .breadcrumb {
+        font-size: 0.78rem;
+        color: var(--warm-light);
+        margin-bottom: 1rem;
+      }
+
+      .breadcrumb a {
+        color: var(--sage);
+        transition: color 0.15s;
+      }
+
+      .breadcrumb a:hover { color: var(--sage-deep); }
+
+      .page-header h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.8rem, 3vw, 2.4rem);
+        font-weight: 900;
+        color: var(--charcoal);
+        letter-spacing: -0.025em;
+        margin-bottom: 0.6rem;
+      }
+
+      .page-header p {
+        font-size: 0.92rem;
+        color: var(--warm-mid);
+        line-height: 1.7;
+        max-width: 600px;
+      }
+
+      /* ── MAIN LAYOUT ── */
       .match-layout {
         max-width: 1200px;
         margin: 0 auto;
@@ -51,292 +258,397 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
         align-items: start;
       }
 
-      /* Profile Panel */
+      /* ── PROFILE PANEL ── */
       .profile-panel {
         position: sticky;
         top: calc(var(--nav-height) + 1rem);
       }
+
       .profile-card {
-        background: white;
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
+        background: #fff;
+        border: 1px solid var(--sand-dark);
+        border-radius: var(--radius-xl);
         overflow: hidden;
+        box-shadow: 0 4px 24px rgba(42,42,34,0.06);
+        transition: box-shadow 0.3s var(--ease-out);
       }
+
+      .profile-card:hover {
+        box-shadow: 0 12px 40px rgba(42,42,34,0.1);
+      }
+
       .profile-header {
-        background: linear-gradient(
-          135deg,
-          var(--primary-darker),
-          var(--primary-dark)
-        );
+        background: linear-gradient(135deg, var(--sage-deep), var(--sage));
         padding: 1.75rem;
         text-align: center;
-        color: white;
+        color: #fff;
+        position: relative;
       }
+
+      .profile-header::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--gold-pale), var(--gold), var(--gold-pale));
+      }
+
       .profile-avatar {
-        width: 72px;
-        height: 72px;
-        background: rgba(255, 255, 255, 0.2);
-        border: 3px solid rgba(255, 255, 255, 0.4);
+        width: 72px; height: 72px;
+        background: rgba(255,255,255,0.18);
+        border: 3px solid rgba(255,255,255,0.35);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 1.6rem;
-        font-weight: 800;
+        font-weight: 700;
         margin: 0 auto 0.75rem;
-        color: white;
+        color: #fff;
+        font-family: 'Playfair Display', serif;
       }
+
       .profile-name {
-        font-size: 1.1rem;
+        font-family: 'Playfair Display', serif;
+        font-size: 1.15rem;
         font-weight: 700;
       }
+
       .profile-loc {
         font-size: 0.85rem;
-        opacity: 0.78;
+        opacity: 0.82;
         margin-top: 0.2rem;
       }
+
       .profile-body {
-        padding: 1.25rem;
+        padding: 1.4rem;
       }
+
       .profile-section {
         margin-bottom: 1.25rem;
       }
+
       .profile-section-title {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.7px;
-        color: var(--text-light);
+        letter-spacing: 0.1em;
+        color: var(--warm-light);
         margin-bottom: 0.75rem;
       }
+
       .skills-grid {
         display: flex;
         flex-wrap: wrap;
         gap: 0.4rem;
       }
+
       .profile-info-row {
         display: flex;
         justify-content: space-between;
         font-size: 0.87rem;
-        padding: 0.4rem 0;
-        border-bottom: 1px solid var(--border);
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--sand-dark);
       }
+
       .profile-info-row:last-child {
         border-bottom: none;
       }
+
       .profile-info-label {
-        color: var(--text-light);
+        color: var(--warm-light);
       }
+
       .profile-info-val {
         font-weight: 600;
-        color: var(--text-dark);
+        color: var(--charcoal);
       }
+
       .match-score-ring {
-        width: 90px;
-        height: 90px;
+        width: 90px; height: 90px;
         border-radius: 50%;
-        background: conic-gradient(
-          var(--primary-dark) 0% 87%,
-          var(--border) 87% 100%
-        );
+        background: conic-gradient(var(--sage-deep) 0% 87%, var(--sand-dark) 87% 100%);
         display: flex;
         align-items: center;
         justify-content: center;
         margin: 0 auto 0.5rem;
         position: relative;
       }
+
       .match-score-inner {
-        width: 68px;
-        height: 68px;
-        background: white;
+        width: 68px; height: 68px;
+        background: #fff;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 1.1rem;
         font-weight: 800;
-        color: var(--primary-darker);
+        color: var(--sage-deep);
+        font-family: 'Playfair Display', serif;
       }
 
-      /* Matches Column */
+      /* ── BUTTONS ── */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        padding: 0.65rem 1.4rem;
+        border-radius: var(--radius-pill);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.84rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s var(--ease-out);
+        border: none;
+        text-decoration: none;
+        line-height: 1;
+      }
+
+      .btn-sage {
+        background: var(--sage-deep);
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(74,107,80,0.28);
+      }
+
+      .btn-sage:hover {
+        background: var(--sage);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(74,107,80,0.35);
+      }
+
+      .btn-outline {
+        background: transparent;
+        color: var(--warm-mid);
+        border: 1.5px solid var(--stone-light);
+      }
+
+      .btn-outline:hover {
+        background: var(--sand);
+        border-color: var(--stone);
+        transform: translateY(-1px);
+      }
+
+      .btn-light {
+        background: var(--sand);
+        color: var(--sage-deep);
+        border: 1px solid var(--sand-dark);
+      }
+
+      .btn-light:hover {
+        background: var(--sage-pale);
+        border-color: var(--sage-light);
+        transform: translateY(-1px);
+      }
+
+      /* ── INPUTS ── */
+      .input {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.86rem;
+        padding: 0.55rem 0.85rem;
+        border-radius: var(--radius-pill);
+        border: 1.5px solid var(--sand-dark);
+        background: #fff;
+        color: var(--charcoal);
+        transition: border-color 0.2s, box-shadow 0.2s;
+        outline: none;
+      }
+
+      .input:focus {
+        border-color: var(--sage-light);
+        box-shadow: 0 0 0 3px var(--sage-pale);
+      }
+
+      .input::placeholder { color: var(--warm-light); }
+
+      .select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%238a8070' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        padding-right: 2.2rem;
+      }
+
+      /* ── MATCHES COLUMN ── */
       .matches-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 0.8rem;
       }
+
+      .matches-header > div:first-child {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--charcoal);
+      }
+
+      .matches-header > div:first-child + div {
+        font-size: 0.85rem;
+        color: var(--warm-light);
+        margin-top: 0.2rem;
+      }
+
       .matches-tabs {
         display: flex;
-        gap: 0.25rem;
-        background: var(--bg-light);
-        border-radius: var(--radius-sm);
-        padding: 0.3rem;
-        border: 1px solid var(--border);
+        gap: 0.2rem;
+        background: var(--sand);
+        border-radius: var(--radius-pill);
+        padding: 0.25rem;
+        border: 1px solid var(--sand-dark);
       }
+
       .tab-btn {
         padding: 0.45rem 1rem;
-        border-radius: 6px;
-        font-size: 0.85rem;
+        border-radius: var(--radius-pill);
+        font-size: 0.82rem;
         font-weight: 500;
-        color: var(--text-mid);
+        color: var(--warm-mid);
         cursor: pointer;
         background: transparent;
         border: none;
-        font-family: inherit;
-      }
-      .tab-btn.active {
-        background: white;
-        color: var(--primary-darker);
-        font-weight: 700;
-        box-shadow: var(--shadow-sm);
-      }
-
-      .match-card {
-        background: white;
-        border: 1.5px solid var(--border);
-        border-radius: var(--radius);
-        padding: 1.5rem;
-        margin-bottom: 1rem;
+        font-family: 'DM Sans', sans-serif;
         transition: all 0.2s;
       }
-      .match-card:hover {
-        border-color: var(--primary-dark);
-        box-shadow: var(--shadow);
+
+      .tab-btn.active {
+        background: #fff;
+        color: var(--sage-deep);
+        font-weight: 700;
+        box-shadow: 0 2px 8px rgba(42,42,34,0.08);
       }
+
+      /* ── MATCH CARDS ── */
+      .match-card {
+        background: #fff;
+        border: 1.5px solid var(--sand-dark);
+        border-radius: var(--radius-xl);
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s var(--ease-out);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .match-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--sage-pale), var(--sage));
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.3s var(--ease-out);
+      }
+
+      .match-card:hover {
+        border-color: var(--sage-pale);
+        box-shadow: 0 12px 40px rgba(42,42,34,0.1);
+        transform: translateY(-3px);
+      }
+
+      .match-card:hover::before {
+        transform: scaleX(1);
+      }
+
       .match-card-top {
         display: flex;
         align-items: flex-start;
         gap: 1rem;
         margin-bottom: 1rem;
       }
+
       .match-logo {
-        width: 48px;
-        height: 48px;
-        border-radius: 10px;
-        font-weight: 800;
+        width: 48px; height: 48px;
+        border-radius: var(--radius-md);
+        font-weight: 700;
         font-size: 1rem;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
+        font-family: 'Playfair Display', serif;
       }
+
       .match-info {
         flex: 1;
       }
+
       .match-title {
+        font-family: 'Playfair Display', serif;
         font-size: 1.05rem;
         font-weight: 700;
         margin-bottom: 0.2rem;
+        color: var(--charcoal);
       }
+
       .match-company {
         font-size: 0.87rem;
-        color: var(--text-mid);
+        color: var(--warm-mid);
       }
+
       .match-pct {
-        background: var(--primary);
-        color: var(--primary-darker);
-        padding: 0.35rem 0.8rem;
-        border-radius: 100px;
-        font-weight: 800;
-        font-size: 0.88rem;
+        background: var(--sage-pale);
+        color: var(--sage-deep);
+        padding: 0.35rem 0.85rem;
+        border-radius: var(--radius-pill);
+        font-weight: 700;
+        font-size: 0.85rem;
         white-space: nowrap;
         flex-shrink: 0;
       }
+
       .match-pct.high {
-        background: #d4edda;
-        color: #155724;
+        background: var(--sage-pale);
+        color: var(--sage-deep);
       }
+
       .match-pct.mid {
-        background: #fff3cd;
-        color: #856404;
+        background: var(--gold-pale);
+        color: #8a6d2b;
       }
+
+      .match-pct.low {
+        background: var(--sand);
+        color: var(--warm-mid);
+      }
+
       .match-meta {
         display: flex;
         gap: 1.2rem;
         font-size: 0.83rem;
-        color: var(--text-light);
+        color: var(--warm-light);
         margin-bottom: 0.75rem;
         flex-wrap: wrap;
       }
+
       .match-bars {
-        background: var(--bg-light);
-        border-radius: var(--radius-sm);
+        background: var(--sand);
+        border-radius: var(--radius-lg);
         padding: 1rem;
         margin-top: 0.75rem;
       }
+
       .match-bar-row {
         margin-bottom: 0.6rem;
       }
+
       .match-bar-row:last-child {
         margin-bottom: 0;
       }
+
       .match-bar-label {
         display: flex;
         justify-content: space-between;
         font-size: 0.8rem;
         font-weight: 500;
-        color: var(--text-mid);
+        color: var(--warm-mid);
         margin-bottom: 0.3rem;
       }
 
-      /* How it Works */
-      .how-section {
-        background: white;
-        margin: 2rem auto;
-        max-width: 1200px;
-        padding: 0 2.5rem 3rem;
-      }
-      .how-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1.5rem;
-        margin-top: 2rem;
-      }
-      .how-card {
-        background: var(--bg-light);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 1.5rem;
-        text-align: center;
-      }
-      .how-icon {
-        font-size: 2rem;
-        margin-bottom: 0.75rem;
-      }
-      .how-title {
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-      }
-      .how-desc {
-        font-size: 0.87rem;
-        color: var(--text-light);
-        line-height: 1.65;
-      }
-
-      /* Chips / Tags */
-      .chip {
-        display: inline-block;
-        background: var(--primary-light);
-        color: var(--primary-darker);
-        padding: 0.4rem 0.8rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 500;
-        white-space: nowrap;
-      }
-      .chip-outline {
-        display: inline-block;
-        background: transparent;
-        color: var(--text-light);
-        padding: 0.4rem 0.8rem;
-        border: 1px dashed var(--border);
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 500;
-        white-space: nowrap;
-      }
-
-      /* Job Skills Section */
       .job-skills {
         display: flex;
         flex-wrap: wrap;
@@ -344,21 +656,260 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
         margin-top: 0.75rem;
       }
 
-      /* Progress Bar */
+      /* ── CHIPS ── */
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        background: var(--sage-pale);
+        color: var(--sage-deep);
+        padding: 0.38rem 0.75rem;
+        border-radius: var(--radius-pill);
+        font-size: 0.78rem;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+
+      .chip-remove {
+        background: none;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        font-size: 1rem;
+        line-height: 1;
+        opacity: 0.6;
+        transition: opacity 0.15s;
+        padding: 0;
+      }
+
+      .chip-remove:hover { opacity: 1; }
+
+      .chip-outline {
+        display: inline-block;
+        background: transparent;
+        color: var(--warm-light);
+        padding: 0.38rem 0.75rem;
+        border: 1px dashed var(--stone-light);
+        border-radius: var(--radius-pill);
+        font-size: 0.78rem;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+
+      /* ── PROGRESS BAR ── */
       .progress-bar {
         width: 100%;
         height: 8px;
-        background: var(--border);
+        background: var(--sand-dark);
         border-radius: 4px;
         overflow: hidden;
       }
+
       .progress-fill {
         height: 100%;
-        background: linear-gradient(90deg, var(--primary-dark), var(--primary));
+        background: linear-gradient(90deg, var(--sage-deep), var(--sage));
         border-radius: 4px;
-        transition: width 0.3s ease;
+        transition: width 0.4s var(--ease-out);
       }
 
+      /* ── HOW IT WORKS ── */
+      .how-section {
+        background: var(--sand);
+        padding: 4rem 2rem 4.5rem;
+        margin-top: 2rem;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .how-section::before {
+        content: '';
+        position: absolute;
+        bottom: -80px; left: -80px;
+        width: 260px; height: 260px;
+        border-radius: 50%;
+        background: radial-gradient(circle, var(--gold-pale) 0%, transparent 70%);
+        pointer-events: none;
+      }
+
+      .how-inner {
+        max-width: 1080px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+      }
+
+      .section-head {
+        text-align: center;
+        margin-bottom: 3rem;
+      }
+
+      .section-head .eyebrow {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--sage);
+        margin-bottom: 0.7rem;
+      }
+
+      .section-head h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+        font-weight: 900;
+        color: var(--charcoal);
+        letter-spacing: -0.025em;
+        margin-bottom: 0.5rem;
+      }
+
+      .section-head p {
+        font-size: 0.88rem;
+        color: var(--warm-mid);
+        max-width: 480px;
+        margin: 0 auto;
+        line-height: 1.7;
+      }
+
+      .how-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.4rem;
+      }
+
+      .how-card {
+        background: var(--cream);
+        border: 1px solid rgba(139,128,112,0.12);
+        border-radius: var(--radius-xl);
+        padding: 2rem 1.5rem;
+        text-align: center;
+        transition: box-shadow 0.25s var(--ease-out), transform 0.25s var(--ease-out), border-color 0.25s;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .how-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--sage-pale), var(--sage));
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.3s var(--ease-out);
+      }
+
+      .how-card:hover {
+        box-shadow: 0 12px 40px rgba(42,42,34,0.1);
+        transform: translateY(-4px);
+        border-color: var(--sage-pale);
+      }
+
+      .how-card:hover::before {
+        transform: scaleX(1);
+      }
+
+      .how-icon {
+        width: 52px; height: 52px;
+        background: var(--sage-pale);
+        border-radius: var(--radius-md);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem;
+        margin: 0 auto 1rem;
+      }
+
+      .how-card h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--charcoal);
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.01em;
+      }
+
+      .how-card p {
+        font-size: 0.83rem;
+        color: var(--warm-mid);
+        line-height: 1.68;
+      }
+
+      /* ── FOOTER ── */
+      .footer {
+        background: #1e1e18;
+        color: rgba(255,255,255,0.5);
+        padding: 4rem 2rem 2rem;
+      }
+
+      .footer-inner { max-width: 1080px; margin: 0 auto; }
+
+      .footer-top {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: 2.5rem;
+        padding-bottom: 2.5rem;
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+        margin-bottom: 1.8rem;
+      }
+
+      .footer-brand h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 0.7rem;
+      }
+
+      .footer-brand p {
+        font-size: 0.81rem;
+        line-height: 1.68;
+        color: rgba(255,255,255,0.42);
+      }
+
+      .footer-col h4 {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: rgba(255,255,255,0.7);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 1rem;
+      }
+
+      .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+
+      .footer-col ul a {
+        font-size: 0.82rem;
+        color: rgba(255,255,255,0.4);
+        transition: color 0.15s;
+      }
+
+      .footer-col ul a:hover { color: var(--sage-light); }
+
+      .footer-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.77rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      /* ── SCROLL REVEAL ── */
+      .reveal {
+        opacity: 0;
+        transform: translateY(28px);
+        transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
+      }
+
+      .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .reveal-delay-1 { transition-delay: 0.1s; }
+      .reveal-delay-2 { transition-delay: 0.2s; }
+      .reveal-delay-3 { transition-delay: 0.3s; }
+      .reveal-delay-4 { transition-delay: 0.4s; }
+      .reveal-delay-5 { transition-delay: 0.5s; }
+
+      /* ── RESPONSIVE ── */
       @media (max-width: 1024px) {
         .match-layout {
           grid-template-columns: 1fr;
@@ -375,16 +926,15 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
           gap: 0.8rem;
         }
 
-        .how-section {
-          padding: 0 1.5rem 2rem;
-        }
-
         .how-grid {
-          grid-template-columns: 1fr;
+          grid-template-columns: repeat(2, 1fr);
         }
       }
 
       @media (max-width: 768px) {
+        .navbar { padding: 0 1.2rem; }
+        .nav-links { display: none; }
+
         .match-layout {
           padding: 1rem;
         }
@@ -413,7 +963,7 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
           flex-wrap: wrap;
         }
 
-        .matches-header .input.select {
+        .matches-header .select {
           width: 100% !important;
         }
 
@@ -427,6 +977,24 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
           text-align: center;
           padding: 0.5rem 0.4rem;
         }
+
+        .how-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .footer-top {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .footer-bottom {
+          flex-direction: column;
+          text-align: center;
+        }
+      }
+
+      @media (max-width: 600px) {
+        .page-header-inner { padding: 0 1.2rem; }
+        .footer-top { grid-template-columns: 1fr; }
       }
     </style>
   </head>
@@ -434,8 +1002,8 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
     <!-- NAVBAR -->
     <nav class="navbar">
       <a href="../../index.php" class="nav-logo">
-        <div class="nav-logo-icon">TS</div>
-        <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
+        <div class="nav-logo-mark">TS</div>
+        <span>Talent<em>Scout</em> AI</span>
       </a>
       <ul class="nav-links">
         <li><a href="../../index.php">Home</a></li>
@@ -446,13 +1014,13 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
         <li><a href="../applicant-tracking/index.php">Applications</a></li>
         <li><a href="../messages/index.php">Messages</a></li>
       </ul>
-      <div class="nav-actions">
+      <div class="nav-right">
         <?php if (isset($_SESSION['employee_id'])): ?>
           <span class="nav-user">Welcome, <?php echo htmlspecialchars($_SESSION['employee_name'] ?? 'User'); ?></span>
-          <a href="../../logout.php" class="btn btn-outline">Logout</a>
+          <a href="../../logout.php" class="btn-nav-ghost">Logout</a>
         <?php else: ?>
-          <a href="../../login.php" class="btn btn-outline">Login</a>
-          <a href="../../signup.php" class="btn btn-primary">Get Started</a>
+          <a href="../../login.php" class="btn-nav-ghost">Login</a>
+          <a href="../../signup.php" class="btn-nav-solid">Get Started →</a>
         <?php endif; ?>
       </div>
     </nav>
@@ -463,7 +1031,7 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
         <div class="breadcrumb">
           <a href="../../index.php">Home</a> / AI Job Matching
         </div>
-        <h1>🤖 AI Job Matching</h1>
+        <h1>AI Job Matching</h1>
         <p>
           Our AI engine analyzes your skills and barangay location to surface
           the most relevant job opportunities — ranked by match percentage.
@@ -475,7 +1043,7 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
     <div class="match-layout">
       <!-- PROFILE PANEL -->
       <aside class="profile-panel">
-        <div class="profile-card">
+        <div class="profile-card reveal">
           <div class="profile-header">
             <div class="profile-avatar"><?php 
               echo strtoupper(substr($employee_profile['first_name'], 0, 1) . substr($employee_profile['last_name'], 0, 1));
@@ -486,10 +1054,10 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
           <div class="profile-body">
             <div class="profile-section">
               <div style="text-align: center; margin-bottom: 0.6rem">
-                <div class="match-score-ring" style="background: conic-gradient(var(--primary-dark) 0% <?php echo $profile_score; ?>%, var(--border) <?php echo $profile_score; ?>% 100%)">
+                <div class="match-score-ring" style="background: conic-gradient(var(--sage-deep) 0% <?php echo $profile_score; ?>%, var(--sand-dark) <?php echo $profile_score; ?>% 100%)">
                   <div class="match-score-inner"><?php echo $profile_score; ?>%</div>
                 </div>
-                <div style="font-size: 0.82rem; color: var(--text-light)">
+                <div style="font-size: 0.82rem; color: var(--warm-light)">
                   Overall Profile Score
                 </div>
               </div>
@@ -501,7 +1069,7 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
                 <?php 
                 if (!empty($employee_skills)) {
                     foreach (array_slice($employee_skills, 0, 6) as $skill) {
-                        echo '<span class="chip" data-skill="' . htmlspecialchars($skill) . '">' . htmlspecialchars($skill) . ' <button type="button" class="chip-remove" onclick="removeSkill(this)" style="background: none; border: none; color: inherit; cursor: pointer; margin-left: 0.3rem; font-weight: bold;">×</button></span>';
+                        echo '<span class="chip" data-skill="' . htmlspecialchars($skill) . '">' . htmlspecialchars($skill) . ' <button type="button" class="chip-remove" onclick="removeSkill(this)">×</button></span>';
                     }
                     if (count($employee_skills) > 6) {
                         echo '<span class="chip-outline">+' . (count($employee_skills) - 6) . ' more</span>';
@@ -517,9 +1085,9 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
                   id="skillInput" 
                   class="input" 
                   placeholder="Add a skill..." 
-                  style="width: 100%; padding: 0.5rem;" 
+                  style="width: 100%;" 
                 />
-                <div id="skillSuggestions" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius-sm) var(--radius-sm); max-height: 200px; overflow-y: auto; display: none; z-index: 10;"></div>
+                <div id="skillSuggestions" style="position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid var(--sand-dark); border-top: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg); max-height: 200px; overflow-y: auto; display: none; z-index: 10;"></div>
               </div>
             </div>
 
@@ -553,22 +1121,12 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
       <main>
         <div class="matches-header">
           <div>
-            <div
-              style="font-size: 1rem; font-weight: 700; color: var(--text-dark)"
-            >
-              Your AI-Generated Matches
-            </div>
-            <div
-              style="
-                font-size: 0.85rem;
-                color: var(--text-light);
-                margin-top: 0.2rem;
-              "
-            >
+            <div>Your AI-Generated Matches</div>
+            <div style="font-size: 0.85rem; color: var(--warm-light); margin-top: 0.2rem;">
               <?php echo count($matched_jobs); ?> job<?php echo count($matched_jobs) != 1 ? 's' : ''; ?> matched to your profile
             </div>
           </div>
-          <div style="display: flex; gap: 0.75rem; align-items: center">
+          <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
             <select class="input select" style="width: 175px" id="locationFilter">
               <option value="">All Locations</option>
               <option value="remote">Remote</option>
@@ -586,12 +1144,12 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
         <?php 
         if (empty($matched_jobs)): 
         ?>
-          <div class="match-card" style="text-align: center; padding: 2rem;">
-            <div style="font-size: 2rem; margin-bottom: 0.5rem">🔍</div>
-            <div style="font-weight: 600; margin-bottom: 0.5rem">No Matches Found</div>
-            <p style="color: var(--text-light); font-size: 0.9rem">
-              Add more skills to your profile to see job matches. 
-              <a href="../resume-builder/" style="color: var(--primary-dark); font-weight: 600;">Update your resume →</a>
+          <div class="match-card reveal" style="text-align: center; padding: 2.5rem;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">🔍</div>
+            <div style="font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem;">No Matches Found</div>
+            <p style="color: var(--warm-light); font-size: 0.9rem; line-height: 1.6;">
+              Add more skills to your profile to see job matches.
+              <a href="../resume-builder/" style="color: var(--sage-deep); font-weight: 600;">Update your resume →</a>
             </p>
           </div>
         <?php else: 
@@ -600,19 +1158,18 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
             $employer_name = $engine->getEmployerName($job['employer_id']);
             $initials = strtoupper(substr($employer_name, 0, 1) . (strpos($employer_name, ' ') !== false ? substr($employer_name, strpos($employer_name, ' ') + 1, 1) : ''));
             
-            // Generate random color for employer logo
             $colors = [
-              ['bg' => '#e8f5e9', 'text' => '#2e7d32'],
-              ['bg' => '#e3f2fd', 'text' => '#1565c0'],
-              ['bg' => '#f3e5f5', 'text' => '#6a1b9a'],
-              ['bg' => '#fff3e0', 'text' => '#e65100'],
-              ['bg' => '#fce4ec', 'text' => '#c2185b'],
-              ['bg' => '#e0f2f1', 'text' => '#00796b'],
+              ['bg' => 'var(--sage-pale)', 'text' => 'var(--sage-deep)'],
+              ['bg' => '#dce8f5', 'text' => '#2b5797'],
+              ['bg' => '#ede4f5', 'text' => '#5b2d8e'],
+              ['bg' => 'var(--gold-pale)', 'text' => '#8a6d2b'],
+              ['bg' => '#f5dde4', 'text' => '#8e2d5b'],
+              ['bg' => '#dce8e4', 'text' => '#2d5b4f'],
             ];
             $color = $colors[crc32($job['employer_id']) % count($colors)];
         ?>
         <!-- Match Card -->
-        <div class="match-card" data-match-score="<?php echo $job['overall_match']; ?>" data-work-type="<?php echo strtolower($job['work_type']); ?>">
+        <div class="match-card reveal" data-match-score="<?php echo $job['overall_match']; ?>" data-work-type="<?php echo strtolower($job['work_type']); ?>">
           <div class="match-card-top">
             <div class="match-logo" style="background: <?php echo $color['bg']; ?>; color: <?php echo $color['text']; ?>">
               <?php echo htmlspecialchars($initials); ?>
@@ -645,14 +1202,7 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
           <?php endif; ?>
           
           <div class="match-bars">
-            <div
-              style="
-                font-size: 0.8rem;
-                font-weight: 700;
-                color: var(--text-mid);
-                margin-bottom: 0.6rem;
-              "
-            >
+            <div style="font-size: 0.78rem; font-weight: 700; color: var(--warm-mid); margin-bottom: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em;">
               Match Breakdown
             </div>
             <div class="match-bar-row">
@@ -680,11 +1230,13 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
               </div>
             </div>
           </div>
-          <div style="margin-top: 1rem; display: flex; gap: 0.75rem">
+          <div style="margin-top: 1.1rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
             <a href="../job-postings/index.php?id=<?php echo $job['job_post_id']; ?>" class="btn btn-outline">
               View Full Posting
             </a>
-            <button type="button" class="btn btn-primary apply-job-btn" data-job-id="<?php echo $job['job_post_id']; ?>" data-job-title="<?php echo htmlspecialchars($job['title']); ?>" data-job-company="<?php echo htmlspecialchars($employer_name); ?>" style="border: none; cursor: pointer;">Apply Now</button>
+            <a href="../applicant-tracking/submit-application.php?job_id=<?php echo $job['job_post_id']; ?>" class="btn btn-sage">
+              Apply Now →
+            </a>
           </div>
         </div>
         <?php endforeach; 
@@ -694,49 +1246,50 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
     </div>
 
     <!-- HOW IT WORKS -->
-    <div class="how-section">
-      <div class="section-label">Behind the AI</div>
-      <h2 class="section-title">How AI Matching Works</h2>
-      <div class="how-grid">
-        <div class="how-card">
-          <div class="how-icon">🧠</div>
-          <div class="how-title">Skills Analysis</div>
-          <p class="how-desc">
-            The AI maps your listed skills against job requirements, identifying
-            exact, partial, and missing skill matches with weighted scoring.
-          </p>
+    <section class="how-section">
+      <div class="how-inner">
+        <div class="section-head reveal">
+          <div class="eyebrow">Behind the AI</div>
+          <h2>How AI Matching Works</h2>
+          <p>Three pillars power our intelligent job matching engine.</p>
         </div>
-        <div class="how-card">
-          <div class="how-icon">📍</div>
-          <div class="how-title">Barangay Targeting</div>
-          <p class="how-desc">
-            Location matching uses barangay-level data within Nasugbu,
-            prioritizing nearby jobs while still surfacing high-quality remote
-            options.
-          </p>
-        </div>
-        <div class="how-card">
-          <div class="how-icon">⚖️</div>
-          <div class="how-title">Weighted Scoring</div>
-          <p class="how-desc">
-            Skills (50%), Location (30%), and Experience (20%) are weighted and
-            combined to produce a single reliable match percentage score.
-          </p>
+        <div class="how-grid">
+          <div class="how-card reveal reveal-delay-1">
+            <div class="how-icon">🧠</div>
+            <h3>Skills Analysis</h3>
+            <p>
+              The AI maps your listed skills against job requirements, identifying
+              exact, partial, and missing skill matches with weighted scoring.
+            </p>
+          </div>
+          <div class="how-card reveal reveal-delay-2">
+            <div class="how-icon">📍</div>
+            <h3>Barangay Targeting</h3>
+            <p>
+              Location matching uses barangay-level data within Nasugbu,
+              prioritizing nearby jobs while still surfacing high-quality remote
+              options.
+            </p>
+          </div>
+          <div class="how-card reveal reveal-delay-3">
+            <div class="how-icon">⚖️</div>
+            <h3>Weighted Scoring</h3>
+            <p>
+              Skills (50%), Location (30%), and Experience (20%) are weighted and
+              combined to produce a single reliable match percentage score.
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
 
     <!-- FOOTER -->
     <footer class="footer">
       <div class="footer-inner">
         <div class="footer-top">
           <div class="footer-brand">
-            <h3>TalentScout AI</h3>
-            <p>
-              Smart AI-powered recruitment platform for PESO Nasugbu, Batangas.
-              Connecting local talent with local opportunities through fair,
-              intelligent hiring.
-            </p>
+            <h3>🌿 TalentScout AI</h3>
+            <p>Smart AI-powered recruitment platform for PESO Nasugbu, Batangas. Connecting local talent with local opportunities through fair, intelligent hiring.</p>
           </div>
           <div class="footer-col">
             <h4>Features</h4>
@@ -763,8 +1316,8 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
           </div>
         </div>
         <div class="footer-bottom">
-          <span>© 2026 TalentScout AI — PESO Nasugbu, Batangas</span>
-          <span>Built for Local Employment</span>
+          <span>&copy; 2026 TalentScout AI — PESO Nasugbu, Batangas</span>
+          <span>Built for Local Employment &amp; Community Growth</span>
         </div>
       </div>
     </footer>
@@ -834,6 +1387,18 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
 
     <script src="../../employee-auth.js"></script>
     <script>
+      // ── Scroll reveal
+      const reveals = document.querySelectorAll('.reveal');
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.classList.add('visible');
+            io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.12 });
+      reveals.forEach(el => io.observe(el));
+
       // Match filtering functionality
       const matchCards = document.querySelectorAll('.match-card[data-match-score]');
       const tabButtons = document.querySelectorAll('.tab-btn[data-filter]');
@@ -895,7 +1460,7 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
             .then(data => {
               if (data.suggestions && data.suggestions.length > 0) {
                 skillSuggestions.innerHTML = data.suggestions
-                  .map(skill => `<div class="suggestion-item" onclick="selectSkill('${skill}')" style="padding: 0.6rem 0.75rem; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 0.9rem;">${skill}</div>`)
+                  .map(skill => `<div class="suggestion-item" onclick="selectSkill('${skill}')" style="padding: 0.6rem 0.75rem; cursor: pointer; border-bottom: 1px solid var(--sand-dark); font-size: 0.9rem; color: var(--charcoal); transition: background 0.15s;" onmouseover="this.style.background='var(--sand)'" onmouseout="this.style.background='transparent'">${skill}</div>`)
                   .join('');
                 skillSuggestions.style.display = 'block';
               } else {
@@ -985,7 +1550,7 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
         const chip = document.createElement('span');
         chip.className = 'chip';
         chip.setAttribute('data-skill', skill);
-        chip.innerHTML = skill + ' <button type="button" class="chip-remove" onclick="removeSkill(this)" style="background: none; border: none; color: inherit; cursor: pointer; margin-left: 0.3rem; font-weight: bold;">×</button>';
+        chip.innerHTML = skill + ' <button type="button" class="chip-remove" onclick="removeSkill(this)">×</button>';
         
         skillsList.appendChild(chip);
       }
@@ -1024,17 +1589,25 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
       }
 
       function showNotification(message, type = 'info') {
+        const colors = {
+          success: { bg: 'var(--sage-pale)', text: 'var(--sage-deep)' },
+          error: { bg: '#f8e4e4', text: '#8b2020' },
+          info: { bg: 'var(--gold-pale)', text: '#8a6d2b' }
+        };
+        const c = colors[type] || colors.info;
+        
         const notification = document.createElement('div');
         notification.style.cssText = `
           position: fixed;
           top: 1rem;
           right: 1rem;
-          padding: 1rem 1.5rem;
-          background: ${type === 'success' ? '#d4edda' : type === 'error' ? '#f8d7da' : '#d1ecf1'};
-          color: ${type === 'success' ? '#155724' : type === 'error' ? '#721c24' : '#0c5460'};
-          border-radius: var(--radius);
-          box-shadow: var(--shadow);
-          font-weight: 500;
+          padding: 0.9rem 1.4rem;
+          background: ${c.bg};
+          color: ${c.text};
+          border-radius: var(--radius-pill);
+          box-shadow: 0 8px 28px rgba(42,42,34,0.12);
+          font-weight: 600;
+          font-size: 0.88rem;
           z-index: 1000;
           animation: slideIn 0.3s ease-out;
         `;

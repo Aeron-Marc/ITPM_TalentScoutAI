@@ -975,6 +975,7 @@ require_once __DIR__ . '/../database/db.php';
         <li><a href="./modules/resume-builder/index.php">Resume Builder</a></li>
         <li><a href="./modules/skill-gap-analysis/index.php">Skills</a></li>
         <li><a href="./modules/applicant-tracking/index.php">Applications</a></li>
+        <li><a href="./modules/messages/index.php">Messages</a></li>
       </ul>
       <div class="nav-right">
         <?php if (isset($_SESSION['employee_id'])): ?>
@@ -1132,15 +1133,15 @@ require_once __DIR__ . '/../database/db.php';
           </div>
         </a>
 
-        <a href="#" class="feature-card reveal reveal-delay-2">
+        <a href="./modules/messages/index.php" class="feature-card reveal reveal-delay-2">
           <div class="feature-thumb" style="background: linear-gradient(135deg, #d4e6d6, #f0e4c8);">
-            <span style="font-size:2.8rem;">📚</span>
-            <span class="overlay-tag">Courses</span>
+            <span style="font-size:2.8rem;">💬</span>
+            <span class="overlay-tag">Chat</span>
           </div>
           <div class="feature-body">
-            <h3>Upskilling Courses</h3>
-            <p>Access personalized course recommendations to close your skill gaps and level up your career prospects.</p>
-            <span class="feature-link">Find Courses <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+            <h3>Messages</h3>
+            <p>Chat directly with employers about your applications. Get real-time updates and ask questions.</p>
+            <span class="feature-link">View Messages <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
           </div>
         </a>
 
@@ -1231,6 +1232,7 @@ require_once __DIR__ . '/../database/db.php';
               <li><a href="./modules/ai-matching/index.php">AI Matching</a></li>
               <li><a href="./modules/skill-gap-analysis/index.php">Skill Gap Analysis</a></li>
               <li><a href="./modules/applicant-tracking/index.php">Track Applications</a></li>
+              <li><a href="./modules/messages/index.php">Messages</a></li>
             </ul>
           </div>
           <div class="footer-col">
