@@ -92,6 +92,8 @@ require_once __DIR__ . '/../../database/db.php';
         <li><a href="./resume-builder/index.php">Resume Builder</a></li>
         <li><a href="./skill-gap-analysis/index.php">Skills</a></li>
         <li><a href="./applicant-tracking/index.php">Applications</a></li>
+        <li><a href="./messages/index.php">Messages</a></li>
+      </ul>
 
       </ul>
       <div class="nav-actions">
@@ -171,6 +173,16 @@ require_once __DIR__ . '/../../database/db.php';
               with real-time preview.
             </div>
             <span class="module-link">Build Resume →</span>
+          </a>
+
+          <!-- Messages -->
+          <a href="./messages/index.php" class="module-card">
+            <span class="module-icon">💬</span>
+            <div class="module-title">Messages</div>
+            <div class="module-desc">
+              Chat with employers about your applications. Get real-time updates and ask questions directly.
+            </div>
+            <span class="module-link">View Messages →</span>
           </a>
         </div>
       </div>

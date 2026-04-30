@@ -726,7 +726,7 @@ foreach ($employees as &$emp) {
         </div>
         <div class="action-buttons">
           <button class="btn-small btn-primary-small" onclick="viewProfile(<?php echo $emp['employee_id']; ?>)">View Profile</button>
-          <button class="btn-small btn-outline-small">Message</button>
+          <a href="../chat-sms/?employee_id=<?php echo $emp['employee_id']; ?>" class="btn-small btn-outline-small" style="text-decoration: none; display: inline-block;">Message</a>
         </div>
       </div>
       <?php } 
@@ -843,7 +843,7 @@ foreach ($employees as &$emp) {
         </div>
         <div class="action-buttons">
           <button class="btn-small btn-primary-small" onclick="viewProfile(<?php echo $emp['employee_id']; ?>)">View Anonymous Profile</button>
-          <button class="btn-small btn-outline-small">Schedule Interview</button>
+          <a href="../chat-sms/?employee_id=<?php echo $emp['employee_id']; ?>" class="btn-small btn-outline-small" style="text-decoration: none; display: inline-block;">Message</a>
         </div>
       </div>
       <?php } 
@@ -1041,6 +1041,23 @@ foreach ($employees as &$emp) {
     </div>
   </div>
 </div>
+
+<script>
+  // Attach event listener to the X button in profile modal
+  document.addEventListener('DOMContentLoaded', () => {
+    const profileModal = document.getElementById('profileModal');
+    if (profileModal) {
+      const closeBtn = profileModal.querySelector('.modal-close');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          closeModal('profileModal');
+        });
+      }
+    }
+  });
+</script>
 
 <!-- FOOTER -->
 <footer class="footer">

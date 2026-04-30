@@ -323,14 +323,17 @@ INSERT INTO `job_post` (`job_post_id`, `employer_id`, `title`, `description`, `s
 --
 
 CREATE TABLE `message` (
-  `message_id` int(11) NOT NULL,
+  `message_id` int(11) NOT NULL AUTO_INCREMENT,
   `sender_id` int(11) DEFAULT NULL,
   `sender_type` varchar(50) DEFAULT NULL,
   `receiver_id` int(11) DEFAULT NULL,
   `receiver_type` varchar(50) DEFAULT NULL,
   `message` varchar(255) DEFAULT NULL,
+  `application_id` int(11) DEFAULT NULL,
   `timestamp` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
 
 -- --------------------------------------------------------
 
@@ -560,10 +563,34 @@ ALTER TABLE `experience_bullets`
   MODIFY `bullet_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
 
 --
+-- AUTO_INCREMENT for table `application`
+--
+ALTER TABLE `application`
+  MODIFY `application_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `interview`
+--
+ALTER TABLE `interview`
+  MODIFY `interview_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `job_post`
 --
 ALTER TABLE `job_post`
   MODIFY `job_post_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `message`
+--
+ALTER TABLE `message`
+  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `report`
+--
+ALTER TABLE `report`
+  MODIFY `report_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `resumes`

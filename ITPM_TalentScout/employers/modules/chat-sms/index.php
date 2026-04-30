@@ -16,11 +16,16 @@ $employer_id = (int)$_SESSION['employer_id'];
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'send_message') {
   $receiver_id = isset($_POST['receiver_id']) ? intval($_POST['receiver_id']) : 0;
   $message = trim($_POST['message'] ?? '');
-  
+  $application_id = isset($_POST['application_id']) ? intval($_POST['application_id']) : 0;
+
   if ($receiver_id > 0 && !empty($message)) {
-    $stmt = $conn->prepare("INSERT INTO message (sender_id, sender_type, receiver_id, receiver_type, message, timestamp) VALUES (?, 'employer', ?, 'employee', ?, NOW())");
-    $stmt->bind_param("iis", $employer_id, $receiver_id, $message);
-    $stmt->execute();
+    $stmt = $conn->prepare("INSERT INTO message (sender_id, sender_type, receiver_id, receiver_type, message, application_id, timestamp) VALUES (?, 'employer', ?, 'employee', ?, ?, NOW())");
+    $stmt->bind_param("iisi", $employer_id, $receiver_id, $message, $application_id);
+    if ($stmt->execute()) {
+      $stmt->close();
+      header('Location: ' . $_SERVER['REQUEST_URI']);
+      exit;
+    }
     $stmt->close();
   }
 }
@@ -42,15 +47,25 @@ while ($row = $result->fetch_assoc()) {
 $stmt->close();
 
 // Get selected conversation (first one or from request)
-$selected_employee_id = count($conversations) > 0 ? $conversations[0]['employee_id'] : 0;
-$selected_employee_name = count($conversations) > 0 ? ($conversations[0]['first_name'] . ' ' . $conversations[0]['last_name']) : 'No Conversations';
+$selected_employee_id = isset($_GET['employee_id']) ? intval($_GET['employee_id']) : (count($conversations) > 0 ? $conversations[0]['employee_id'] : 0);
+$selected_employee_name = '';
+if ($selected_employee_id > 0) {
+  foreach ($conversations as $conv) {
+    if ($conv['employee_id'] === $selected_employee_id) {
+      $selected_employee_name = $conv['first_name'] . ' ' . $conv['last_name'];
+      break;
+    }
+  }
+}
 
 // Fetch messages for selected conversation
 $messages = [];
 if ($selected_employee_id > 0) {
-  $stmt = $conn->prepare("SELECT m.*, e.first_name, e.last_name 
+  $stmt = $conn->prepare("SELECT m.*, e.first_name, e.last_name, a.job_post_id, j.title as job_title
   FROM message m
   LEFT JOIN employee e ON m.sender_id = e.employee_id
+  LEFT JOIN application a ON m.application_id = a.application_id
+  LEFT JOIN job_post j ON a.job_post_id = j.job_post_id
   WHERE (m.sender_id = ? AND m.receiver_id = ? AND m.sender_type = 'employer') 
   OR (m.sender_id = ? AND m.receiver_id = ? AND m.sender_type = 'employee')
   ORDER BY m.timestamp ASC");
@@ -59,6 +74,24 @@ if ($selected_employee_id > 0) {
   $result = $stmt->get_result();
   while ($row = $result->fetch_assoc()) {
     $messages[] = $row;
+  }
+  $stmt->close();
+}
+
+// Fetch applications between this employer and selected employee (if available)
+$applications_with_candidate = [];
+$selected_application_id = isset($_GET['application_id']) ? intval($_GET['application_id']) : 0;
+if ($selected_employee_id > 0) {
+  $stmt = $conn->prepare("SELECT DISTINCT a.application_id, j.title as job_title, j.job_post_id
+  FROM application a
+  JOIN job_post j ON a.job_post_id = j.job_post_id
+  WHERE a.employee_id = ? AND j.employer_id = ?
+  ORDER BY a.application_date DESC");
+  $stmt->bind_param("ii", $selected_employee_id, $employer_id);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  while ($row = $result->fetch_assoc()) {
+    $applications_with_candidate[] = $row;
   }
   $stmt->close();
 }
@@ -101,7 +134,7 @@ if ($selected_employee_id > 0) {
       margin: 0 auto;
       padding: 2.5rem;
       display: grid;
-      grid-template-columns: 320px 1fr;
+      grid-template-columns: 350px 1fr;
       gap: 2rem;
       min-height: calc(100vh - 120px);
     }
@@ -128,21 +161,22 @@ if ($selected_employee_id > 0) {
       background: white;
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 1.25rem;
+      padding: 1.5rem;
       height: fit-content;
       position: sticky;
       top: 90px;
+      box-shadow: var(--shadow-sm);
     }
 
     .conversations-title {
       font-weight: 700;
-      font-size: 0.9rem;
+      font-size: 1rem;
       color: var(--text-dark);
-      margin-bottom: 1rem;
-      padding-bottom: 0.75rem;
-      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.25rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--border);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
     }
 
     .conversation-list {
@@ -152,11 +186,11 @@ if ($selected_employee_id > 0) {
     }
 
     .conversation-item {
-      padding: 1rem;
+      padding: 1.25rem;
       border-radius: var(--radius-sm);
       cursor: pointer;
       transition: all 0.25s ease;
-      border-left: 3px solid transparent;
+      border-left: 4px solid transparent;
       background: transparent;
     }
 
@@ -171,23 +205,23 @@ if ($selected_employee_id > 0) {
 
     .conversation-name {
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 1rem;
       color: var(--text-dark);
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.35rem;
     }
 
     .conversation-preview {
       color: var(--text-light);
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-bottom: 0.3rem;
+      margin-bottom: 0.4rem;
     }
 
     .conversation-time {
       color: var(--text-muted);
-      font-size: 0.75rem;
+      font-size: 0.85rem;
     }
 
     /* Chat Window */
@@ -203,7 +237,7 @@ if ($selected_employee_id > 0) {
 
     .chat-header {
       border-bottom: 1px solid var(--border);
-      padding: 1.5rem;
+      padding: 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -217,14 +251,14 @@ if ($selected_employee_id > 0) {
 
     .chat-title {
       font-weight: 700;
-      font-size: 1rem;
+      font-size: 1.2rem;
       color: var(--text-dark);
     }
 
     .chat-status {
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       color: var(--text-light);
-      margin-top: 0.2rem;
+      margin-top: 0.3rem;
     }
 
     .chat-actions {
@@ -253,11 +287,11 @@ if ($selected_employee_id > 0) {
     /* Messages Area */
     .messages-area {
       flex: 1;
-      padding: 1.5rem;
+      padding: 2rem;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 1.25rem;
       background: white;
     }
 
@@ -273,11 +307,11 @@ if ($selected_employee_id > 0) {
 
     .message-bubble {
       max-width: 65%;
-      padding: 0.85rem 1.1rem;
+      padding: 1rem 1.35rem;
       border-radius: 12px;
       word-wrap: break-word;
-      line-height: 1.4;
-      font-size: 0.9rem;
+      line-height: 1.6;
+      font-size: 1rem;
       transition: all 0.2s ease;
     }
 
@@ -294,30 +328,33 @@ if ($selected_employee_id > 0) {
     }
 
     .message-time {
-      font-size: 0.75rem;
+      font-size: 0.85rem;
       color: var(--text-light);
-      margin-top: 0.3rem;
+      margin-top: 0.4rem;
     }
 
     /* Input Area */
     .input-area {
       border-top: 1px solid var(--border);
-      padding: 1.5rem;
+      padding: 2rem;
       background: white;
       display: flex;
-      gap: 0.75rem;
+      flex-direction: column;
+      gap: 1rem;
     }
 
     .message-input {
       flex: 1;
-      padding: 0.8rem 1rem;
+      padding: 1rem 1.25rem;
       border: 1.5px solid var(--border);
       border-radius: var(--radius-sm);
       font-family: inherit;
-      font-size: 0.9rem;
+      font-size: 1rem;
       color: var(--text-dark);
       transition: all 0.2s ease;
       background: white;
+      min-height: 50px;
+      resize: vertical;
     }
 
     .message-input:focus {
@@ -334,15 +371,17 @@ if ($selected_employee_id > 0) {
       background: var(--primary-dark);
       color: white;
       border: none;
-      padding: 0.8rem 1.5rem;
+      padding: 1rem 2rem;
       border-radius: var(--radius-sm);
       font-weight: 600;
       cursor: pointer;
-      font-size: 0.9rem;
+      font-size: 1rem;
       transition: all 0.2s ease;
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 0.5rem;
+      min-height: 45px;
     }
 
     .send-btn:hover {
@@ -552,7 +591,14 @@ if ($selected_employee_id > 0) {
         <?php foreach ($messages as $msg): ?>
           <div class="message-group <?php echo ($msg['sender_type'] === 'employer') ? 'own' : 'other'; ?>">
             <div>
-              <div class="message-bubble"><?php echo htmlspecialchars($msg['message']); ?></div>
+              <div class="message-bubble">
+                <?php echo htmlspecialchars($msg['message']); ?>
+                <?php if ($msg['application_id'] > 0 && !empty($msg['job_title'])): ?>
+                  <div style="background: rgba(0,0,0,0.08); padding: 0.75rem; margin-top: 0.75rem; border-radius: 6px; font-size: 0.95rem; margin-left: -1.35rem; margin-right: -1.35rem; margin-bottom: -1rem; border-left: 3px solid rgba(0,0,0,0.2);">
+                    <strong style="color: rgba(0,0,0,0.7);">📋 About:</strong> <span style="color: rgba(0,0,0,0.75);"><?php echo htmlspecialchars($msg['job_title']); ?></span>
+                  </div>
+                <?php endif; ?>
+              </div>
               <div class="message-time"><?php echo date('g:i A', strtotime($msg['timestamp'])); ?></div>
             </div>
           </div>
@@ -573,11 +619,25 @@ if ($selected_employee_id > 0) {
     </div>
 
     <div class="input-area">
-      <form method="POST" style="display: flex; gap: 0.75rem; width: 100%;">
+      <form method="POST" style="display: flex; flex-direction: column; gap: 1rem; width: 100%;">
         <input type="hidden" name="action" value="send_message">
         <input type="hidden" name="receiver_id" value="<?php echo $selected_employee_id; ?>">
-        <input type="text" name="message" class="message-input" placeholder="Type your message..." id="messageInput" required>
-        <button type="submit" class="send-btn" <?php echo ($selected_employee_id > 0) ? '' : 'disabled'; ?>>[SEND]</button>
+        
+        <?php if (!empty($applications_with_candidate)): ?>
+          <select name="application_id" style="padding: 1rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 1rem; background: white; cursor: pointer; transition: all 0.2s ease;">
+            <option value="0">-- Relate to specific application --</option>
+            <?php foreach ($applications_with_candidate as $app): ?>
+              <option value="<?php echo $app['application_id']; ?>" <?php echo ($selected_application_id === $app['application_id']) ? 'selected' : ''; ?>>
+                <?php echo htmlspecialchars($app['job_title']); ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        <?php endif; ?>
+        
+        <div style="display: flex; gap: 1rem; align-items: flex-end;">
+          <input type="text" name="message" class="message-input" placeholder="Type your message..." id="messageInput" required style="flex: 1; margin: 0;">
+          <button type="submit" class="send-btn" <?php echo ($selected_employee_id > 0) ? '' : 'disabled'; ?>>Send</button>
+        </div>
       </form>
     </div>
   </div>
@@ -703,6 +763,11 @@ if ($selected_employee_id > 0) {
       this.style.transform = '';
     });
   });
+
+  // Function to select a conversation
+  function selectConversation(employeeId) {
+    window.location.href = '?employee_id=' + employeeId;
+  }
 </script>
 
 </body>

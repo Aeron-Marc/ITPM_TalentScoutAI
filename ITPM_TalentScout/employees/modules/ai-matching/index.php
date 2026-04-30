@@ -444,6 +444,7 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
         <li><a href="../resume-builder/index.php">Resume Builder</a></li>
         <li><a href="../skill-gap-analysis/index.php">Skills</a></li>
         <li><a href="../applicant-tracking/index.php">Applications</a></li>
+        <li><a href="../messages/index.php">Messages</a></li>
       </ul>
       <div class="nav-actions">
         <?php if (isset($_SESSION['employee_id'])): ?>
@@ -683,9 +684,7 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
             <a href="../job-postings/index.php?id=<?php echo $job['job_post_id']; ?>" class="btn btn-outline">
               View Full Posting
             </a>
-            <a href="../applicant-tracking/submit-application.php?job_id=<?php echo $job['job_post_id']; ?>" class="btn btn-primary">
-              Apply Now
-            </a>
+            <button type="button" class="btn btn-primary apply-job-btn" data-job-id="<?php echo $job['job_post_id']; ?>" data-job-title="<?php echo htmlspecialchars($job['title']); ?>" data-job-company="<?php echo htmlspecialchars($employer_name); ?>" style="border: none; cursor: pointer;">Apply Now</button>
           </div>
         </div>
         <?php endforeach; 
@@ -769,6 +768,69 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
         </div>
       </div>
     </footer>
+
+    <!-- Confirmation Modal -->
+    <div id="applicationConfirmModal" class="job-modal-backdrop" aria-hidden="true">
+      <div class="job-modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+        <div class="job-modal-header">
+          <h3 class="job-modal-title" id="confirmTitle">Confirm Application</h3>
+          <button type="button" class="job-modal-close" id="closeConfirmModal" aria-label="Close confirmation">&times;</button>
+        </div>
+        <div class="job-modal-body">
+          <p style="margin-bottom: 1.5rem; color: var(--text-mid);">Please review the job details before submitting your application.</p>
+          <div class="job-modal-section">
+            <h4 id="confirmJobTitle" style="color: var(--primary);">—</h4>
+            <p id="confirmCompanyName" style="color: var(--text-mid); margin-bottom: 0;">—</p>
+          </div>
+          <p style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-light); border-radius: var(--radius); border-left: 4px solid var(--primary); color: var(--text-mid); font-size: 0.9rem;">
+            Once submitted, your application will be sent to the employer. You can track the status in your Applications page.
+          </p>
+        </div>
+        <div class="job-modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancelConfirmBtn">Cancel</button>
+          <button type="button" class="btn btn-primary" id="confirmApplyBtn">Confirm Application</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Modal (same as browse jobs) -->
+    <div id="successModal" class="success-modal-backdrop" aria-hidden="true">
+      <div class="success-modal" role="dialog" aria-modal="true">
+        <button type="button" id="closeSuccessXBtn" class="job-modal-close" aria-label="Close success dialog" style="position: absolute; top: 16px; right: 16px; z-index: 20;">×</button>
+        <div class="success-checkmark">
+          <svg viewBox="0 0 24 24">
+            <circle class="success-checkmark-circle" cx="12" cy="12" r="10"></circle>
+            <polyline class="success-checkmark-line" points="8 12 11 15 16 9"></polyline>
+          </svg>
+        </div>
+        <h3 class="success-title">Application Submitted!</h3>
+        <p class="success-message">
+          Your application has been successfully submitted. Check your Application Tracker for updates.
+        </p>
+        <div class="success-details" id="successDetails">
+          <div class="success-detail-row">
+            <span class="success-detail-label">Job Title</span>
+            <span class="success-detail-value" id="successJobTitle">—</span>
+          </div>
+          <div class="success-detail-row">
+            <span class="success-detail-label">Company</span>
+            <span class="success-detail-value" id="successCompany">—</span>
+          </div>
+          <div class="success-detail-row">
+            <span class="success-detail-label">Applied Date</span>
+            <span class="success-detail-value" id="successDate">—</span>
+          </div>
+          <div class="success-detail-row">
+            <span class="success-detail-label">Status</span>
+            <span class="success-detail-value" id="successStatus">Pending</span>
+          </div>
+        </div>
+        <div class="success-actions">
+          <button type="button" class="btn btn-secondary" id="viewApplicationsBtn">View Applications</button>
+          <button type="button" class="btn btn-primary" id="closeSuccessBtn">Browse More Jobs</button>
+        </div>
+      </div>
+    </div>
 
     <script src="../../employee-auth.js"></script>
     <script>
@@ -984,6 +1046,36 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
           setTimeout(() => notification.remove(), 300);
         }, 3000);
       }
+
+      // Handle application form submissions via AJAX
+      document.addEventListener('submit', function(e) {
+        if (e.target.action.includes('submit-application.php')) {
+          e.preventDefault();
+          
+          const formData = new FormData(e.target);
+          const jobPostId = formData.get('job_post_id');
+          
+          fetch('../job-postings/submit-application.php', {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              showNotification('✓ Application submitted successfully! Job: ' + data.application.job_title);
+              setTimeout(() => {
+                window.location.href = '../applicant-tracking/index.php';
+              }, 1500);
+            } else {
+              showNotification('✗ Error: ' + data.message);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            showNotification('✗ An error occurred while submitting your application');
+          });
+        }
+      });
     </script>
     <style>
       @keyframes slideIn {
@@ -1004,6 +1096,126 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
         to {
           transform: translateX(400px);
           opacity: 0;
+        }
+      }
+
+      /* Success Modal Styles */
+      .success-modal-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+      }
+      .success-modal-backdrop.active {
+        display: flex;
+        animation: fadeIn 0.3s ease-out;
+      }
+      .success-modal {
+        background: white;
+        border-radius: 12px;
+        padding: 2.5rem;
+        max-width: 420px;
+        width: 90vw;
+        max-height: 85vh;
+        overflow-y: auto;
+        position: relative;
+        animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      .success-checkmark {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 1.5rem;
+      }
+      .success-checkmark svg {
+        width: 100%;
+        height: 100%;
+      }
+      .success-checkmark-circle {
+        stroke: var(--primary);
+        stroke-width: 2;
+        fill: none;
+        animation: scaleIn 0.4s ease-out;
+      }
+      .success-checkmark-line {
+        stroke: var(--primary);
+        stroke-width: 3;
+        stroke-linecap: round;
+        fill: none;
+        animation: drawLine 0.5s ease-out 0.2s both;
+      }
+      @keyframes scaleIn {
+        from { transform: scale(0); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+      }
+      @keyframes drawLine {
+        from { stroke-dashoffset: 8; }
+        to { stroke-dashoffset: 0; }
+      }
+      .success-checkmark-line {
+        stroke-dasharray: 8;
+      }
+      .success-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-align: center;
+        color: var(--text-dark);
+        margin-bottom: 0.75rem;
+      }
+      .success-message {
+        text-align: center;
+        color: var(--text-mid);
+        margin-bottom: 2rem;
+        font-size: 0.95rem;
+        line-height: 1.5;
+      }
+      .success-details {
+        background: var(--bg-light);
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-bottom: 1.75rem;
+        border-left: 4px solid var(--primary);
+      }
+      .success-detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      }
+      .success-detail-row:last-child {
+        border-bottom: none;
+      }
+      .success-detail-label {
+        color: var(--text-mid);
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+      .success-detail-value {
+        color: var(--text-dark);
+        font-weight: 600;
+      }
+      .success-actions {
+        display: flex;
+        gap: 1rem;
+      }
+      .success-actions button {
+        flex: 1;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes popIn {
+        from {
+          transform: scale(0.9);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
         }
       }
     </style>

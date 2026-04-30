@@ -241,6 +241,8 @@ foreach ($applications as $app) {
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       font-weight: 600;
       color: var(--text-dark);
+      text-decoration: none;
+      display: inline-block;
     }
 
     .btn-small:hover {
@@ -346,7 +348,7 @@ foreach ($applications as $app) {
               <td><span class="status-col <?php echo $status_class; ?>"><?php echo $status_display; ?></span></td>
               <td class="match-score"><?php echo $match_score; ?>%</td>
               <td class="date-col"><?php echo date('M j, Y', strtotime($app['application_date'])); ?></td>
-              <td class="action-col"><button class="btn-small">View</button></td>
+              <td class="action-col"><a href="../chat-sms/?employee_id=<?php echo $app['employee_id']; ?>&application_id=<?php echo $app['application_id']; ?>" class="btn-small">Message</a></td>
             </tr>
             <?php endforeach; ?>
           <?php else: ?>

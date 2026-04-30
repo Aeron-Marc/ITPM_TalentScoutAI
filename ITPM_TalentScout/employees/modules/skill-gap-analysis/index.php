@@ -441,6 +441,7 @@ $critical_gaps_count = count($skill_gaps_display);
         <li><a href="../resume-builder/index.php">Resume Builder</a></li>
         <li><a href="./index.php" class="active">Skills</a></li>
         <li><a href="../applicant-tracking/index.php">Applications</a></li>
+        <li><a href="../messages/index.php">Messages</a></li>
       </ul>
       <div class="nav-actions">
         <?php if (isset($_SESSION['employee_id'])): ?>

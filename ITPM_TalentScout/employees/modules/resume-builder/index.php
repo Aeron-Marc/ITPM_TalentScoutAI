@@ -964,6 +964,7 @@ if ($apiAction === 'save' || $apiAction === 'load') {
       <li><a href="./index.php" class="active">Resume Builder</a></li>
       <li><a href="../skill-gap-analysis/index.php">Skills</a></li>
       <li><a href="../applicant-tracking/index.php">Applications</a></li>
+      <li><a href="../messages/index.php">Messages</a></li>
     </ul>
     <div class="nav-actions">
       <?php if (isset($_SESSION['employee_id'])): ?>
