@@ -517,6 +517,10 @@ $hasError = !empty($dbError);
       margin-bottom: 1.25rem;
     }
 
+    .jobs-map {
+      position: relative;
+    }
+
     .jobs-map-section {
       background: #fff;
       border: 1.5px solid var(--sand-dark);
@@ -532,6 +536,425 @@ $hasError = !empty($dbError);
       align-items: center;
       gap: 1rem;
       margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-location {
+      padding: 0.5rem 1rem;
+      background: var(--sage-deep);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-pill);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      box-shadow: 0 4px 14px rgba(74,107,80,0.22);
+    }
+
+    .btn-location:hover {
+      background: var(--sage);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(74,107,80,0.3);
+    }
+
+    .btn-location.active {
+      background: var(--gold);
+      color: var(--charcoal);
+    }
+
+    .btn-location:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .radius-control {
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+      margin-left: auto;
+      font-size: 0.82rem;
+      color: var(--warm-mid);
+    }
+
+    .radius-control.visible {
+      display: inline-flex;
+    }
+
+    .radius-control input {
+      width: 60px;
+      padding: 0.3rem 0.5rem;
+      border: 1.5px solid var(--sand-dark);
+      border-radius: var(--radius-md);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      color: var(--charcoal);
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .radius-control input:focus {
+      border-color: var(--sage);
+    }
+
+    .btn-clear-location {
+      padding: 0.35rem 0.75rem;
+      background: transparent;
+      color: var(--warm-mid);
+      border: 1.5px solid var(--stone-light);
+      border-radius: var(--radius-pill);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-clear-location:hover {
+      background: var(--sand);
+      border-color: var(--stone);
+    }
+
+    .map-theme-selector {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+    }
+
+    .map-theme-select {
+      padding: 0.4rem 2rem 0.4rem 0.6rem;
+      border: none;
+      border-radius: var(--radius-md);
+      background: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--charcoal);
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%232a2a22' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.5rem center;
+      outline: none;
+      transition: box-shadow 0.2s;
+    }
+
+    .map-theme-select:hover, .map-theme-select:focus {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .map-overlay-btn {
+      padding: 0.4rem 0.6rem;
+      border: none;
+      border-radius: var(--radius-md);
+      background: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--charcoal);
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      white-space: nowrap;
+    }
+
+    .map-overlay-btn:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transform: translateY(-1px);
+    }
+
+    .map-overlay-btn.active {
+      background: var(--sage);
+      color: #fff;
+    }
+
+    .map-overlay-btn.active.traffic-active {
+      background: #ea580c;
+    }
+
+    .leaflet-control-zoom a {
+      background: #fff !important;
+      color: var(--charcoal) !important;
+      border-color: var(--sand-dark) !important;
+    }
+
+    .leaflet-popup-content-wrapper {
+      border-radius: var(--radius-lg) !important;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15) !important;
+    }
+
+    .jobs-map-section.fullscreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 5000;
+      border-radius: 0;
+      border: none;
+      padding: 0;
+      margin: 0;
+      background: #000;
+    }
+
+    .jobs-map-section.fullscreen .jobs-map {
+      height: 100vh;
+      border-radius: 0;
+      border: none;
+    }
+
+    .jobs-map-section.fullscreen .jobs-map-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 5001;
+      padding: 1rem;
+      background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 100%);
+    }
+
+    .jobs-map-section.fullscreen .jobs-map-title,
+    .jobs-map-section.fullscreen .jobs-map-subtitle {
+      color: #fff;
+    }
+
+    .jobs-map-section.fullscreen .map-theme-select,
+    .jobs-map-section.fullscreen .map-overlay-btn {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .map-close-fullscreen {
+      display: none;
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 5002;
+      background: #fff;
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .jobs-map-section.fullscreen .map-close-fullscreen {
+      display: flex;
+    }
+
+    .map-close-fullscreen:hover {
+      background: var(--sand);
+      transform: scale(1.05);
+    }
+
+    .jobs-map-section {
+      position: relative;
+    }
+
+    .directions-panel {
+      display: none;
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      max-width: 380px;
+      max-height: 50vh;
+      z-index: 4000;
+      background: rgba(255, 255, 255, 0.97);
+      backdrop-filter: blur(10px);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    @media (max-width: 768px) {
+      .directions-panel {
+        left: 5px;
+        right: 5px;
+        max-width: none;
+        bottom: 5px;
+      }
+    }
+
+    .directions-panel.visible {
+      display: block;
+    }
+
+    .directions-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.65rem 0.85rem;
+      background: var(--sage-pale);
+      border-bottom: 1px solid var(--sand-dark);
+    }
+
+    .directions-header h4 {
+      margin: 0;
+      font-family: 'Playfair Display', serif;
+      font-size: 0.82rem;
+      color: var(--charcoal);
+    }
+
+    .directions-close {
+      border: none;
+      background: transparent;
+      font-size: 1.1rem;
+      cursor: pointer;
+      color: var(--warm-mid);
+      padding: 0.2rem;
+      transition: color 0.2s;
+    }
+
+    .directions-close:hover {
+      color: var(--charcoal);
+    }
+
+    .directions-body {
+      padding: 0.75rem;
+      overflow-y: auto;
+      max-height: calc(50vh - 45px);
+    }
+
+    .direction-route-summary {
+      display: flex;
+      gap: 1rem;
+      padding: 0.55rem 0.65rem;
+      background: var(--sand);
+      border-radius: var(--radius-md);
+      margin-bottom: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .direction-stat {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.76rem;
+      color: var(--charcoal);
+    }
+
+    .direction-stat strong {
+      color: var(--sage-deep);
+    }
+
+    .direction-steps {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .direction-steps li {
+      display: flex;
+      gap: 0.6rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--sand-dark);
+      font-size: 0.76rem;
+      color: var(--warm-mid);
+    }
+
+    .direction-steps li:last-child {
+      border-bottom: none;
+    }
+
+    .step-number {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--sage-pale);
+      color: var(--sage-deep);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .directions-loading {
+      text-align: center;
+      padding: 1.2rem;
+      color: var(--warm-light);
+    }
+
+    .directions-loading .loading-spinner {
+      width: 24px;
+      height: 24px;
+      margin: 0 auto 0.6rem;
+    }
+
+    .directions-error {
+      text-align: center;
+      padding: 0.85rem;
+      color: var(--warm-light);
+      font-size: 0.8rem;
+    }
+
+    .directions-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.6rem;
+    }
+
+    .directions-actions .btn-close-directions {
+      padding: 0.4rem 0.85rem;
+      border-radius: var(--radius-pill);
+      font-size: 0.76rem;
+      font-weight: 600;
+      background: var(--sand);
+      color: var(--warm-mid);
+      border: 1.5px solid var(--sand-dark);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s;
+    }
+
+    .directions-actions .btn-close-directions:hover {
+      background: var(--sand-dark);
+    }
+
+    .jobs-map-section.fullscreen .directions-panel {
+      max-width: 400px;
+      left: 20px;
+      bottom: 30px;
+      right: auto;
+    }
+
+    .direction-steps li {
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .direction-steps li:hover {
+      background: var(--sand);
+    }
+
+    .direction-steps li.active-step {
+      background: var(--sage-pale);
+    }
+
+    .map-step-line {
+      stroke-width: 6 !important;
+      opacity: 1 !important;
     }
 
     .jobs-map-title {
@@ -1327,9 +1750,43 @@ $hasError = !empty($dbError);
             <div class="jobs-map-title">Jobs Map</div>
             <div class="jobs-map-subtitle">Pins are placed from each job's saved location. Click a pin to view details.</div>
           </div>
-          <div class="jobs-map-subtitle" id="mapStatus">Loading map pins...</div>
+          <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+            <select id="mapThemeDropdown" class="map-theme-select">
+              <option value="default">Street View</option>
+              <option value="satellite">Satellite</option>
+              <option value="terrain">Terrain</option>
+              <option value="topo">Topographic</option>
+              <option value="dark">Dark Mode</option>
+            </select>
+            <button type="button" class="map-overlay-btn" id="trafficToggleBtn" title="Show Traffic">
+              &#128663; Traffic
+            </button>
+            <button type="button" class="map-overlay-btn" id="fullscreenMapBtn" title="Full Screen">
+              &#128269; Expand
+            </button>
+            <div class="radius-control" id="radiusControl">
+              <label for="radiusInput">Radius:</label>
+              <input type="number" id="radiusInput" value="10" min="1" max="50" />
+              <span>km</span>
+              <button type="button" class="btn-clear-location" id="clearLocationBtn">Clear</button>
+            </div>
+            <button type="button" class="btn-location" id="pinLocationBtn">
+              &#128205; Pin My Location
+            </button>
+          </div>
         </div>
-        <div id="jobsMap" class="jobs-map"></div>
+        <div id="jobsMap" class="jobs-map">
+          <div class="directions-panel" id="directionsPanel">
+            <div class="directions-header">
+              <h4 id="directionsTitle">Directions to Job</h4>
+              <button type="button" class="directions-close" id="directionsCloseBtn">&times;</button>
+            </div>
+            <div class="directions-body" id="directionsBody">
+            </div>
+          </div>
+        </div>
+        <button type="button" class="map-close-fullscreen" id="closeFullscreenMapBtn" title="Exit Full Screen">&times;</button>
+        <div style="margin-top:0.5rem;font-size:0.8rem;color:var(--warm-light)" id="mapStatus">Loading map pins...</div>
       </section>
 
       <div class="jobs-header">
@@ -1380,6 +1837,7 @@ $hasError = !empty($dbError);
         </div>
       </div>
       <div class="job-modal-footer">
+        <button type="button" class="btn-secondary" id="jobDetailsDirections" onclick="handleDirectionsFromModal()" style="display:none">&#128663; Directions</button>
         <button type="button" class="btn-primary" id="jobDetailsApply" onclick="handleApplyClick()">Apply Now</button>
       </div>
     </div>
@@ -1447,6 +1905,499 @@ $hasError = !empty($dbError);
     let jobsGeoQueue = Promise.resolve();
     let jobsMapRenderToken = 0;
     let activeJobForDetails = null;
+    let userLocationMarker = null;
+    let userRadiusCircle = null;
+    let userLocation = null;
+    let filterRadiusKm = 10;
+    let currentMapLayer = null;
+    const mapLayers = {};
+    let trafficLayer = null;
+    let isTrafficOn = false;
+    let isFullscreen = false;
+    let directionRouteLine = null;
+    let directionStepLines = [];
+    let currentActiveStep = -1;
+
+    function initMapLayers() {
+      if (!window.L) return;
+
+      mapLayers.default = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 19
+      });
+
+      mapLayers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '&copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+        maxZoom: 18
+      });
+
+      mapLayers.terrain = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenTopoMap (CC-BY-SA)',
+        maxZoom: 17
+      });
+
+      mapLayers.topo = L.tileLayer('https://{s}.tile.stamen.com/terrain-background/{z}/{x}/{y}.jpg', {
+        attribution: '&copy; Stamen Design',
+        maxZoom: 18
+      });
+
+      mapLayers.dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; CARTO',
+        maxZoom: 19
+      });
+    }
+
+    function switchMapLayer(theme) {
+      if (!jobsMap || !mapLayers[theme]) return;
+
+      if (currentMapLayer) {
+        jobsMap.removeLayer(currentMapLayer);
+      }
+
+      currentMapLayer = mapLayers[theme].addTo(jobsMap);
+      jobsMap.invalidateSize();
+
+      const dropdown = document.getElementById('mapThemeDropdown');
+      if (dropdown) dropdown.value = theme;
+    }
+
+    function toggleTraffic() {
+      if (!jobsMap) return;
+
+      isTrafficOn = !isTrafficOn;
+      const btn = document.getElementById('trafficToggleBtn');
+
+      if (isTrafficOn) {
+        if (!trafficLayer) {
+          trafficLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; CARTO',
+            maxZoom: 19
+          });
+        }
+        trafficLayer.addTo(jobsMap);
+        btn.classList.add('active', 'traffic-active');
+        btn.innerHTML = '&#128663; Traffic';
+      } else {
+        if (trafficLayer && jobsMap.hasLayer(trafficLayer)) {
+          jobsMap.removeLayer(trafficLayer);
+        }
+        btn.classList.remove('active', 'traffic-active');
+      }
+    }
+
+    async function fetchDirections(fromLat, fromLng, toLat, toLng) {
+      try {
+        const response = await fetch(
+          `https://router.project-osrm.org/route/v1/driving/${fromLng},${fromLat};${toLng},${toLat}?overview=full&geometries=geojson&steps=true`
+        );
+        const data = await response.json();
+
+        if (data.code !== 'Ok' || !data.routes || !data.routes.length) {
+          return null;
+        }
+
+        return data.routes[0];
+      } catch (error) {
+        console.error('Directions fetch error:', error);
+        return null;
+      }
+    }
+
+    function displayDirections(route, jobTitle, jobLocation) {
+      const panel = document.getElementById('directionsPanel');
+      const body = document.getElementById('directionsBody');
+      const title = document.getElementById('directionsTitle');
+
+      if (!panel || !body || !title) return;
+
+      title.textContent = `Directions to ${jobTitle}`;
+      panel.classList.add('visible');
+
+      if (!route) {
+        body.innerHTML = `
+          <div class="directions-error">
+            Unable to calculate route. Route will be shown on the map when available.
+          </div>
+          <div class="directions-actions" style="justify-content:center">
+            <button type="button" class="btn-close-directions" onclick="hideDirections()">Close</button>
+          </div>
+        `;
+        return;
+      }
+
+      const distanceKm = (route.distance / 1000).toFixed(1);
+      const durationMin = Math.round(route.duration / 60);
+      const steps = route.legs[0].steps;
+
+      // Draw step lines on map for hover/click functionality
+      drawStepLines(steps);
+
+      let stepsHtml = '<ol class="direction-steps">';
+      steps.forEach((step, i) => {
+        const stepDist = step.distance > 1000
+          ? `${(step.distance / 1000).toFixed(1)} km`
+          : `${Math.round(step.distance)} m`;
+        const instruction = step.maneuver.instruction || step.name || 'Continue';
+        stepsHtml += `
+          <li data-step="${i}" onmouseenter="window.highlightStep(${i})" onmouseleave="window.unhighlightStep(${i})" onclick="window.focusStep(${i})">
+            <span class="step-number">${i + 1}</span>
+            <div>
+              <div>${escapeHtml(instruction)}</div>
+              <div style="font-size:0.75rem;color:var(--warm-light);margin-top:0.15rem">${stepDist}</div>
+            </div>
+          </li>
+        `;
+      });
+      stepsHtml += '</ol>';
+
+      body.innerHTML = `
+        <div class="direction-route-summary">
+          <div class="direction-stat">
+            &#128205; <strong>${distanceKm} km</strong>
+          </div>
+          <div class="direction-stat">
+            &#9201; <strong>${durationMin} min</strong>
+          </div>
+          <div class="direction-stat">
+            &#128663; Driving
+          </div>
+        </div>
+        ${stepsHtml}
+        <div class="directions-actions" style="justify-content:center">
+          <button type="button" class="btn-close-directions" onclick="hideDirections()">Close</button>
+        </div>
+      `;
+    }
+
+    function drawStepLines(steps) {
+      // Clear existing step lines
+      directionStepLines.forEach(line => {
+        if (jobsMap && jobsMap.hasLayer(line)) {
+          jobsMap.removeLayer(line);
+        }
+      });
+      directionStepLines = [];
+
+      if (!jobsMap || !steps.length) return;
+
+      // Draw each step as a separate line with white outline
+      steps.forEach((step, i) => {
+        if (step.geometry && step.geometry.coordinates) {
+          // White outline
+          L.geoJSON({
+            type: 'Feature',
+            geometry: step.geometry
+          }, {
+            style: {
+              color: '#ffffff',
+              weight: 8,
+              opacity: 0.5
+            }
+          }).addTo(jobsMap);
+
+          const line = L.geoJSON({
+            type: 'Feature',
+            geometry: step.geometry
+          }, {
+            style: {
+              color: '#2563eb',
+              weight: 5,
+              opacity: 0.85,
+              dashArray: i === 0 ? null : '6, 4'
+            }
+          }).addTo(jobsMap);
+          line._stepIndex = i;
+          directionStepLines.push(line);
+        }
+      });
+    }
+
+    window.highlightStep = function(stepIndex) {
+      directionStepLines.forEach(line => {
+        if (line._stepIndex === stepIndex) {
+          if (jobsMap && jobsMap.hasLayer(line)) {
+            line.setStyle({ weight: 8, opacity: 1, color: '#1d4ed8', dashArray: null });
+          }
+        }
+      });
+    };
+
+    window.unhighlightStep = function(stepIndex) {
+      directionStepLines.forEach(line => {
+        if (line._stepIndex === stepIndex) {
+          if (jobsMap && jobsMap.hasLayer(line)) {
+            line.setStyle({ weight: 5, opacity: 0.7, color: '#2563eb', dashArray: line._stepIndex === 0 ? null : '6, 4' });
+          }
+        }
+      });
+      // Reset active step styling
+      document.querySelectorAll('.direction-steps li.active-step').forEach(li => {
+        li.classList.remove('active-step');
+      });
+    };
+
+    window.focusStep = function(stepIndex) {
+      const line = directionStepLines.find(l => l._stepIndex === stepIndex);
+      if (line && jobsMap) {
+        jobsMap.fitBounds(line.getBounds(), { padding: [40, 40] });
+      }
+
+      // Highlight in list
+      document.querySelectorAll('.direction-steps li').forEach((li, i) => {
+        li.classList.toggle('active-step', i === stepIndex);
+      });
+
+      // Highlight on map
+      directionStepLines.forEach(l => {
+        if (jobsMap && jobsMap.hasLayer(l)) {
+          if (l._stepIndex === stepIndex) {
+            l.setStyle({ weight: 8, opacity: 1, color: '#f59e0b', dashArray: null });
+          } else {
+            l.setStyle({ weight: 3, opacity: 0.3, color: '#2563eb', dashArray: '6, 4' });
+          }
+        }
+      });
+    };
+
+    function hideDirections() {
+      const panel = document.getElementById('directionsPanel');
+      if (panel) {
+        panel.classList.remove('visible');
+      }
+      if (directionRouteLine && jobsMap) {
+        jobsMap.removeLayer(directionRouteLine);
+        directionRouteLine = null;
+      }
+      // Clear step lines
+      directionStepLines.forEach(line => {
+        if (jobsMap && jobsMap.hasLayer(line)) {
+          jobsMap.removeLayer(line);
+        }
+      });
+      directionStepLines = [];
+      currentActiveStep = -1;
+    }
+
+    async function showRouteToJob(job) {
+      if (!userLocation || !jobsMap) return;
+
+      hideDirections();
+
+      const geo = jobsGeoCache.get(getCachedGeoKey(job.location));
+      if (!geo) {
+        alert('Location not available for this job.');
+        return;
+      }
+
+      const panel = document.getElementById('directionsPanel');
+      const body = document.getElementById('directionsBody');
+      if (panel) panel.classList.add('visible');
+      if (body) {
+        body.innerHTML = `
+          <div class="directions-loading">
+            <div class="loading-spinner"></div>
+            <p>Calculating route to ${escapeHtml(job.title)}...</p>
+          </div>
+        `;
+      }
+
+      const route = await fetchDirections(userLocation.lat, userLocation.lng, geo.lat, geo.lng);
+
+      if (directionRouteLine && jobsMap) {
+        jobsMap.removeLayer(directionRouteLine);
+      }
+
+      if (route && route.geometry) {
+        // White outline for visibility on all themes
+        L.geoJSON(route.geometry, {
+          style: {
+            color: '#ffffff',
+            weight: 10,
+            opacity: 0.6
+          }
+        }).addTo(jobsMap);
+
+        directionRouteLine = L.geoJSON(route.geometry, {
+          style: {
+            color: '#2563eb',
+            weight: 6,
+            opacity: 0.95
+          }
+        }).addTo(jobsMap);
+      }
+
+      displayDirections(route, job.title, job.location);
+    }
+
+    function toggleFullscreen() {
+      const section = document.querySelector('.jobs-map-section');
+      if (!section) return;
+
+      isFullscreen = !isFullscreen;
+      const btn = document.getElementById('fullscreenMapBtn');
+
+      if (isFullscreen) {
+        section.classList.add('fullscreen');
+        btn.innerHTML = '&#10060; Shrink';
+      } else {
+        section.classList.remove('fullscreen');
+        btn.innerHTML = '&#128269; Expand';
+      }
+
+      if (jobsMap) {
+        setTimeout(() => {
+          jobsMap.invalidateSize();
+        }, 100);
+      }
+    }
+
+    // Haversine formula to calculate distance between two points in km
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371; // Earth's radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    function isJobWithinRadius(job, userLat, userLng, radiusKm) {
+      if (!job.location || job.location === 'Not specified') return false;
+      const geo = jobsGeoCache.get(getCachedGeoKey(job.location));
+      if (!geo) return false;
+      const distance = calculateDistance(userLat, userLng, geo.lat, geo.lng);
+      job._distanceFromUser = distance;
+      return distance <= radiusKm;
+    }
+
+    async function pinUserLocation() {
+      const btn = document.getElementById('pinLocationBtn');
+      const status = document.getElementById('mapStatus');
+      const radiusControl = document.getElementById('radiusControl');
+
+      if (!navigator.geolocation) {
+        status.textContent = 'Geolocation is not supported by your browser';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '&#9203; Getting location...';
+      status.textContent = 'Requesting your location...';
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          userLocation = { lat, lng };
+          filterRadiusKm = parseInt(document.getElementById('radiusInput').value) || 10;
+
+          // Add user marker to map
+          if (jobsMap) {
+            if (userLocationMarker) {
+              jobsMap.removeLayer(userLocationMarker);
+            }
+            if (userRadiusCircle) {
+              jobsMap.removeLayer(userRadiusCircle);
+            }
+
+            const redPinIcon = L.divIcon({
+              html: `
+                <div style="position:relative;width:32px;height:44px">
+                  <svg viewBox="0 0 24 36" xmlns="http://www.w3.org/2000/svg" style="width:32px;height:44px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3))">
+                    <path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 24 12 24s12-15 12-24c0-6.627-5.373-12-12-12zm0 17c-2.761 0-5-2.239-5-5s2.239-5 5-5 5 2.239 5 5-2.239 5-5 5z" fill="#dc2626"/>
+                    <circle cx="12" cy="12" r="4" fill="#fff"/>
+                  </svg>
+                </div>
+              `,
+              className: '',
+              iconSize: [32, 44],
+              iconAnchor: [16, 44],
+              popupAnchor: [0, -44]
+            });
+
+            userLocationMarker = L.marker([lat, lng], { icon: redPinIcon })
+              .addTo(jobsMap)
+              .bindPopup('<strong>Your Location</strong><br>Jobs filtered within ' + filterRadiusKm + 'km radius');
+
+            userRadiusCircle = L.circle([lat, lng], {
+              radius: filterRadiusKm * 1000,
+              color: '#c8a96e',
+              fillColor: '#c8a96e',
+              fillOpacity: 0.1,
+              weight: 2,
+              dashArray: '5, 10'
+            }).addTo(jobsMap);
+
+            jobsMap.setView([lat, lng], 12);
+          }
+
+          // Update UI
+          btn.classList.add('active');
+          btn.innerHTML = '&#9989; Location Pinned';
+          btn.disabled = false;
+          radiusControl.classList.add('visible');
+          status.textContent = `Showing jobs within ${filterRadiusKm}km of your location`;
+
+          // Re-apply filters with location constraint
+          applyFilters();
+        },
+        (error) => {
+          let errorMsg = 'Unable to retrieve your location';
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMsg = 'Location permission denied. Please enable location access.';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMsg = 'Location information unavailable.';
+              break;
+            case error.TIMEOUT:
+              errorMsg = 'Location request timed out.';
+              break;
+          }
+          status.textContent = errorMsg;
+          btn.disabled = false;
+          btn.innerHTML = '&#128205; Pin My Location';
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    }
+
+    function clearLocationFilter() {
+      const btn = document.getElementById('pinLocationBtn');
+      const status = document.getElementById('mapStatus');
+      const radiusControl = document.getElementById('radiusControl');
+
+      userLocation = null;
+
+      if (jobsMap) {
+        if (userLocationMarker) {
+          jobsMap.removeLayer(userLocationMarker);
+          userLocationMarker = null;
+        }
+        if (userRadiusCircle) {
+          jobsMap.removeLayer(userRadiusCircle);
+          userRadiusCircle = null;
+        }
+        if (directionRouteLine) {
+          jobsMap.removeLayer(directionRouteLine);
+          directionRouteLine = null;
+        }
+      }
+
+      hideDirections();
+
+      btn.classList.remove('active');
+      btn.innerHTML = '&#128205; Pin My Location';
+      radiusControl.classList.remove('visible');
+      status.textContent = 'Location filter cleared';
+
+      // Remove distance property from jobs
+      allJobs.forEach(job => delete job._distanceFromUser);
+
+      applyFilters();
+    }
 
     // ─── Filter state ──────────────────────────────────────────────────────
     const filterState = {
@@ -1564,6 +2515,11 @@ $hasError = !empty($dbError);
       document.getElementById('jobDetailsSalary').textContent = `${details.salary} | Application deadline: ${details.deadline}`;
       document.getElementById('jobDetailsApply').href = window.isLoggedIn ? '../applicant-tracking/index.php' : '../../login.php';
 
+      const directionsBtn = document.getElementById('jobDetailsDirections');
+      if (directionsBtn) {
+        directionsBtn.style.display = userLocation ? 'inline-block' : 'none';
+      }
+
       const meta = document.getElementById('jobDetailsMeta');
       meta.innerHTML = '';
       [details.setup, details.type, details.level, details.category].forEach(value => {
@@ -1581,6 +2537,13 @@ $hasError = !empty($dbError);
       const job = allJobs.find(item => item.id === Number(jobId));
       if (job) {
         openJobDetailsModal(job);
+      }
+    };
+
+    window.showRouteToJobById = function(jobId) {
+      const job = allJobs.find(item => item.id === Number(jobId));
+      if (job) {
+        showRouteToJob(job);
       }
     };
 
@@ -1651,6 +2614,13 @@ $hasError = !empty($dbError);
       }
     }
 
+    function handleDirectionsFromModal() {
+      if (activeJobForDetails) {
+        showRouteToJob(activeJobForDetails);
+        closeJobDetailsModal();
+      }
+    }
+
     function getCachedGeoKey(locationText) {
       return String(locationText || '').trim().toLowerCase();
     }
@@ -1705,14 +2675,14 @@ $hasError = !empty($dbError);
     function initJobsMap() {
       if (!window.L || jobsMap) return;
 
+      initMapLayers();
+
       jobsMap = L.map('jobsMap', {
         scrollWheelZoom: false,
         zoomControl: true
       }).setView([14.068, 120.633], 12);
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-      }).addTo(jobsMap);
+      currentMapLayer = mapLayers.default.addTo(jobsMap);
     }
 
     function clearJobMarkers() {
@@ -1726,6 +2696,8 @@ $hasError = !empty($dbError);
       const location = escapeHtml(job.location);
       const salary = escapeHtml(job.salaryText);
       const type = escapeHtml(job.type);
+      const directionsBtn = userLocation ?
+        `<button type="button" class="btn-secondary" onclick="window.showRouteToJobById(${job.id})" style="padding:0.35rem 0.65rem;font-size:0.78rem;margin-top:0.35rem;width:100%">&#128663; Get Directions</button>` : '';
       return `
           <div style="min-width:220px;max-width:260px">
             <div style="font-weight:700;font-size:0.95rem;margin-bottom:0.25rem">${title}</div>
@@ -1733,6 +2705,7 @@ $hasError = !empty($dbError);
             <div style="font-size:0.82rem;margin-bottom:0.35rem">${salary}</div>
             <div style="font-size:0.8rem;color:#64748b;margin-bottom:0.65rem">${type}</div>
             <button type="button" class="btn-primary" onclick="window.openJobDetailsById(${job.id})" style="padding:0.45rem 0.75rem;font-size:0.82rem;width:100%">View Details</button>
+            ${directionsBtn}
           </div>
         `;
     }
@@ -1778,6 +2751,7 @@ $hasError = !empty($dbError);
         geo
       }) => {
         const marker = L.marker([geo.lat, geo.lng]).addTo(jobsMap);
+        marker._job = job;
         marker.bindPopup(buildMarkerPopup(job));
         marker.on('click', () => openJobDetailsModal(job));
         jobsMarkers.push(marker);
@@ -1786,10 +2760,42 @@ $hasError = !empty($dbError);
 
       if (bounds.length === 1) {
         jobsMap.setView(bounds[0], 14);
-      } else {
+      } else if (bounds.length > 1) {
         jobsMap.fitBounds(bounds, {
           padding: [30, 30]
         });
+      }
+
+      // Re-add user location marker and radius if active
+      if (userLocation && userLocationMarker && userRadiusCircle) {
+        if (!jobsMap.hasLayer(userLocationMarker)) {
+          userLocationMarker.addTo(jobsMap);
+        }
+        if (!jobsMap.hasLayer(userRadiusCircle)) {
+          userRadiusCircle.addTo(jobsMap);
+        }
+      }
+
+      // Re-add route line if active
+      if (directionRouteLine && jobsMap && !jobsMap.hasLayer(directionRouteLine)) {
+        directionRouteLine.addTo(jobsMap);
+      }
+
+      // Re-draw step lines if they exist
+      if (directionStepLines.length > 0) {
+        const panel = document.getElementById('directionsPanel');
+        if (panel && panel.classList.contains('visible')) {
+          directionStepLines.forEach(line => {
+            if (jobsMap && !jobsMap.hasLayer(line)) {
+              line.addTo(jobsMap);
+            }
+          });
+        }
+      }
+
+      // Re-add traffic overlay if active
+      if (isTrafficOn && trafficLayer && jobsMap && !jobsMap.hasLayer(trafficLayer)) {
+        trafficLayer.addTo(jobsMap);
       }
 
       status.textContent = `${geocodedJobs.length} map pin${geocodedJobs.length === 1 ? '' : 's'} loaded`;
@@ -1975,6 +2981,15 @@ $hasError = !empty($dbError);
     // ─── Apply all filters & render ───────────────────────────────────────
     function applyFilters() {
       let filtered = allJobs.filter(job => {
+        // Location radius filter
+        if (userLocation) {
+          const geo = jobsGeoCache.get(getCachedGeoKey(job.location));
+          if (!geo) return false;
+          const distance = calculateDistance(userLocation.lat, userLocation.lng, geo.lat, geo.lng);
+          job._distanceFromUser = distance;
+          if (distance > filterRadiusKm) return false;
+        }
+
         // Search
         if (filterState.searchQuery) {
           const q = filterState.searchQuery;
@@ -2029,8 +3044,9 @@ $hasError = !empty($dbError);
         filtered.sort((a, b) => a.postedDays - b.postedDays);
       }
 
+      const locationText = userLocation ? ` within <strong>${filterRadiusKm}km</strong> of your location` : '';
       document.getElementById('jobsCount').innerHTML =
-        `Showing <strong>${filtered.length} jobs</strong> in Nasugbu, Batangas`;
+        `Showing <strong>${filtered.length} jobs</strong> in Nasugbu, Batangas${locationText}`;
 
       displayJobs(filtered);
       renderJobsMap(filtered);
@@ -2101,6 +3117,12 @@ $hasError = !empty($dbError);
         job.skills.map(s => `<span class="chip">${s}</span>`).join('') :
         '<span class="chip">No skills listed</span>';
 
+      const distanceHtml = (job._distanceFromUser !== undefined && userLocation) ?
+        `<span class="chip" style="background:#f0e4c8;color:#8a7040">&#128205; ${job._distanceFromUser.toFixed(1)} km away</span>` : '';
+
+      const directionsBtnHtml = userLocation ?
+        `<button type="button" class="btn-secondary" style="padding:0.65rem 1rem" data-directions="${job.id}">&#128663; Directions</button>` : '';
+
       const card = document.createElement('div');
       card.className = 'job-card';
       card.addEventListener('click', event => {
@@ -2127,11 +3149,13 @@ $hasError = !empty($dbError);
             <span>&#128197; ${createdDate}</span>
           </div>
           <div class="job-skills">${skillsHtml}</div>
+          ${distanceHtml ? `<div class="job-skills" style="margin-top:0.35rem">${distanceHtml}</div>` : ''}
           <div class="job-footer">
             <div class="job-salary">${job.salaryText}</div>
-            <div style="display:flex;align-items:center;gap:1rem">
+            <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
               <span class="job-date">Application deadline: ${deadline}</span>
               <button type="button" class="btn-secondary" style="padding:0.65rem 1rem" data-view-job="${job.id}">View Details</button>
+              ${directionsBtnHtml}
               <button type="button" class="btn-primary" onclick="submitApplication(${job.id})">Apply Now</button>
             </div>
           </div>
@@ -2141,6 +3165,12 @@ $hasError = !empty($dbError);
         event.stopPropagation();
         openJobDetailsModal(job);
       });
+
+      card.querySelector('[data-directions]')?.addEventListener('click', event => {
+        event.stopPropagation();
+        showRouteToJob(job);
+      });
+
       return card;
     }
 
@@ -2255,6 +3285,13 @@ $hasError = !empty($dbError);
       filterState.experienceLevel = [];
       filterState.postedWithin = [];
       filterState.sortBy = 'Sort: Most Recent';
+
+      // Clear location filter
+      clearLocationFilter();
+
+      // Reset map overlays
+      if (isTrafficOn) toggleTraffic();
+      if (isFullscreen) toggleFullscreen();
 
       // Reset search input
       document.getElementById('searchInput').value = '';
@@ -2400,6 +3437,53 @@ $hasError = !empty($dbError);
       document.getElementById('resetBtn').addEventListener('click', e => {
         e.preventDefault();
         resetFilters();
+      });
+
+      document.getElementById('pinLocationBtn').addEventListener('click', pinUserLocation);
+
+      document.getElementById('clearLocationBtn').addEventListener('click', clearLocationFilter);
+
+      document.getElementById('mapThemeDropdown').addEventListener('change', e => {
+        switchMapLayer(e.target.value);
+      });
+
+      document.getElementById('trafficToggleBtn').addEventListener('click', toggleTraffic);
+
+      document.getElementById('fullscreenMapBtn').addEventListener('click', toggleFullscreen);
+
+      document.getElementById('closeFullscreenMapBtn').addEventListener('click', toggleFullscreen);
+
+      document.getElementById('directionsCloseBtn').addEventListener('click', hideDirections);
+
+      document.getElementById('radiusInput').addEventListener('change', e => {
+        const val = parseInt(e.target.value);
+        if (val >= 1 && val <= 50) {
+          filterRadiusKm = val;
+          if (userLocation) {
+            if (userRadiusCircle) {
+              jobsMap.removeLayer(userRadiusCircle);
+            }
+            userRadiusCircle = L.circle([userLocation.lat, userLocation.lng], {
+              radius: filterRadiusKm * 1000,
+              color: '#c8a96e',
+              fillColor: '#c8a96e',
+              fillOpacity: 0.1,
+              weight: 2,
+              dashArray: '5, 10'
+            }).addTo(jobsMap);
+            applyFilters();
+            const status = document.getElementById('mapStatus');
+            if (status) status.textContent = `Showing jobs within ${filterRadiusKm}km of your location`;
+          }
+        } else {
+          e.target.value = filterRadiusKm;
+        }
+      });
+
+      document.querySelectorAll('.map-theme-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          switchMapLayer(btn.dataset.theme);
+        });
       });
     }
 
