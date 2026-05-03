@@ -8,6 +8,32 @@ if (!isset($_SESSION['employer_id'])) {
   exit;
 }
 
+// Handle contact candidate action
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'contact_candidate') {
+  $candidate_id = intval($_POST['candidate_id'] ?? 0);
+  
+  if ($candidate_id > 0) {
+    $conn = getConnection();
+    $employer_id = (int)$_SESSION['employer_id'];
+    
+    // Pre-filled job offer message for blind hiring
+    $job_offer_message = "Hello! We're interested in your profile based on your skills. We'd like to offer you an opportunity to learn more about our open positions. Would you be available for a brief chat?";
+    
+    // Insert the initial message as an anonymous employer
+    // Using a special message to indicate blind hiring - the chat system will display employer as anonymous
+    $stmt = $conn->prepare("INSERT INTO message (sender_id, sender_type, receiver_id, receiver_type, message, timestamp) VALUES (?, 'employer', ?, 'employee', ?, NOW())");
+    $stmt->bind_param("iis", $employer_id, $candidate_id, $job_offer_message);
+    
+    if ($stmt->execute()) {
+      $stmt->close();
+      // Redirect to chat with this candidate
+      header('Location: ../chat-sms/index.php?employee_id=' . $candidate_id);
+      exit;
+    }
+    $stmt->close();
+  }
+}
+
 // Get database connection
 $conn = getConnection();
 $employer_id = (int)$_SESSION['employer_id'];
@@ -22,7 +48,7 @@ $stmt = $conn->prepare("SELECT DISTINCT
 FROM employee e
 LEFT JOIN resumes r ON e.employee_id = r.employee_id
 WHERE e.is_active = 1
-ORDER BY e.employee_id ASC");
+ORDER BY RAND()");
 $stmt->execute();
 $result = $stmt->get_result();
 while ($row = $result->fetch_assoc()) {
@@ -150,7 +176,6 @@ foreach ($blind_candidates as &$candidate) {
       <li><a href="../post-jobs/">Post Jobs</a></li>
       <li><a href="../employee-finder/">Find Talent</a></li>
       <li><a href="../applicant-tracking/">Hiring Pipeline</a></li>
-      <li><a href="./" class="active">Blind Hiring</a></li>
       <li><a href="../chat-sms/">Messages</a></li>
     </ul>
     <div class="nav-actions">
@@ -270,9 +295,13 @@ foreach ($blind_candidates as &$candidate) {
                   <span style="color: #999; font-size: 0.9rem;">No skills listed</span>
                 <?php endif; ?>
               </div>
-              <button style="width: 100%; margin-top: 1rem; padding: 0.75rem; background: #1e9e86; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.9rem;">
-                View Full Profile
-              </button>
+              <form method="POST" style="display: inline; width: 100%;">
+                <input type="hidden" name="action" value="contact_candidate">
+                <input type="hidden" name="candidate_id" value="<?php echo $candidate['employee_id']; ?>">
+                <button type="submit" onclick="return confirm('This will send an anonymous job offer message to this candidate. Continue?')" style="width: 100%; margin-top: 1rem; padding: 0.75rem; background: #1e9e86; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.9rem;">
+                  💬 Contact Candidate
+                </button>
+              </form>
             </div>
           <?php endforeach; ?>
         <?php endif; ?>

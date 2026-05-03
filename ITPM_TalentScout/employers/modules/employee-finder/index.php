@@ -2,19 +2,42 @@
 session_start();
 require_once('../../../database/db.php');
 
-// Check if employer is logged in
 if (!isset($_SESSION['employer_id'])) {
   header('Location: ../../login.php');
   exit;
 }
 
-// Get database connection
 $conn = getConnection();
 $employer_id = (int)$_SESSION['employer_id'];
 
-// Fetch all employees with their resumes and skills
+$search_query = trim($_GET['search'] ?? '');
+$filter_skill = $_GET['skill'] ?? '';
+$filter_experience = $_GET['experience'] ?? '';
+
+$where_conditions = ["e.is_active = 1"];
+$params = [];
+$types = "";
+
+if (!empty($search_query)) {
+  $where_conditions[] = "(e.first_name LIKE ? OR e.last_name LIKE ? OR r.summary LIKE ? OR EXISTS (SELECT 1 FROM resume_skills rs JOIN resumes r2 ON rs.resume_id = r2.resume_id WHERE r2.employee_id = e.employee_id AND rs.skill_name LIKE ?))";
+  $search_param = "%{$search_query}%";
+  $params[] = &$search_param;
+  $params[] = &$search_param;
+  $params[] = &$search_param;
+  $params[] = &$search_param;
+  $types .= "ssss";
+}
+
+if (!empty($filter_skill)) {
+  $where_conditions[] = "EXISTS (SELECT 1 FROM resume_skills rs JOIN resumes r2 ON rs.resume_id = r2.resume_id WHERE r2.employee_id = e.employee_id AND rs.skill_name = ?)";
+  $params[] = &$filter_skill;
+  $types .= "s";
+}
+
+$where_clause = implode(" AND ", $where_conditions);
+
 $employees = [];
-$stmt = $conn->prepare("SELECT DISTINCT
+$sql = "SELECT DISTINCT
   e.employee_id,
   e.first_name,
   e.last_name,
@@ -23,8 +46,13 @@ $stmt = $conn->prepare("SELECT DISTINCT
   IFNULL(r.resume_id, 0) as resume_id
 FROM employee e
 LEFT JOIN resumes r ON e.employee_id = r.employee_id
-WHERE e.is_active = 1
-ORDER BY e.first_name ASC");
+WHERE $where_clause
+ORDER BY e.first_name ASC";
+
+$stmt = $conn->prepare($sql);
+if (!empty($params)) {
+  $stmt->bind_param($types, ...$params);
+}
 $stmt->execute();
 $result = $stmt->get_result();
 while ($row = $result->fetch_assoc()) {
@@ -32,8 +60,6 @@ while ($row = $result->fetch_assoc()) {
 }
 $stmt->close();
 
-// Fetch skills for each employee
-$employee_skills = [];
 foreach ($employees as &$emp) {
   if ($emp['resume_id'] > 0) {
     $stmt = $conn->prepare("SELECT skill_name FROM resume_skills WHERE resume_id = ?");
@@ -50,6 +76,20 @@ foreach ($employees as &$emp) {
     $emp['skills'] = [];
   }
 }
+
+$all_skills = [];
+$stmt = $conn->query("SELECT DISTINCT skill_name FROM resume_skills ORDER BY skill_name LIMIT 50");
+while ($row = $stmt->fetch_assoc()) {
+  $all_skills[] = $row['skill_name'];
+}
+$stmt->close();
+
+$total_count = 0;
+$stmt = $conn->query("SELECT COUNT(*) as cnt FROM employee WHERE is_active = 1");
+if ($row = $stmt->fetch_assoc()) {
+  $total_count = $row['cnt'];
+}
+$stmt->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -610,12 +650,15 @@ foreach ($employees as &$emp) {
 <div id="normal-tab" class="tab-content active">
   <!-- SEARCH BAR -->
   <div class="search-bar-wrap">
-    <div class="search-bar">
+    <form method="GET" class="search-bar">
       <div class="search-input-rel">
-        <input type="text" class="input" placeholder="Search by skills, job title, experience...">
+        <input type="text" name="search" class="input" placeholder="Search by skills, name, or summary..." value="<?php echo htmlspecialchars($search_query); ?>">
       </div>
-      <button class="btn btn-primary">Search</button>
-    </div>
+      <button type="submit" class="btn btn-primary">Search</button>
+      <?php if (!empty($search_query) || !empty($filter_skill)): ?>
+        <a href="?" class="btn btn-outline" style="margin-left: 0.5rem;">Clear</a>
+      <?php endif; ?>
+    </form>
   </div>
 
   <!-- CONTENT -->
@@ -623,84 +666,64 @@ foreach ($employees as &$emp) {
     <!-- SIDEBAR FILTERS -->
     <aside>
       <div class="sidebar-card">
-        <div class="sidebar-title">Experience Level</div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck">-</div>
-            <span>Entry Level</span>
-          </div>
-          <span class="fcount">12</span>
-        </div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck on">✓</div>
-            <span>Mid Level</span>
-          </div>
-          <span class="fcount">24</span>
-        </div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck">-</div>
-            <span>Senior</span>
-          </div>
-          <span class="fcount">18</span>
+        <div class="sidebar-title">Filter by Skill</div>
+        <form method="GET">
+          <?php if (!empty($search_query)): ?>
+            <input type="hidden" name="search" value="<?php echo htmlspecialchars($search_query); ?>">
+          <?php endif; ?>
+          <select name="skill" class="select" style="width: 100%; margin-bottom: 1rem;" onchange="this.form.submit()">
+            <option value="">All Skills</option>
+            <?php foreach ($all_skills as $skill): ?>
+              <option value="<?php echo htmlspecialchars($skill); ?>" <?php echo ($filter_skill === $skill) ? 'selected' : ''; ?>><?php echo htmlspecialchars($skill); ?></option>
+            <?php endforeach; ?>
+          </select>
+        </form>
+        <a href="?" class="filter-item" style="text-decoration: none; color: inherit; display: block; padding: 0.5rem; background: var(--bg-light); border-radius: 4px; text-align: center;">
+          Clear All Filters
+        </a>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-title">Total Candidates</div>
+        <div style="text-align: center; padding: 1rem;">
+          <div style="font-size: 2rem; font-weight: 700; color: var(--primary-dark);"><?php echo $total_count; ?></div>
+          <div style="font-size: 0.85rem; color: var(--text-light);">Available in database</div>
         </div>
       </div>
 
       <div class="sidebar-card">
-        <div class="sidebar-title">Skills</div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck on">✓</div>
-            <span>React</span>
-          </div>
-          <span class="fcount">16</span>
-        </div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck on">✓</div>
-            <span>Python</span>
-          </div>
-          <span class="fcount">12</span>
-        </div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck">-</div>
-            <span>JavaScript</span>
-          </div>
-          <span class="fcount">18</span>
-        </div>
-      </div>
-
-      <div class="sidebar-card">
-        <div class="sidebar-title">Location</div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck on">✓</div>
-            <span>Nasugbu</span>
-          </div>
-          <span class="fcount">42</span>
-        </div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck">-</div>
-            <span>Remote</span>
-          </div>
-          <span class="fcount">8</span>
-        </div>
+        <div class="sidebar-title">Quick Links</div>
+        <a href="?search=JavaScript" class="filter-item" style="text-decoration: none; color: var(--text-mid); display: block; padding: 0.3rem 0;">
+          <span>JavaScript</span>
+        </a>
+        <a href="?search=Python" class="filter-item" style="text-decoration: none; color: var(--text-mid); display: block; padding: 0.3rem 0;">
+          <span>Python</span>
+        </a>
+        <a href="?search=React" class="filter-item" style="text-decoration: none; color: var(--text-mid); display: block; padding: 0.3rem 0;">
+          <span>React</span>
+        </a>
+        <a href="?search=Management" class="filter-item" style="text-decoration: none; color: var(--text-mid); display: block; padding: 0.3rem 0;">
+          <span>Management</span>
+        </a>
       </div>
     </aside>
 
     <!-- RESULTS -->
     <div>
       <div class="results-header">
-        <div class="results-title">Top Talent Matches</div>
-        <div class="results-count">Showing <?php echo count(array_slice($employees, 0, 6)); ?> of <?php echo count($employees); ?> candidates</div>
+        <div class="results-title">Talent Matches</div>
+        <div class="results-count">
+          <?php if (!empty($search_query) || !empty($filter_skill)): ?>
+            Found <?php echo count($employees); ?> candidate(s)
+          <?php else: ?>
+            Showing <?php echo count($employees); ?> of <?php echo $total_count; ?> candidates
+          <?php endif; ?>
+        </div>
       </div>
 
       <?php 
         if (count($employees) > 0) {
-          foreach (array_slice($employees, 0, 6) as $emp) {
+          foreach ($employees as $emp) {
             // Generate match score based on skills count
             $match_score = min(98, 70 + (count($emp['skills']) * 4));
       ?>
@@ -744,12 +767,15 @@ foreach ($employees as &$emp) {
 <div id="blind-tab" class="tab-content">
   <!-- SEARCH BAR -->
   <div class="search-bar-wrap">
-    <div class="search-bar">
+    <form method="GET" class="search-bar">
       <div class="search-input-rel">
-        <input type="text" class="input" placeholder="Search by skills or experience level...">
+        <input type="text" name="search" class="input" placeholder="Search by skills only (anonymous)..." value="<?php echo htmlspecialchars($search_query); ?>">
       </div>
-      <button class="btn btn-primary">Search</button>
-    </div>
+      <button type="submit" class="btn btn-primary">Search</button>
+      <?php if (!empty($search_query)): ?>
+        <a href="?tab=blind" class="btn btn-outline" style="margin-left: 0.5rem;">Clear</a>
+      <?php endif; ?>
+    </form>
   </div>
 
   <!-- CONTENT -->
@@ -757,53 +783,29 @@ foreach ($employees as &$emp) {
     <!-- SIDEBAR FILTERS -->
     <aside>
       <div class="sidebar-card">
-        <div class="sidebar-title">Experience Level</div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck">-</div>
-            <span>Entry Level</span>
-          </div>
-          <span class="fcount">12</span>
-        </div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck on">✓</div>
-            <span>Mid Level</span>
-          </div>
-          <span class="fcount">24</span>
-        </div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck">-</div>
-            <span>Senior</span>
-          </div>
-          <span class="fcount">18</span>
-        </div>
+        <div class="sidebar-title">Filter by Skill</div>
+        <form method="GET">
+          <input type="hidden" name="tab" value="blind">
+          <?php if (!empty($search_query)): ?>
+            <input type="hidden" name="search" value="<?php echo htmlspecialchars($search_query); ?>">
+          <?php endif; ?>
+          <select name="skill" class="select" style="width: 100%; margin-bottom: 1rem;" onchange="this.form.submit()">
+            <option value="">All Skills</option>
+            <?php foreach ($all_skills as $skill): ?>
+              <option value="<?php echo htmlspecialchars($skill); ?>" <?php echo ($filter_skill === $skill) ? 'selected' : ''; ?>><?php echo htmlspecialchars($skill); ?></option>
+            <?php endforeach; ?>
+          </select>
+        </form>
+        <a href="?tab=blind" class="filter-item" style="text-decoration: none; color: inherit; display: block; padding: 0.5rem; background: var(--bg-light); border-radius: 4px; text-align: center;">
+          Clear All Filters
+        </a>
       </div>
 
       <div class="sidebar-card">
-        <div class="sidebar-title">Skills</div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck on">✓</div>
-            <span>React</span>
-          </div>
-          <span class="fcount">16</span>
-        </div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck on">✓</div>
-            <span>Python</span>
-          </div>
-          <span class="fcount">12</span>
-        </div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck">-</div>
-            <span>JavaScript</span>
-          </div>
-          <span class="fcount">18</span>
-        </div>
+        <div class="sidebar-title">Blind Hiring Info</div>
+        <p style="font-size: 0.85rem; color: var(--text-light); line-height: 1.5;">
+          Candidates are shown anonymously. Personal details are hidden to reduce bias.
+        </p>
       </div>
     </aside>
 
@@ -811,12 +813,18 @@ foreach ($employees as &$emp) {
     <div>
       <div class="results-header">
         <div class="results-title">Anonymous Candidate Screening</div>
-        <div class="results-count">Showing <?php echo count(array_slice($employees, 0, 6)); ?> of <?php echo count($employees); ?> candidates</div>
+        <div class="results-count">
+          <?php if (!empty($search_query) || !empty($filter_skill)): ?>
+            Found <?php echo count($employees); ?> anonymous candidate(s)
+          <?php else: ?>
+            Showing <?php echo count($employees); ?> of <?php echo $total_count; ?> candidates
+          <?php endif; ?>
+        </div>
       </div>
 
       <?php 
         if (count($employees) > 0) {
-          foreach (array_slice($employees, 0, 6) as $index => $emp) {
+          foreach ($employees as $index => $emp) {
             // Generate match score based on skills count
             $match_score = min(98, 70 + (count($emp['skills']) * 4));
             $candidate_id = chr(65 + ($index % 26)) . rand(10, 99); // Generate ID like A42, B71, etc
@@ -860,26 +868,22 @@ foreach ($employees as &$emp) {
 </div>
 
 <script>
-  function switchTab(tabName) {
-    // Hide all tabs
-    document.getElementById('normal-tab').classList.remove('active');
-    document.getElementById('blind-tab').classList.remove('active');
-    
-    // Remove active class from all links
-    document.querySelectorAll('.sub-nav-link').forEach(link => {
-      link.classList.remove('active');
-    });
-    
-    // Show selected tab with smooth animation
-    if (tabName === 'normal') {
-      document.getElementById('normal-tab').classList.add('active');
-      document.querySelectorAll('.sub-nav-link')[0].classList.add('active');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else if (tabName === 'blind') {
+  // Check URL for tab parameter on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    if (tab === 'blind') {
+      document.getElementById('normal-tab').classList.remove('active');
       document.getElementById('blind-tab').classList.add('active');
+      document.querySelectorAll('.sub-nav-link')[0].classList.remove('active');
       document.querySelectorAll('.sub-nav-link')[1].classList.add('active');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  });
+
+  function switchTab(tabName) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', tabName);
+    window.location.href = url.toString();
   }
 
   // Enhance candidate card interactions

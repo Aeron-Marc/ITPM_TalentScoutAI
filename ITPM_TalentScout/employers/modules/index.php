@@ -70,14 +70,19 @@
   </a>
   <ul class="nav-links">
     <li><a href="../index.php">Home</a></li>
-    <li><a href="./post-jobs/">Post Jobs</a></li>
+    <li><a href="./post-jobs/" class="active">Post Jobs</a></li>
     <li><a href="./employee-finder/">Find Talent</a></li>
     <li><a href="./applicant-tracking/">Hiring Pipeline</a></li>
-    <li><a href="./chat-sms/" class="active">Messages</a></li>
+    <li><a href="./chat-sms/">Messages</a></li>
   </ul>
   <div class="nav-actions">
-    <a href="#" class="btn btn-outline">Login</a>
-    <a href="#" class="btn btn-primary">Get Started</a>
+    <?php if (isset($_SESSION['employer_id'])): ?>
+      <span class="nav-user">Welcome, <?php echo htmlspecialchars($_SESSION['employer_name'] ?? 'Employer'); ?></span>
+      <a href="../logout.php" class="btn btn-outline">Logout</a>
+    <?php else: ?>
+      <a href="../login.php" class="btn btn-outline">Login</a>
+      <a href="../signup.php" class="btn btn-primary">Get Started</a>
+    <?php endif; ?>
   </div>
 </nav>
 
