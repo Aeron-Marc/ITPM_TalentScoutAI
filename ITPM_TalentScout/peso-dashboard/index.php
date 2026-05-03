@@ -66,7 +66,7 @@ $applications = [];
 $stmt = $conn->prepare("SELECT 
   e.first_name as firstName, 
   e.last_name as lastName,
-  e.address,
+  e.address as location,
   jp.title as position,
   a.status,
   a.application_date
@@ -281,6 +281,56 @@ $max_barangay = !empty($barangays) ? $barangays[0]['count'] : 1;
       font-weight: 700;
       flex-shrink: 0;
     }
+
+    /* Table Styles */
+    .table-wrap {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .table thead {
+      background: var(--bg-light);
+      border-bottom: 2px solid var(--border);
+    }
+    .table th {
+      padding: 1rem 1.2rem;
+      text-align: left;
+      font-weight: 700;
+      color: var(--text-dark);
+      white-space: nowrap;
+    }
+    .table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background-color 0.2s;
+    }
+    .table tbody tr:hover {
+      background-color: var(--bg-lighter);
+    }
+    .table td {
+      padding: 0.9rem 1.2rem;
+      color: var(--text-mid);
+    }
+    .table .badge {
+      display: inline-block;
+      padding: 0.35rem 0.7rem;
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .badge-gray { background: #E8EAED; color: #5F6368; }
+    .badge-blue { background: #E3F2FD; color: #1976D2; }
+    .badge-yellow { background: #FFF3E0; color: #F57C00; }
+    .badge-green { background: #E8F5E9; color: #388E3C; }
+    
+    /* Progress bar for barangays */
+    .progress-bar { width: 100%; height: 8px; background: var(--bg-light); border-radius: 100px; overflow: hidden; }
 
     /* Barangay bar chart */
     .brgy-bar { margin-bottom: 0.75rem; }
@@ -524,11 +574,11 @@ $max_barangay = !empty($barangays) ? $barangays[0]['count'] : 1;
                   elseif (strtolower($app['status']) == 'interview scheduled') $status_class = 'badge-yellow';
                   elseif (strtolower($app['status']) == 'offer received') $status_class = 'badge-green';
                 ?>
-                <tr class="app-row" data-search="<?php echo strtolower($app['first_name'] . ' ' . $app['last_name'] . ' ' . $app['position']); ?>">
+                <tr class="app-row" data-search="<?php echo strtolower($app['firstName'] . ' ' . $app['lastName'] . ' ' . $app['position']); ?>">
                   <td>
                     <div class="avatar-name">
                       <div class="small-avatar" style="background:#E4FBF3;color:#0F6E5E;"><?php echo $initials; ?></div>
-                      <span><?php echo htmlspecialchars($app['first_name'] . ' ' . $app['last_name']); ?></span>
+                      <span><?php echo htmlspecialchars($app['firstName'] . ' ' . $app['lastName']); ?></span>
                     </div>
                   </td>
                   <td><?php echo htmlspecialchars($app['position']); ?></td>

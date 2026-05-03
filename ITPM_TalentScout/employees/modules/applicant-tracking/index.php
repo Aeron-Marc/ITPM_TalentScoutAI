@@ -20,8 +20,10 @@ $query = "SELECT
   a.employee_id,
   a.application_date,
   a.status,
+  a.hire_status,
   j.title as job_title,
-  e.company_name
+  e.company_name,
+  e.employer_id
 FROM application a
 JOIN job_post j ON a.job_post_id = j.job_post_id
 JOIN employer e ON j.employer_id = e.employer_id
@@ -41,6 +43,17 @@ if (!$stmt->execute()) {
 $result = $stmt->get_result();
 
 while ($row = $result->fetch_assoc()) {
+  // Calculate display status based on hire_status priority
+  $hireStatus = $row['hire_status'] ?? 'none';
+  if ($hireStatus === 'accepted') {
+    $row['display_status'] = 'Hired';
+  } elseif ($hireStatus === 'rejected') {
+    $row['display_status'] = 'Offer Declined';
+  } elseif ($hireStatus === 'offered') {
+    $row['display_status'] = 'Offer Received';
+  } else {
+    $row['display_status'] = $row['status'];
+  }
   $applications[] = $row;
 }
 
@@ -48,16 +61,23 @@ $stmt->close();
 
 // Calculate statistics from database
 $totalApplications = count($applications);
-$interviewsScheduled = count(array_filter($applications, function($app) {
-  return stripos($app['status'], 'interview') !== false;
+$hiredCount = count(array_filter($applications, function($app) {
+  return ($app['hire_status'] ?? 'none') === 'accepted';
 }));
 $jobOffers = count(array_filter($applications, function($app) {
-  return stripos($app['status'], 'offer') !== false;
+  return ($app['hire_status'] ?? 'none') === 'offered';
+}));
+$interviewsScheduled = count(array_filter($applications, function($app) {
+  $hireStatus = $app['hire_status'] ?? 'none';
+  return stripos($app['status'], 'interview') !== false && !in_array($hireStatus, ['offered', 'accepted']);
 }));
 $underReview = count(array_filter($applications, function($app) {
   $status = strtolower($app['status']);
-  return $status === 'under review' || $status === 'pending' || 
-         (!in_array($status, ['interview scheduled', 'offer received', 'rejected', 'not selected']));
+  $hireStatus = $app['hire_status'] ?? 'none';
+  return !in_array($hireStatus, ['offered', 'accepted', 'rejected']) && 
+         $status !== 'rejected' && 
+         stripos($status, 'interview') === false &&
+         stripos($status, 'offer') === false;
 }));
 
 closeConnection($conn);
@@ -430,6 +450,12 @@ closeConnection($conn);
         border: 1px solid #f3c4c4;
       }
 
+      .status-hired {
+        background: #c8e6c9;
+        color: #1b5e20;
+        border: 1px solid #81c784;
+      }
+
       /* ── ACTION BUTTON ── */
       .action-btn {
         border: 1px solid var(--sage-light);
@@ -755,6 +781,39 @@ closeConnection($conn);
         box-shadow: 0 8px 24px rgba(74, 107, 80, 0.32);
       }
 
+      .btn-messages {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        border-radius: var(--radius-pill);
+        background: var(--gold);
+        color: #5a4a20;
+        padding: 11px 20px;
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 600;
+        font-size: 0.88rem;
+        cursor: pointer;
+        text-decoration: none;
+        box-shadow: 0 4px 12px rgba(200, 169, 110, 0.3);
+        transition: all 0.16s var(--ease-out);
+        margin-right: auto;
+      }
+
+      .btn-messages:hover {
+        background: #c8a96e;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(200, 169, 110, 0.4);
+      }
+
+      .app-details-footer {
+        padding: 2px 24px 10px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
       /* ── FOOTER ── */
       .footer {
         background: #1e1e18;
@@ -901,15 +960,15 @@ closeConnection($conn);
         </div>
         <div class="tracker-stat-card reveal reveal-delay-1">
           <div class="tracker-stat-number" id="interviewCount"><?php echo $interviewsScheduled; ?></div>
-          <div class="tracker-stat-label">Interviews Scheduled</div>
+          <div class="tracker-stat-label">Interviews</div>
         </div>
         <div class="tracker-stat-card reveal reveal-delay-2">
           <div class="tracker-stat-number" id="offersCount"><?php echo $jobOffers; ?></div>
-          <div class="tracker-stat-label">Job Offer</div>
+          <div class="tracker-stat-label">Job Offers</div>
         </div>
         <div class="tracker-stat-card reveal reveal-delay-3">
-          <div class="tracker-stat-number" id="reviewCount"><?php echo $underReview; ?></div>
-          <div class="tracker-stat-label">Under Review</div>
+          <div class="tracker-stat-number" id="hiredCount"><?php echo $hiredCount; ?></div>
+          <div class="tracker-stat-label">Hired</div>
         </div>
       </div>
 
@@ -934,27 +993,32 @@ closeConnection($conn);
             <?php else: ?>
               <?php foreach ($applications as $app): ?>
                 <?php
-                  $status = $app['status'];
+                  $displayStatus = $app['display_status'];
+                  $hireStatus = $app['hire_status'] ?? 'none';
                   $statusClass = 'status-pending';
                   
-                  if (stripos($status, 'offer') !== false) {
+                  if ($hireStatus === 'accepted') {
+                    $statusClass = 'status-hired';
+                  } elseif ($hireStatus === 'rejected') {
+                    $statusClass = 'status-rejected';
+                  } elseif ($hireStatus === 'offered' || stripos($displayStatus, 'offer') !== false) {
                     $statusClass = 'status-approved';
-                  } elseif (stripos($status, 'interview') !== false) {
+                  } elseif (stripos($displayStatus, 'interview') !== false) {
                     $statusClass = 'status-interview';
-                  } elseif (stripos($status, 'review') !== false) {
+                  } elseif (stripos($displayStatus, 'review') !== false) {
                     $statusClass = 'status-reviewed';
-                  } elseif (stripos($status, 'rejected') !== false || stripos($status, 'not selected') !== false) {
+                  } elseif (stripos($displayStatus, 'rejected') !== false || stripos($displayStatus, 'not selected') !== false) {
                     $statusClass = 'status-rejected';
                   }
                   
                   $appliedDate = date('Y-m-d', strtotime($app['application_date']));
                 ?>
-                <tr>
+                <tr data-app-id="<?php echo $app['application_id']; ?>" data-employer-id="<?php echo $app['employer_id']; ?>" data-hire-status="<?php echo $hireStatus; ?>">
                   <td class="tracker-job-title"><?php echo htmlspecialchars($app['job_title']); ?></td>
                   <td class="tracker-company"><?php echo htmlspecialchars($app['company_name']); ?></td>
                   <td><?php echo htmlspecialchars($appliedDate); ?></td>
                   <td>
-                    <span class="status-badge <?php echo $statusClass; ?>"><?php echo htmlspecialchars($status); ?></span>
+                    <span class="status-badge <?php echo $statusClass; ?>"><?php echo htmlspecialchars($displayStatus); ?></span>
                   </td>
                   <td><button class="action-btn">View Details</button></td>
                 </tr>
@@ -1017,6 +1081,7 @@ closeConnection($conn);
         </div>
         <div id="app-details-body" class="app-details-body"></div>
         <div class="app-details-footer">
+          <a href="#" id="app-details-messages-btn" class="btn-messages" style="display: none;">💬 Go to Messages</a>
           <button type="button" id="app-details-ok-btn">Close</button>
         </div>
       </div>
@@ -1112,6 +1177,17 @@ closeConnection($conn);
           };
         }
 
+        if (normalized.includes('hired')) {
+          return {
+            toneClass: 'tone-offer',
+            progress: 100,
+            stage: 'Hired',
+            nextStep: 'Congratulations! Check your messages for next steps',
+            priority: 'High',
+            note: 'Congratulations on your new job! The employer will reach out with further details.'
+          };
+        }
+
         if (normalized.includes('not selected') || normalized.includes('reject')) {
           return {
             toneClass: 'tone-rejected',
@@ -1138,12 +1214,28 @@ closeConnection($conn);
           const row = button.closest('tr');
           if (!row) return;
 
+          const appId = row.dataset.appId || '';
+          const employerId = row.dataset.employerId || '';
+          
           const jobTitle = row.querySelector('.tracker-job-title')?.textContent?.trim() || 'N/A';
           const company = row.querySelector('.tracker-company')?.textContent?.trim() || 'N/A';
           const appliedDate = row.cells[2]?.textContent?.trim() || 'N/A';
           const status = row.querySelector('.status-badge')?.textContent?.trim() || 'N/A';
           const formattedDate = formatAppliedDate(appliedDate);
           const statusMeta = getStatusMetadata(status);
+          
+          // Show/hide messages button based on pending actions
+          const messagesBtn = document.getElementById('app-details-messages-btn');
+          const statusLower = status.toLowerCase();
+          if (messagesBtn) {
+            // Show messages button if there's a scheduled interview or offer to respond to
+            if (statusLower.includes('interview') || statusLower.includes('offer')) {
+              messagesBtn.style.display = 'inline-flex';
+              messagesBtn.href = '../messages/index.php?employer_id=' + employerId + '&application_id=' + appId;
+            } else {
+              messagesBtn.style.display = 'none';
+            }
+          }
 
           if (detailsSubtext) {
             detailsSubtext.textContent = 'Comprehensive snapshot for ' + jobTitle + ' at ' + company + '.';
@@ -1241,7 +1333,7 @@ closeConnection($conn);
           document.getElementById('totalAppCount').textContent = stats.totalApplications;
           document.getElementById('interviewCount').textContent = stats.interviewsScheduled;
           document.getElementById('offersCount').textContent = stats.jobOffers;
-          document.getElementById('reviewCount').textContent = stats.underReview;
+          document.getElementById('hiredCount').textContent = stats.hired;
 
           // Update table
           const tableBody = document.getElementById('applicationsTableBody');
@@ -1253,28 +1345,33 @@ closeConnection($conn);
           } else {
             // Hide empty state and populate table
             tableBody.innerHTML = applications.map(app => {
-              const status = app.status;
+              const displayStatus = app.display_status || app.status;
+              const hireStatus = app.hire_status || 'none';
               let statusClass = 'status-pending';
 
-              if (status.toLowerCase().includes('offer')) {
+              if (hireStatus === 'accepted') {
+                statusClass = 'status-hired';
+              } else if (hireStatus === 'rejected') {
+                statusClass = 'status-rejected';
+              } else if (hireStatus === 'offered' || displayStatus.toLowerCase().includes('offer')) {
                 statusClass = 'status-approved';
-              } else if (status.toLowerCase().includes('interview')) {
+              } else if (displayStatus.toLowerCase().includes('interview')) {
                 statusClass = 'status-interview';
-              } else if (status.toLowerCase().includes('review')) {
+              } else if (displayStatus.toLowerCase().includes('review')) {
                 statusClass = 'status-reviewed';
-              } else if (status.toLowerCase().includes('rejected') || status.toLowerCase().includes('not selected')) {
+              } else if (displayStatus.toLowerCase().includes('rejected') || displayStatus.toLowerCase().includes('not selected')) {
                 statusClass = 'status-rejected';
               }
 
               const appliedDate = new Date(app.application_date).toLocaleDateString('en-CA');
 
               return `
-                <tr>
+                <tr data-app-id="${app.application_id}" data-employer-id="${app.employer_id}" data-hire-status="${hireStatus}">
                   <td class="tracker-job-title">${escapeHtml(app.job_title)}</td>
                   <td class="tracker-company">${escapeHtml(app.company_name)}</td>
                   <td>${escapeHtml(appliedDate)}</td>
                   <td>
-                    <span class="status-badge ${statusClass}">${escapeHtml(status)}</span>
+                    <span class="status-badge ${statusClass}">${escapeHtml(displayStatus)}</span>
                   </td>
                   <td><button class="action-btn">View Details</button></td>
                 </tr>

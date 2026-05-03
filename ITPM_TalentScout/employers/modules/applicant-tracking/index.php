@@ -19,6 +19,7 @@ $stmt = $conn->prepare("SELECT
   a.job_post_id,
   a.employee_id,
   a.status,
+  a.hire_status,
   a.application_date,
   e.first_name,
   e.last_name,
@@ -32,6 +33,17 @@ $stmt->bind_param("i", $employer_id);
 $stmt->execute();
 $result = $stmt->get_result();
 while ($row = $result->fetch_assoc()) {
+  // Calculate display status based on hire_status
+  $hireStatus = $row['hire_status'] ?? 'none';
+  if ($hireStatus === 'accepted') {
+    $row['display_status'] = 'Hired';
+  } elseif ($hireStatus === 'rejected') {
+    $row['display_status'] = 'Offer Declined';
+  } elseif ($hireStatus === 'offered') {
+    $row['display_status'] = 'Offer Sent';
+  } else {
+    $row['display_status'] = $row['status'];
+  }
   $applications[] = $row;
 }
 $stmt->close();
@@ -40,31 +52,33 @@ $stmt->close();
 $stats = [
   'total' => count($applications),
   'applied' => 0,
-  'review' => 0,
   'interview' => 0,
   'offer' => 0,
-  'hired' => 0
+  'hired' => 0,
+  'rejected' => 0
 ];
 
 foreach ($applications as $app) {
-  switch (strtolower($app['status'])) {
-    case 'applied':
-      $stats['applied']++;
-      break;
-    case 'in review':
-    case 'review':
-      $stats['review']++;
-      break;
-    case 'interview':
-      $stats['interview']++;
-      break;
-    case 'offer sent':
-    case 'offer':
-      $stats['offer']++;
-      break;
-    case 'hired':
-      $stats['hired']++;
-      break;
+  $hireStatus = $app['hire_status'] ?? 'none';
+  
+  if ($hireStatus === 'accepted') {
+    $stats['hired']++;
+  } elseif ($hireStatus === 'offered') {
+    $stats['offer']++;
+  } elseif ($hireStatus === 'rejected') {
+    $stats['rejected']++;
+  } else {
+    switch (strtolower($app['status'])) {
+      case 'pending':
+        $stats['applied']++;
+        break;
+      case 'interview scheduled':
+        $stats['interview']++;
+        break;
+      case 'rejected':
+        $stats['rejected']++;
+        break;
+    }
   }
 }
 ?>
@@ -212,10 +226,10 @@ foreach ($applications as $app) {
     }
 
     .status-applied { background: #e8e8e8; color: #666; }
-    .status-review { background: #fff3cd; color: #865c00; }
     .status-interview { background: #d1ecf1; color: #0c5460; }
     .status-offer { background: #d4edda; color: #155724; }
-    .status-hired { background: #98FBCB; color: #1a1a1a; font-weight: 700; }
+    .status-rejected { background: #f8d7da; color: #721c24; }
+    .status-hired { background: #c8e6c9; color: #1b5e20; }
 
     .match-score {
       font-weight: 700;
@@ -258,6 +272,187 @@ foreach ($applications as $app) {
     }
 
     .footer { background: #1a1a1a; color: white; padding: 2rem; margin-top: 3rem; text-align: center; }
+
+    /* Modal Styles */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+    }
+
+    .modal-content {
+      position: relative;
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 600px;
+      width: 90%;
+      max-height: 85vh;
+      overflow-y: auto;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(30px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 2rem;
+      cursor: pointer;
+      color: var(--text-light);
+      padding: 0;
+      width: 2.5rem;
+      height: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .modal-close:hover {
+      color: var(--text-dark);
+      transform: rotate(90deg);
+    }
+
+    .modal-body {
+      padding: 2rem;
+    }
+
+    .modal-footer {
+      padding: 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+    }
+
+    .candidate-info {
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background: #f9f9f9;
+      border-radius: var(--radius);
+    }
+
+    .candidate-info h3 {
+      margin-top: 0;
+      font-size: 1.1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: var(--text-dark);
+      min-width: 120px;
+    }
+
+    .info-value {
+      color: var(--text-light);
+      text-align: right;
+    }
+
+    .status-update-section {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: #f9f9f9;
+      border-radius: var(--radius);
+    }
+
+    .status-update-section h3 {
+      margin-top: 0;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .status-buttons {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+
+    .status-btn {
+      padding: 0.6rem 0.8rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      color: var(--text-dark);
+    }
+
+    .status-btn:hover {
+      background: var(--primary-light);
+      border-color: var(--primary-dark);
+      color: var(--primary-dark);
+    }
+
+    .status-btn.btn-reject {
+      grid-column: 1 / -1;
+      background: #fee;
+      border-color: #fcc;
+      color: #c33;
+    }
+
+    .status-btn.btn-reject:hover {
+      background: #fdd;
+      border-color: #f99;
+    }
   </style>
 </head>
 <body>
@@ -297,16 +492,20 @@ foreach ($applications as $app) {
         <div class="stat-label">Total Applications</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value"><?php echo ($stats['applied'] + $stats['review']); ?></div>
+        <div class="stat-value"><?php echo ($stats['applied'] + $stats['interview']); ?></div>
         <div class="stat-label">Ready to Review</div>
       </div>
       <div class="stat-card">
         <div class="stat-value"><?php echo $stats['interview']; ?></div>
-        <div class="stat-label">Interviews Scheduled</div>
+        <div class="stat-label">Interviews</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value"><?php echo ($stats['offer'] + $stats['hired']); ?></div>
-        <div class="stat-label">Offers Sent / Hired</div>
+        <div class="stat-value"><?php echo $stats['offer']; ?></div>
+        <div class="stat-label">Offers Sent</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value"><?php echo $stats['hired']; ?></div>
+        <div class="stat-label">Hired</div>
       </div>
     </div>
 
@@ -326,29 +525,36 @@ foreach ($applications as $app) {
         <tbody>
           <?php if (count($applications) > 0): ?>
             <?php foreach ($applications as $app): 
-              // Normalize status for display
-              $status = strtolower($app['status']);
-              $status_display = ucfirst($status);
-              if ($status === 'in review') $status_display = 'In Review';
-              if ($status === 'offer sent') $status_display = 'Offer Sent';
+              // Use display_status from query
+              $displayStatus = $app['display_status'];
+              $hireStatus = $app['hire_status'] ?? 'none';
               
-              // Determine status class
+              // Determine status class based on hire_status first
               $status_class = 'status-applied';
-              if (in_array($status, ['in review', 'review'])) $status_class = 'status-review';
-              if ($status === 'interview') $status_class = 'status-interview';
-              if (in_array($status, ['offer sent', 'offer'])) $status_class = 'status-offer';
-              if ($status === 'hired') $status_class = 'status-hired';
+              if ($hireStatus === 'accepted') {
+                $status_class = 'status-hired';
+              } elseif ($hireStatus === 'rejected') {
+                $status_class = 'status-rejected';
+              } elseif ($hireStatus === 'offered') {
+                $status_class = 'status-offer';
+              } else {
+                $status = strtolower($app['status']);
+                if ($status === 'interview scheduled') $status_class = 'status-interview';
+                if ($status === 'rejected') $status_class = 'status-rejected';
+              }
               
               // Generate match score (random for now, could be calculated from skills later)
               $match_score = rand(75, 98);
             ?>
-            <tr>
+            <tr data-application-id="<?php echo $app['application_id']; ?>">
               <td class="candidate-col"><?php echo htmlspecialchars($app['first_name'] . ' ' . $app['last_name']); ?></td>
               <td class="position-col"><?php echo htmlspecialchars($app['job_title']); ?></td>
-              <td><span class="status-col <?php echo $status_class; ?>"><?php echo $status_display; ?></span></td>
+              <td><span class="status-col <?php echo $status_class; ?>"><?php echo htmlspecialchars($displayStatus); ?></span></td>
               <td class="match-score"><?php echo $match_score; ?>%</td>
               <td class="date-col"><?php echo date('M j, Y', strtotime($app['application_date'])); ?></td>
-              <td class="action-col"><a href="../chat-sms/?employee_id=<?php echo $app['employee_id']; ?>&application_id=<?php echo $app['application_id']; ?>" class="btn-small">Message</a></td>
+              <td class="action-col">
+                <button class="btn-small view-details" data-application-id="<?php echo $app['application_id']; ?>">View</button>
+              </td>
             </tr>
             <?php endforeach; ?>
           <?php else: ?>
@@ -360,6 +566,23 @@ foreach ($applications as $app) {
           <?php endif; ?>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- Application Details Modal -->
+  <div id="applicationModal" class="modal" style="display: none;">
+    <div class="modal-overlay" onclick="closeApplicationModal()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Application Details</h2>
+        <button class="modal-close" onclick="closeApplicationModal()">×</button>
+      </div>
+      <div id="modalBody" class="modal-body">
+        <div style="text-align: center; padding: 2rem;">Loading...</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeApplicationModal()">Close</button>
+      </div>
     </div>
   </div>
 
@@ -380,12 +603,144 @@ foreach ($applications as $app) {
       }, 10);
     });
 
+    // View details button functionality
+    document.querySelectorAll('.view-details').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const applicationId = this.getAttribute('data-application-id');
+        openApplicationModal(applicationId);
+      });
+    });
+
+    // Modal functions
+    function openApplicationModal(applicationId) {
+      const modal = document.getElementById('applicationModal');
+      const modalBody = document.getElementById('modalBody');
+      
+      modal.style.display = 'flex';
+      modalBody.innerHTML = '<div style="text-align: center; padding: 2rem;">Loading...</div>';
+
+      // Fetch application details
+      fetch(`./get-application.php?application_id=${applicationId}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const app = data.application;
+            // Map database status to friendly display
+            const status_map = {
+              'Pending': 'Applied',
+              'Interview Scheduled': 'Interview',
+              'Offer Received': 'Offer Sent',
+              'Rejected': 'Rejected'
+            };
+            const friendly_status = status_map[app.status] || app.status;
+            const statusOptions = ['Applied', 'Interview', 'Offer Sent', 'Rejected'];
+            
+            let html = `
+              <div class="candidate-info">
+                <h3>${app.first_name} ${app.last_name}</h3>
+                <div class="info-row">
+                  <span class="info-label">Position:</span>
+                  <span class="info-value">${app.job_title}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Email:</span>
+                  <span class="info-value"><a href="mailto:${app.email}" style="color: var(--primary-dark); text-decoration: none;">${app.email}</a></span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Phone:</span>
+                  <span class="info-value">${app.phone || 'N/A'}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Location:</span>
+                  <span class="info-value">${app.address || 'N/A'}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Applied Date:</span>
+                  <span class="info-value">${new Date(app.application_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Current Status:</span>
+                  <span class="info-value" style="font-weight: 700;">${friendly_status}</span>
+                </div>
+              </div>
+
+              <div class="status-update-section">
+                <h3>Update Status</h3>
+                <div class="status-buttons">
+                  ${statusOptions.map(status => 
+                    `<button class="status-btn ${status === 'Rejected' ? 'btn-reject' : ''}" data-status="${status}" onclick="updateApplicationStatus(${app.application_id}, '${status}')">
+                      ${status}
+                    </button>`
+                  ).join('')}
+                </div>
+              </div>
+
+              <div style="margin-top: 2rem; padding: 1.5rem; background: #f9f9f9; border-radius: var(--radius);">
+                <h3 style="margin-top: 0; font-size: 1rem;">Job Description</h3>
+                <p style="color: var(--text-light); font-size: 0.9rem; line-height: 1.6; margin: 0;">${app.job_description || 'No description available'}</p>
+              </div>
+            `;
+            modalBody.innerHTML = html;
+          } else {
+            modalBody.innerHTML = `<div style="color: red; text-align: center; padding: 2rem;">Error loading application details</div>`;
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          modalBody.innerHTML = `<div style="color: red; text-align: center; padding: 2rem;">Error loading application</div>`;
+        });
+    }
+
+    function closeApplicationModal() {
+      const modal = document.getElementById('applicationModal');
+      modal.style.display = 'none';
+    }
+
+    function updateApplicationStatus(applicationId, newStatus) {
+      const formData = new FormData();
+      formData.append('application_id', applicationId);
+      formData.append('status', newStatus);
+
+      fetch('./update-application.php', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert(`Application status updated to "${newStatus}"`);
+          closeApplicationModal();
+          // Reload the page to see updated status
+          location.reload();
+        } else {
+          alert('Error updating status: ' + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating application status');
+      });
+    }
+
+    // Close modal when clicking overlay
+    document.addEventListener('click', function(e) {
+      const modal = document.getElementById('applicationModal');
+      if (e.target === modal.querySelector('.modal-overlay')) {
+        closeApplicationModal();
+      }
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeApplicationModal();
+      }
+    });
+
     // Enhance button interactions
     document.querySelectorAll('.btn-small').forEach(btn => {
       btn.addEventListener('click', function(e) {
-        // Prevent default action for demo
-        e.preventDefault();
-        
         // Add click feedback
         this.style.transform = 'scale(0.95)';
         setTimeout(() => {

@@ -19,7 +19,10 @@ if ($conn->connect_error) {
 $conn->set_charset("utf8");
 
 // Fetch ALL job postings from database
-$sql = "SELECT jp.* FROM job_post jp ORDER BY jp.job_post_id DESC";
+$sql = "SELECT jp.*, e.company_name 
+        FROM job_post jp 
+        LEFT JOIN employer e ON jp.employer_id = e.employer_id 
+        ORDER BY jp.job_post_id DESC";
 $result = $conn->query($sql);
 $jobs = array();
 $dbError = '';
@@ -1882,6 +1885,9 @@ $hasError = !empty($dbError);
     </div>
   </div>
 
+  <!-- Confirmation & Message Modals -->
+  <?php include_once __DIR__ . '/../common/application-modals.php'; ?>
+
   <!-- Data passed from PHP to JavaScript -->
   <script>
     window.dbJobs = <?php echo $jobsJson; ?>;
@@ -2580,31 +2586,44 @@ $hasError = !empty($dbError);
       modal.setAttribute('aria-hidden', 'true');
     }
 
-    async function submitApplication(jobPostId) {
+    async function submitApplication(jobPostId, jobTitle = '', companyName = '') {
       if (!window.isLoggedIn) {
         window.location.href = '../../login.php';
         return;
       }
 
-      try {
-        const formData = new FormData();
-        formData.append('job_post_id', jobPostId);
-
-        const response = await fetch('./submit-application.php', {
-          method: 'POST',
-          body: formData
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-          showSuccessAnimation(data.application);
+      // Find job details if not provided
+      let jobData = null;
+      if (jobTitle && companyName) {
+        jobData = { title: jobTitle, company: companyName, jobPostId: jobPostId };
+      } else {
+        const job = window.dbJobs.find(j => j.id === jobPostId);
+        if (job) {
+          jobData = {
+            title: job.title || 'Unknown Position',
+            company: job.company_name || 'Unknown Company',
+            jobPostId: jobPostId,
+            location: job.location || 'Not specified'
+          };
         } else {
-          alert(data.message || 'Failed to submit application. Please try again.');
+          // Fallback - use allJobs normalized data
+          const normalizedJob = allJobs.find(j => j.id === jobPostId);
+          if (normalizedJob) {
+            jobData = {
+              title: normalizedJob.title || 'Unknown Position',
+              company: normalizedJob.company_name || 'Unknown Company',
+              jobPostId: jobPostId,
+              location: normalizedJob.location || 'Not specified'
+            };
+          }
         }
-      } catch (error) {
-        console.error('Application submission error:', error);
-        alert('An error occurred. Please try again.');
+      }
+
+      // Show confirmation modal
+      if (jobData && jobData.title) {
+        showConfirmModal(jobData);
+      } else {
+        alert('Could not load job details. Please refresh the page and try again.');
       }
     }
 
@@ -2869,7 +2888,8 @@ $hasError = !empty($dbError);
         level: normalizeLevel(row.experience_level, title, desc),
         category: inferCategory(title, desc, skills),
         postedDays,
-        created_at: row.created_at || row.job_post_created || ''
+        created_at: row.created_at || row.job_post_created || '',
+        company_name: String(row.company_name || '').trim() || 'Unknown Company'
       };
     }
 

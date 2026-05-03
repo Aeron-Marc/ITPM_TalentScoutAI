@@ -85,15 +85,16 @@ try {
     // Insert application record
     $applicationDate = date('Y-m-d');
     $status = 'Pending';
+    $is_anonymous = isset($_POST['is_anonymous']) && $_POST['is_anonymous'] == '1' ? 1 : 0;
 
-    $insertQuery = "INSERT INTO application (job_post_id, employee_id, status, application_date) 
-                    VALUES (?, ?, ?, ?)";
+    $insertQuery = "INSERT INTO application (job_post_id, employee_id, status, application_date, is_anonymous) 
+                    VALUES (?, ?, ?, ?, ?)";
     $insertStmt = $conn->prepare($insertQuery);
     if (!$insertStmt) {
         throw new Exception("Prepare failed: " . $conn->error);
     }
 
-    $insertStmt->bind_param("iiss", $job_post_id, $employee_id, $status, $applicationDate);
+    $insertStmt->bind_param("iissi", $job_post_id, $employee_id, $status, $applicationDate, $is_anonymous);
     if (!$insertStmt->execute()) {
         throw new Exception("Execute failed: " . $insertStmt->error);
     }

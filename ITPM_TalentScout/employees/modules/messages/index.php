@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $stmt->bind_param("iisi", $employee_id, $receiver_id, $message, $application_id);
     if ($stmt->execute()) {
       $stmt->close();
-      header('Location: ' . $_SERVER['REQUEST_URI']);
+      header('Location  : ' . $_SERVER['REQUEST_URI']);
       exit;
     }
     $stmt->close();
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 }
 
 $applications = [];
-$stmt = $conn->prepare("SELECT a.application_id, a.job_post_id, j.title as job_title, e.company_name, a.status
+$stmt = $conn->prepare("SELECT a.application_id, a.job_post_id, a.status, a.hire_status, j.title as job_title, e.company_name
 FROM application a
 JOIN job_post j ON a.job_post_id = j.job_post_id
 JOIN employer e ON j.employer_id = e.employer_id
@@ -73,7 +73,7 @@ if ($selected_employer_id > 0 && isset($conversations[$selected_employer_id])) {
 
 $messages = [];
 if ($selected_employer_id > 0) {
-  $stmt = $conn->prepare("SELECT m.*, a.job_post_id, j.title as job_title, e.company_name
+  $stmt = $conn->prepare("SELECT m.*, a.job_post_id, a.hire_status, j.title as job_title, e.company_name
   FROM message m
   LEFT JOIN application a ON m.application_id = a.application_id
   LEFT JOIN job_post j ON a.job_post_id = j.job_post_id
@@ -92,7 +92,107 @@ if ($selected_employer_id > 0) {
   $stmt->close();
 }
 
-closeConnection($conn);
+$selected_application_id = isset($_GET['application_id']) ? intval($_GET['application_id']) : 0;
+$current_interview = null;
+$application_hire_status = null;
+if ($selected_application_id > 0) {
+  $stmt = $conn->prepare("SELECT * FROM interviews WHERE application_id = ? AND employee_id = ? ORDER BY scheduled_datetime DESC LIMIT 1");
+  $stmt->bind_param("ii", $selected_application_id, $employee_id);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  if ($row = $result->fetch_assoc()) {
+    $current_interview = $row;
+  }
+  $stmt->close();
+
+  $stmt = $conn->prepare("SELECT hire_status, hire_offer_message FROM application WHERE application_id = ? AND employee_id = ?");
+  $stmt->bind_param("ii", $selected_application_id, $employee_id);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  if ($row = $result->fetch_assoc()) {
+    $application_hire_status = $row;
+  }
+  $stmt->close();
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  if (isset($_POST['action']) && $_POST['action'] === 'respond_interview') {
+    $interview_id = intval($_POST['interview_id'] ?? 0);
+    $response = $_POST['response'] ?? '';
+    
+    if ($interview_id > 0 && in_array($response, ['accepted', 'rejected'])) {
+      $stmt = $conn->prepare("UPDATE interviews SET status = ? WHERE interview_id = ? AND employee_id = ?");
+      $stmt->bind_param("sii", $response, $interview_id, $employee_id);
+      $stmt->execute();
+      $stmt->close();
+      
+      $stmt = $conn->prepare("SELECT i.*, e.company_name, j.title as job_title FROM interviews i JOIN application a ON i.application_id = a.application_id JOIN employer e ON i.employer_id = e.employer_id JOIN job_post j ON a.job_post_id = j.job_post_id WHERE i.interview_id = ?");
+      $stmt->bind_param("i", $interview_id);
+      $stmt->execute();
+      $result = $stmt->get_result();
+      $interview_info = $result->fetch_assoc();
+      $stmt->close();
+      
+      $response_msg = $response === 'accepted' 
+        ? "✅ I accept the scheduled interview for " . date('M d, Y g:i A', strtotime($interview_info['scheduled_datetime'])) . ". Thank you!"
+        : "❌ I need to decline the scheduled interview. Please reschedule if possible.";
+      
+      $stmt = $conn->prepare("INSERT INTO message (sender_id, sender_type, receiver_id, receiver_type, message, application_id, timestamp) VALUES (?, 'employee', ?, 'employer', ?, ?, NOW())");
+      $stmt->bind_param("iisi", $employee_id, $selected_employer_id, $response_msg, $interview_info['application_id']);
+      $stmt->execute();
+      $stmt->close();
+      
+      header('Location: ' . $_SERVER['REQUEST_URI']);
+      exit;
+    }
+  }
+  
+  if (isset($_POST['action']) && $_POST['action'] === 'respond_hire') {
+    $application_id = intval($_POST['application_id'] ?? 0);
+    $response = $_POST['hire_response'] ?? '';
+    
+    if ($application_id > 0 && in_array($response, ['accepted', 'rejected'])) {
+      $stmt = $conn->prepare("UPDATE application SET hire_status = ?, hire_response_date = NOW() WHERE application_id = ? AND employee_id = ?");
+      $stmt->bind_param("sii", $response, $application_id, $employee_id);
+      $stmt->execute();
+      $stmt->close();
+      
+      $stmt = $conn->prepare("SELECT a.*, e.company_name, j.title as job_title FROM application a JOIN job_post j ON a.job_post_id = j.job_post_id JOIN employer e ON j.employer_id = e.employer_id WHERE a.application_id = ?");
+      $stmt->bind_param("i", $application_id);
+      $stmt->execute();
+      $result = $stmt->get_result();
+      $app_info = $result->fetch_assoc();
+      $stmt->close();
+      
+      $response_msg = $response === 'accepted'
+        ? "🎉 I ACCEPT THE JOB OFFER! Thank you so much for this opportunity. I look forward to joining " . $app_info['company_name'] . "!"
+        : "Thank you for the offer, but I have decided to decline. I appreciate the opportunity and wish you the best.";
+      
+      $stmt = $conn->prepare("INSERT INTO message (sender_id, sender_type, receiver_id, receiver_type, message, application_id, timestamp) VALUES (?, 'employee', ?, 'employer', ?, ?, NOW())");
+      $stmt->bind_param("iisi", $employee_id, $selected_employer_id, $response_msg, $application_id);
+      $stmt->execute();
+      $stmt->close();
+      
+      header('Location: ' . $_SERVER['REQUEST_URI']);
+      exit;
+    }
+  }
+}
+
+$applications_for_select = [];
+$stmt = $conn->prepare("SELECT a.application_id, a.hire_status, j.title as job_title, e.company_name, e.employer_id
+FROM application a
+JOIN job_post j ON a.job_post_id = j.job_post_id
+JOIN employer e ON j.employer_id = e.employer_id
+WHERE a.employee_id = ? AND e.employer_id = ?
+ORDER BY a.application_date DESC");
+$stmt->bind_param("ii", $employee_id, $selected_employer_id);
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
+  $applications_for_select[] = $row;
+}
+$stmt->close();
 ?>
 <!doctype html>
 <html lang="en">
@@ -319,14 +419,14 @@ closeConnection($conn);
       .messages-layout {
         max-width: 1200px;
         margin: 0 auto;
-        padding: 2rem 2.5rem 4rem;
+        padding: 2rem 2.5rem 8rem;
         display: grid;
         grid-template-columns: 320px 1fr;
         gap: 0;
-        height: calc(100vh - 200px);
+        height: auto;
         min-height: 500px;
         border-radius: var(--radius-xl);
-        overflow: hidden;
+        overflow: visible;
         border: 1px solid var(--sand-dark);
         background: #fff;
         box-shadow: 0 4px 24px rgba(42,42,34,0.06);
@@ -457,6 +557,7 @@ closeConnection($conn);
         border-bottom: 1px solid var(--sand-dark);
         background: #fff;
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
         gap: 0.75rem;
       }
@@ -470,6 +571,12 @@ closeConnection($conn);
         font-size: 0.8rem;
         font-weight: 700;
         font-family: 'Playfair Display', serif;
+        flex-shrink: 0;
+      }
+
+      .chat-header-info {
+        flex: 1;
+        min-width: 150px;
       }
 
       .chat-header-info h3 {
@@ -482,6 +589,169 @@ closeConnection($conn);
       .chat-header-info span {
         font-size: 0.75rem;
         color: var(--warm-light);
+      }
+
+      .response-panel {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        width: 100%;
+        padding-top: 0.75rem;
+        margin-top: 0.5rem;
+        border-top: 1px solid var(--sand-dark);
+      }
+
+      .response-card {
+        background: var(--sand);
+        border: 1px solid var(--sand-dark);
+        border-radius: var(--radius-md);
+        padding: 0.75rem 1rem;
+        flex: 1;
+        min-width: 200px;
+      }
+
+      .response-card.scheduled {
+        border-left: 3px solid #1976d2;
+        background: #e3f2fd;
+      }
+
+      .response-card.hire-offer {
+        border-left: 3px solid #388e3c;
+        background: #e8f5e9;
+      }
+
+      .response-title {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--charcoal);
+        margin-bottom: 0.25rem;
+      }
+
+      .response-detail {
+        font-size: 0.78rem;
+        color: var(--warm-mid);
+        margin-bottom: 0.5rem;
+      }
+
+      .response-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .btn-response {
+        padding: 0.4rem 0.85rem;
+        border-radius: var(--radius-pill);
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .btn-accept {
+        background: var(--sage-deep);
+        color: #fff;
+      }
+      .btn-accept:hover {
+        background: var(--sage);
+      }
+
+      .btn-hire {
+        background: #388e3c;
+      }
+      .btn-hire:hover {
+        background: #2e7d32;
+      }
+
+      .btn-reject {
+        background: #fff;
+        border: 1px solid var(--stone-light);
+        color: var(--warm-mid);
+      }
+      .btn-reject:hover {
+        background: #ffebee;
+        border-color: #d32f2f;
+        color: #d32f2f;
+      }
+
+      .response-badge {
+        padding: 0.4rem 0.75rem;
+        border-radius: var(--radius-md);
+        font-size: 0.78rem;
+        font-weight: 600;
+        margin-left: auto;
+      }
+
+      .response-badge.accepted {
+        background: #e8f5e9;
+        color: #2e7d32;
+      }
+
+      .response-badge.rejected {
+        background: #ffebee;
+        color: #c62828;
+      }
+
+      .hire-badge {
+        background: #c8e6c9;
+        color: #1b5e20;
+      }
+
+      .response-card.scheduled.accepted {
+        background: #e8f5e9;
+        border-left-color: #2e7d32;
+      }
+
+      .response-card.scheduled.rejected {
+        background: #ffebee;
+        border-left-color: #c62828;
+      }
+
+      .response-card.hire-offer.accepted {
+        background: #c8e6c9;
+        border-left-color: #1b5e20;
+      }
+
+      .response-card.hire-offer.rejected {
+        background: #ffebee;
+        border-left-color: #c62828;
+      }
+
+      .message-action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid rgba(0,0,0,0.1);
+      }
+
+      .btn-inline-accept, .btn-inline-reject {
+        padding: 0.4rem 0.75rem;
+        border-radius: var(--radius-pill);
+        font-size: 0.75rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .btn-inline-accept {
+        background: var(--sage-deep);
+        color: #fff;
+      }
+      .btn-inline-accept:hover {
+        background: var(--sage);
+      }
+
+      .btn-inline-reject {
+        background: #fff;
+        border: 1px solid var(--stone-light);
+        color: var(--warm-mid);
+      }
+      .btn-inline-reject:hover {
+        background: #ffebee;
+        border-color: #d32f2f;
+        color: #d32f2f;
       }
 
       .chat-messages {
@@ -573,24 +843,29 @@ closeConnection($conn);
       /* ── MESSAGE FORM ── */
       .message-form {
         padding: 1.25rem 1.5rem;
+        padding-bottom: 2rem;
         border-top: 1px solid var(--sand-dark);
         background: #fff;
+        margin-bottom: 4rem;
       }
 
       .message-form-top {
         display: flex;
         gap: 0.75rem;
         align-items: flex-end;
+        flex-wrap: wrap;
       }
 
       .message-form-main {
         flex: 1;
+        min-width: 200px;
       }
 
       .message-form-row {
         display: flex;
         gap: 0.75rem;
         margin-bottom: 0.75rem;
+        flex-wrap: wrap;
       }
 
       .msg-input {
@@ -651,6 +926,8 @@ closeConnection($conn);
         gap: 0.4rem;
         white-space: nowrap;
         box-shadow: 0 4px 14px rgba(74,107,80,0.28);
+        flex-shrink: 0;
+        min-width: fit-content;
       }
 
       .btn-send:hover {
@@ -774,7 +1051,8 @@ closeConnection($conn);
           grid-template-columns: 1fr;
           margin: 0 1rem;
           padding: 0;
-          height: calc(100vh - 180px);
+          height: auto;
+          min-height: auto;
         }
 
         .conversations-panel {
@@ -821,6 +1099,31 @@ closeConnection($conn);
 
         .message-form {
           padding: 1rem;
+          padding-bottom: 1.5rem;
+          margin-bottom: 2rem;
+        }
+
+        .message-form-row {
+          flex-direction: column;
+          width: 100%;
+        }
+
+        .msg-select {
+          width: 100%;
+        }
+
+        .message-form-top {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .message-form-main {
+          min-width: auto;
+        }
+
+        .btn-send {
+          width: 100%;
+          justify-content: center;
         }
 
         .footer-top {
@@ -914,6 +1217,67 @@ closeConnection($conn);
               <h3><?php echo htmlspecialchars($selected_employer_name); ?></h3>
               <span>Employer</span>
             </div>
+            <?php if (!empty($applications_for_select) && $selected_application_id > 0): ?>
+              <div class="response-panel">
+                <?php if ($current_interview && $current_interview['status'] === 'scheduled'): ?>
+                  <div class="response-card scheduled">
+                    <div class="response-title">📅 Interview Scheduled</div>
+                    <div class="response-detail"><?php echo date('M d, Y g:i A', strtotime($current_interview['scheduled_datetime'])); ?></div>
+                    <div class="response-actions">
+                      <form method="POST" style="display:inline;">
+                        <input type="hidden" name="action" value="respond_interview">
+                        <input type="hidden" name="interview_id" value="<?php echo $current_interview['interview_id']; ?>">
+                        <input type="hidden" name="response" value="accepted">
+                        <button type="submit" class="btn-response btn-accept">✓ Accept</button>
+                      </form>
+                      <form method="POST" style="display:inline;">
+                        <input type="hidden" name="action" value="respond_interview">
+                        <input type="hidden" name="interview_id" value="<?php echo $current_interview['interview_id']; ?>">
+                        <input type="hidden" name="response" value="rejected">
+                        <button type="submit" class="btn-response btn-reject">✕ Decline</button>
+                      </form>
+                    </div>
+                  </div>
+                <?php elseif ($current_interview && $current_interview['status'] === 'accepted'): ?>
+                  <div class="response-card scheduled accepted">
+                    <div class="response-title">✓ Interview Accepted</div>
+                  </div>
+                <?php elseif ($current_interview && $current_interview['status'] === 'rejected'): ?>
+                  <div class="response-card scheduled rejected">
+                    <div class="response-title">✕ Interview Declined</div>
+                  </div>
+                <?php endif; ?>
+                
+                <?php if ($application_hire_status && $application_hire_status['hire_status'] === 'offered'): ?>
+                  <div class="response-card hire-offer">
+                    <div class="response-title">🎯 Job Offer</div>
+                    <div class="response-detail"><?php echo htmlspecialchars($application_hire_status['hire_offer_message']); ?></div>
+                    <div class="response-actions">
+                      <form method="POST" style="display:inline;">
+                        <input type="hidden" name="action" value="respond_hire">
+                        <input type="hidden" name="application_id" value="<?php echo $selected_application_id; ?>">
+                        <input type="hidden" name="hire_response" value="accepted">
+                        <button type="submit" class="btn-response btn-accept btn-hire">✓ Accept</button>
+                      </form>
+                      <form method="POST" style="display:inline;">
+                        <input type="hidden" name="action" value="respond_hire">
+                        <input type="hidden" name="application_id" value="<?php echo $selected_application_id; ?>">
+                        <input type="hidden" name="hire_response" value="rejected">
+                        <button type="submit" class="btn-response btn-reject">✕ Decline</button>
+                      </form>
+                    </div>
+                  </div>
+                <?php elseif ($application_hire_status && $application_hire_status['hire_status'] === 'accepted'): ?>
+                  <div class="response-card hire-offer accepted">
+                    <div class="response-title">🎉 You are Hired!</div>
+                  </div>
+                <?php elseif ($application_hire_status && $application_hire_status['hire_status'] === 'rejected'): ?>
+                  <div class="response-card hire-offer rejected">
+                    <div class="response-title">✕ Offer Declined</div>
+                  </div>
+                <?php endif; ?>
+              </div>
+            <?php endif; ?>
           </div>
 
           <div class="chat-messages" id="chatMessages">
@@ -930,11 +1294,65 @@ closeConnection($conn);
                 <div class="message <?php echo $msg['sender_type'] === 'employee' ? 'sent' : 'received'; ?>">
                   <div>
                     <div class="message-bubble">
-                      <?php echo htmlspecialchars($msg['message']); ?>
+                      <?php 
+                      $msg_text = $msg['message'];
+                      $has_interview_scheduled = (strpos($msg_text, 'Interview scheduled') !== false || strpos($msg_text, 'Interview scheduled for') !== false || strpos($msg_text, '📅') !== false);
+                      $has_job_offer = (strpos($msg_text, 'JOB OFFER') !== false || strpos($msg_text, 'Job Offer') !== false || strpos($msg_text, '🎯') !== false);
+                      echo htmlspecialchars($msg_text); 
+                      ?>
                       <?php if ($msg['application_id'] > 0 && !empty($msg['job_title'])): ?>
                         <div class="message-application-ref">
                           📎 <?php echo htmlspecialchars($msg['job_title']); ?>
                         </div>
+                      <?php endif; ?>
+                      
+                      <?php if ($msg['sender_type'] === 'employer' && $msg['application_id'] > 0): ?>
+                        <?php
+                        $stmt = $conn->prepare("SELECT * FROM interviews WHERE application_id = ? AND employee_id = ? AND status = 'scheduled' ORDER BY scheduled_datetime DESC LIMIT 1");
+                        $stmt->bind_param("ii", $msg['application_id'], $employee_id);
+                        $stmt->execute();
+                        $result = $stmt->get_result();
+                        $pending_interview = $result->fetch_assoc();
+                        $stmt->close();
+                        
+                        $stmt2 = $conn->prepare("SELECT hire_status FROM application WHERE application_id = ? AND employee_id = ?");
+                        $stmt2->bind_param("ii", $msg['application_id'], $employee_id);
+                        $stmt2->execute();
+                        $result2 = $stmt2->get_result();
+                        $app_status = $result2->fetch_assoc();
+                        $stmt2->close();
+                        
+                        if ($pending_interview): ?>
+                          <div class="message-action-buttons">
+                            <form method="POST" style="display:inline;">
+                              <input type="hidden" name="action" value="respond_interview">
+                              <input type="hidden" name="interview_id" value="<?php echo $pending_interview['interview_id']; ?>">
+                              <input type="hidden" name="response" value="accepted">
+                              <button type="submit" class="btn-inline-accept">✓ Accept</button>
+                            </form>
+                            <form method="POST" style="display:inline;">
+                              <input type="hidden" name="action" value="respond_interview">
+                              <input type="hidden" name="interview_id" value="<?php echo $pending_interview['interview_id']; ?>">
+                              <input type="hidden" name="response" value="rejected">
+                              <button type="submit" class="btn-inline-reject">✕ Decline</button>
+                            </form>
+                          </div>
+                        <?php elseif ($app_status && $app_status['hire_status'] === 'offered'): ?>
+                          <div class="message-action-buttons">
+                            <form method="POST" style="display:inline;">
+                              <input type="hidden" name="action" value="respond_hire">
+                              <input type="hidden" name="application_id" value="<?php echo $msg['application_id']; ?>">
+                              <input type="hidden" name="hire_response" value="accepted">
+                              <button type="submit" class="btn-inline-accept">✓ Accept Offer</button>
+                            </form>
+                            <form method="POST" style="display:inline;">
+                              <input type="hidden" name="action" value="respond_hire">
+                              <input type="hidden" name="application_id" value="<?php echo $msg['application_id']; ?>">
+                              <input type="hidden" name="hire_response" value="rejected">
+                              <button type="submit" class="btn-inline-reject">✕ Decline</button>
+                            </form>
+                          </div>
+                        <?php endif; ?>
                       <?php endif; ?>
                     </div>
                     <div class="message-time"><?php echo date('M d, h:i A', strtotime($msg['timestamp'])); ?></div>
@@ -950,11 +1368,18 @@ closeConnection($conn);
               <input type="hidden" name="receiver_id" value="<?php echo $selected_employer_id; ?>">
 
               <div class="message-form-row">
-                <select name="application_id" id="application_id" class="msg-select">
+                <select name="application_id" id="application_id" class="msg-select" onchange="changeApplication(this.value)">
                   <option value="0">-- No specific application --</option>
                   <?php foreach ($applications as $app): ?>
-                    <option value="<?php echo $app['application_id']; ?>">
-                      <?php echo htmlspecialchars($app['job_title']); ?> — <?php echo htmlspecialchars($app['company_name']); ?>
+                    <?php
+                    $status_text = '';
+                    if ($app['status'] === 'pending') $status_text = '⏳ Pending';
+                    elseif ($app['status'] === 'interview') $status_text = '📅 Interview';
+                    elseif ($app['status'] === 'hired') $status_text = '✅ Hired';
+                    elseif ($app['status'] === 'rejected') $status_text = '❌ Rejected';
+                    ?>
+                    <option value="<?php echo $app['application_id']; ?>" <?php echo ($selected_application_id === $app['application_id']) ? 'selected' : ''; ?>>
+                      <?php echo htmlspecialchars($app['job_title']); ?> — <?php echo $status_text; ?>
                     </option>
                   <?php endforeach; ?>
                 </select>
@@ -1049,7 +1474,19 @@ closeConnection($conn);
           this.style.height = Math.min(this.scrollHeight, 120) + 'px';
         });
       }
+
+      // Change application
+      function changeApplication(appId) {
+        const url = new URL(window.location.href);
+        if (appId > 0) {
+          url.searchParams.set('application_id', appId);
+        } else {
+          url.searchParams.delete('application_id');
+        }
+        window.location.href = url.toString();
+      }
     </script>
     <script src="../../employee-auth.js"></script>
+    <?php closeConnection($conn); ?>
   </body>
 </html>

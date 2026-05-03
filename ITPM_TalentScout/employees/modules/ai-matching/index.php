@@ -8,7 +8,7 @@ if (!isset($_SESSION['employee_id'])) {
     header('Location: ../../login.php');
     exit;
 }
-
+  
 // Initialize database connection
 $conn = getConnection();
 
@@ -1122,6 +1122,7 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
         <div class="matches-header">
           <div>
             <div>Your AI-Generated Matches</div>
+            <!-- DEBUG: Employee ID = <?php echo $_SESSION['employee_id'] ?? 'NOT SET'; ?>, Jobs count = <?php echo count($matched_jobs); ?> -->
             <div style="font-size: 0.85rem; color: var(--warm-light); margin-top: 0.2rem;">
               <?php echo count($matched_jobs); ?> job<?php echo count($matched_jobs) != 1 ? 's' : ''; ?> matched to your profile
             </div>
@@ -1234,9 +1235,9 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
             <a href="../job-postings/index.php?id=<?php echo $job['job_post_id']; ?>" class="btn btn-outline">
               View Full Posting
             </a>
-            <a href="../applicant-tracking/submit-application.php?job_id=<?php echo $job['job_post_id']; ?>" class="btn btn-sage">
+            <button type="button" class="btn btn-sage" onclick="applyToJob({title: '<?php echo htmlspecialchars($job['title']); ?>', company: '<?php echo htmlspecialchars($employer_name); ?>', jobPostId: <?php echo $job['job_post_id']; ?>, location: '<?php echo htmlspecialchars($job['location'] ?? 'Not specified'); ?>', jobType: '<?php echo htmlspecialchars($job['work_type'] ?? 'Not specified'); ?>', salary: '<?php echo htmlspecialchars($job['salary'] ?? 'Not specified'); ?>', industry: '<?php echo htmlspecialchars($job['job_category'] ?? 'Not specified'); ?>', companySize: 'Not specified'})">
               Apply Now →
-            </a>
+            </button>
           </div>
         </div>
         <?php endforeach; 
@@ -1792,5 +1793,20 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
         }
       }
     </style>
+  <?php include_once __DIR__ . '/../common/application-modals.php'; ?>
+  <script>
+    // Apply to job from AI Matching
+    function applyToJob(jobData) {
+      <?php if (!isset($_SESSION['employee_id'])) { ?>
+        window.location.href = '../../login.php';
+        return;
+      <?php } ?>
+      if (jobData && jobData.title) {
+        showConfirmModal(jobData);
+      } else {
+        alert('Error: Could not load job details.');
+      }
+    }
+  </script>
   </body>
 </html>

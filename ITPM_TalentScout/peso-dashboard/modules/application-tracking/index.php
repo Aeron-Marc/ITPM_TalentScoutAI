@@ -31,7 +31,7 @@ try {
   $sql = "SELECT 
     a.application_id,
     a.status,
-    a.application_date as created_at,
+    a.application_date,
     e.first_name as firstName,
     e.last_name as lastName,
     e.email,

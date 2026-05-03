@@ -137,12 +137,16 @@ class MatchEngine {
                 e.company_name
             FROM job_post jp
             LEFT JOIN employer e ON jp.employer_id = e.employer_id
+            WHERE jp.application_deadline >= CURDATE()
+            AND jp.job_post_id NOT IN (
+                SELECT job_post_id FROM application WHERE employee_id = ?
+            )
             ORDER BY jp.job_post_created DESC
             LIMIT ?
         ";
         
         $stmt = $this->conn->prepare($query);
-        $stmt->bind_param('i', $limit);
+        $stmt->bind_param('ii', $this->employee_id, $limit);
         $stmt->execute();
         $result = $stmt->get_result();
         
