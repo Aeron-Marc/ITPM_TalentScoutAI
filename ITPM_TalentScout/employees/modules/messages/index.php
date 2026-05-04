@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $stmt->bind_param("iisi", $employee_id, $receiver_id, $message, $application_id);
     if ($stmt->execute()) {
       $stmt->close();
-      header('Location  : ' . $_SERVER['REQUEST_URI']);
+      header('Location: ' . $_SERVER['REQUEST_URI']);
       exit;
     }
     $stmt->close();

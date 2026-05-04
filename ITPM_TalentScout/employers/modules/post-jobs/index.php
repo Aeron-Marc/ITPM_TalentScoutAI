@@ -31,27 +31,28 @@ if (isset($_GET['job_deleted']) && $_GET['job_deleted'] === '1') {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
   if ($_POST['action'] === 'create_job') {
-  $title = trim($_POST['job_title'] ?? '');
-  $category = trim($_POST['job_category'] ?? '');
-  $description = trim($_POST['job_description'] ?? '');
-  $salary = trim($_POST['salary_range'] ?? '');
-  $location = trim($_POST['location'] ?? '');
-  $location_lat = trim($_POST['location_lat'] ?? '');
-  $location_lng = trim($_POST['location_lng'] ?? '');
-  $work_type = trim($_POST['job_type'] ?? '');
-  $skills = trim($_POST['required_skills'] ?? '');
-  $deadline = trim($_POST['application_deadline'] ?? '');
+    $title = trim($_POST['job_title'] ?? '');
+    $category = trim($_POST['job_category'] ?? '');
+    $description = trim($_POST['job_description'] ?? '');
+    $salary = trim($_POST['salary_range'] ?? '');
+    $location = trim($_POST['location'] ?? '');
+    $location_lat = trim($_POST['location_lat'] ?? '');
+    $location_lng = trim($_POST['location_lng'] ?? '');
+    $work_type = trim($_POST['job_type'] ?? '');
+    $skills = trim($_POST['required_skills'] ?? '');
+    $deadline = trim($_POST['application_deadline'] ?? '');
 
-  if ($title && $category && $description && $salary && $location && $work_type && $skills && $location_lat !== '' && $location_lng !== '') {
-    $stmt = $conn->prepare("INSERT INTO job_post (employer_id, title, description, salary, location, work_type, application_deadline, skills, experience_level, job_category, job_post_created) VALUES (?, ?, ?, ?, ?, ?, ?, ?, '', ?, NOW())");
-    $stmt->bind_param("issssssss", $employer_id, $title, $description, $salary, $location, $work_type, $deadline, $skills, $category);
+    if ($title && $category && $description && $salary && $location && $work_type && $skills && $location_lat !== '' && $location_lng !== '') {
+      $stmt = $conn->prepare("INSERT INTO job_post (employer_id, title, description, salary, location, work_type, application_deadline, skills, experience_level, job_category, job_post_created) VALUES (?, ?, ?, ?, ?, ?, ?, ?, '', ?, NOW())");
+      $stmt->bind_param("issssssss", $employer_id, $title, $description, $salary, $location, $work_type, $deadline, $skills, $category);
 
-    if ($stmt->execute()) {
-      $stmt->close();
-header("Location: " . strtok($_SERVER['REQUEST_URI'], '?') . "?job_created=1");
-      exit;
-    } else {
-      $error_message = ($location_lat === '' || $location_lng === '') ? "Please pin a location on the map before submitting." : "Please fill in all required fields.";
+      if ($stmt->execute()) {
+        $stmt->close();
+        header("Location: " . strtok($_SERVER['REQUEST_URI'], '?') . "?job_created=1");
+        exit;
+      } else {
+        $error_message = ($location_lat === '' || $location_lng === '') ? "Please pin a location on the map before submitting." : "Please fill in all required fields.";
+      }
     }
   }
 
@@ -101,8 +102,6 @@ header("Location: " . strtok($_SERVER['REQUEST_URI'], '?') . "?job_created=1");
       $error_message = "Please fill in all required fields.";
     }
   }
-}
-
 }
 
 $filter_status = $_GET['status'] ?? 'all';
@@ -216,7 +215,6 @@ $stmt->close();
 
     /* Modal Styles */
     .modal {
-      display: none;
       position: fixed;
       z-index: 1000;
       left: 0;
@@ -225,10 +223,13 @@ $stmt->close();
       height: 100%;
       background-color: rgba(0, 0, 0, 0.5);
       animation: fadeIn 0.2s ease;
+      display: none !important;
+      align-items: center;
+      justify-content: center;
     }
 
     .modal.active {
-      display: flex;
+      display: flex !important;
       align-items: center;
       justify-content: center;
     }
@@ -776,7 +777,7 @@ $stmt->close();
         </div>
 
         <!-- NEW JOB MODAL -->
-        <div id="jobModal" class="modal" style="display: none;">
+        <div id="jobModal" class="modal">
           <div class="modal-content">
             <div class="modal-header">
               <h2>Create New Job Posting</h2>
@@ -854,7 +855,7 @@ $stmt->close();
         </div>
 
         <!-- EDIT JOB MODAL -->
-        <div id="editJobModal" class="modal" style="display: none;">
+        <div id="editJobModal" class="modal">
           <div class="modal-content">
             <div class="modal-header">
               <h2>Edit Job Posting</h2>
@@ -929,6 +930,41 @@ $stmt->close();
           </div>
         </div>
 
+        <!-- CONFIRM CLOSE JOB MODAL -->
+        <div id="confirmCloseModal" class="modal">
+          <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+              <h2>Close Job Posting?</h2>
+              <button class="modal-close" onclick="closeModal('confirmCloseModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+              <p>Are you sure you want to close this job posting? You can reopen it later if needed.</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn" style="background: #6c757d; color: white; border: none; padding: 0.7rem 1.5rem; border-radius: var(--radius-sm); cursor: pointer;" onclick="closeModal('confirmCloseModal')">Cancel</button>
+              <button type="button" class="submit-btn" onclick="confirmCloseJob()">Close Job</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONFIRM DELETE JOB MODAL -->
+        <div id="confirmDeleteModal" class="modal">
+          <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+              <h2>Delete Job Posting?</h2>
+              <button class="modal-close" onclick="closeModal('confirmDeleteModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+              <p style="color: #721c24; font-weight: 600;">⚠️ This action cannot be undone.</p>
+              <p>Are you sure you want to permanently delete this job posting?</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn" style="background: #6c757d; color: white; border: none; padding: 0.7rem 1.5rem; border-radius: var(--radius-sm); cursor: pointer;" onclick="closeModal('confirmDeleteModal')">Cancel</button>
+              <button type="button" class="submit-btn" style="background: #dc3545; border-color: #dc3545;" onclick="confirmDeleteJob()">Delete Job</button>
+            </div>
+          </div>
+        </div>
+
         <!-- Success/Error Messages -->
         <?php if (!empty($success_message)): ?>
           <div id="success-alert" style="background: #d4edda; color: #155724; padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; border-left: 4px solid #155724; transition: opacity 0.4s ease, transform 0.4s ease;">
@@ -976,17 +1012,17 @@ $stmt->close();
                   <div class="job-card-actions">
                     <button class="btn-small" style="background: white; border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;" onclick="openEditModal(<?php echo $job['job_post_id']; ?>, '<?php echo htmlspecialchars(addslashes($job['title'])); ?>', '<?php echo htmlspecialchars(addslashes($job['job_category'] ?? '')); ?>', '<?php echo htmlspecialchars(addslashes($job['description'])); ?>', '<?php echo htmlspecialchars(addslashes($job['salary'])); ?>', '<?php echo htmlspecialchars(addslashes($job['location'])); ?>', '<?php echo htmlspecialchars(addslashes($job['work_type'])); ?>', '<?php echo htmlspecialchars(addslashes($job['skills'])); ?>', '<?php echo $job['application_deadline'] ?? ''; ?>')">Edit</button>
                     <?php if (!$is_closed): ?>
-                      <form method="POST" style="display:inline;">
+                      <form id="closeForm_<?php echo $job['job_post_id']; ?>" method="POST" style="display:none;">
                         <input type="hidden" name="action" value="close_job">
                         <input type="hidden" name="job_id" value="<?php echo $job['job_post_id']; ?>">
-                        <button type="submit" class="btn-small" style="background: white; border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;" onclick="return confirm('Are you sure you want to close this job posting?');">Close</button>
                       </form>
+                      <button type="button" class="btn-small" style="background: white; border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;" onclick="openCloseConfirm(<?php echo $job['job_post_id']; ?>)">Close</button>
                     <?php else: ?>
-                      <form method="POST" style="display:inline;">
+                      <form id="deleteForm_<?php echo $job['job_post_id']; ?>" method="POST" style="display:none;">
                         <input type="hidden" name="action" value="delete_job">
                         <input type="hidden" name="job_id" value="<?php echo $job['job_post_id']; ?>">
-                        <button type="submit" class="btn-small" style="background: #f8d7da; border: 1px solid #f5c6cb; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600; color: #721c24;" onclick="return confirm('Are you sure you want to delete this job posting?');">Delete</button>
                       </form>
+                      <button type="button" class="btn-small" style="background: #f8d7da; border: 1px solid #f5c6cb; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600; color: #721c24;" onclick="openDeleteConfirm(<?php echo $job['job_post_id']; ?>)">Delete</button>
                     <?php endif; ?>
                   </div>
                 </div>
@@ -1087,25 +1123,20 @@ $stmt->close();
       const requestId = ++jobLocationRequestId;
 
       try {
-        const response = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=' + encodeURIComponent(query), {
-          headers: {
-            'Accept': 'application/json',
-            'User-Agent': 'TalentScoutAI/1.0'
-          }
-        });
+        // Use PHP backend endpoint to avoid CORS and rate limiting issues
+        const response = await fetch('./geocode-location.php?location=' + encodeURIComponent(query));
 
         if (!response.ok) {
           return;
         }
 
-        const results = await response.json();
-        if (requestId !== jobLocationRequestId || !Array.isArray(results) || !results.length) {
+        const data = await response.json();
+        if (requestId !== jobLocationRequestId || !data.success || !data.data) {
           return;
         }
 
-        const result = results[0];
-        const lat = parseFloat(result.lat);
-        const lng = parseFloat(result.lon);
+        const lat = data.data.lat;
+        const lng = data.data.lng;
 
         if (Number.isNaN(lat) || Number.isNaN(lng)) {
           return;
@@ -1128,22 +1159,18 @@ $stmt->close();
       setJobLocationCoordinates(latLng.lat, latLng.lng);
 
       try {
-        const response = await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + encodeURIComponent(latLng.lat) + '&lon=' + encodeURIComponent(latLng.lng), {
-          headers: {
-            'Accept': 'application/json',
-            'User-Agent': 'TalentScoutAI/1.0'
-          }
-        });
+        // Use PHP backend endpoint to avoid CORS and rate limiting issues
+        const response = await fetch('./geocode-location.php?lat=' + encodeURIComponent(latLng.lat) + '&lon=' + encodeURIComponent(latLng.lng));
 
         if (!response.ok) {
           return;
         }
 
-        const result = await response.json();
-        if (result && result.display_name) {
+        const data = await response.json();
+        if (data && data.success && data.data && data.data.display_name) {
           const elements = getJobLocationElements();
           if (elements.input) {
-            elements.input.value = result.display_name;
+            elements.input.value = data.data.display_name;
           }
         }
       } catch (error) {
@@ -1244,12 +1271,7 @@ $stmt->close();
         });
       });
 
-      document.querySelectorAll('.fcheck').forEach(checkbox => {
-        checkbox.addEventListener('click', function(e) {
-          e.preventDefault();
-          this.classList.toggle('on');
-        });
-      });
+
 
       document.querySelectorAll('button').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -1278,6 +1300,37 @@ $stmt->close();
         }, 3000);
       }
     });
+
+    // Confirmation modal functions
+    let pendingJobId = null;
+
+    function openCloseConfirm(jobId) {
+      pendingJobId = jobId;
+      openModal('confirmCloseModal');
+    }
+
+    function confirmCloseJob() {
+      if (pendingJobId) {
+        const form = document.getElementById('closeForm_' + pendingJobId);
+        if (form) {
+          form.submit();
+        }
+      }
+    }
+
+    function openDeleteConfirm(jobId) {
+      pendingJobId = jobId;
+      openModal('confirmDeleteModal');
+    }
+
+    function confirmDeleteJob() {
+      if (pendingJobId) {
+        const form = document.getElementById('deleteForm_' + pendingJobId);
+        if (form) {
+          form.submit();
+        }
+      }
+    }
 </script>
 
   <!-- FOOTER -->

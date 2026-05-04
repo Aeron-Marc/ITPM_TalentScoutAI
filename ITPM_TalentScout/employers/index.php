@@ -176,8 +176,8 @@
     <h2 class="cta-title">Start Hiring Today</h2>
     <p class="cta-desc">Post your first job for free and access our pre-vetted talent pool. Begin receiving qualified applications and making hires within days.</p>
     <div class="cta-actions">
-      <a href="#" class="btn btn-primary" style="padding:0.85rem 2rem;font-size:0.95rem;">Post Your First Job</a>
-      <a href="#" class="btn btn-outline" style="padding:0.85rem 2rem;font-size:0.95rem;">Learn More</a>
+      <a href="./modules/post-jobs/" class="btn btn-primary" style="padding:0.85rem 2rem;font-size:0.95rem;">Post Your First Job</a>
+      <a href="./modules/" class="btn btn-outline" style="padding:0.85rem 2rem;font-size:0.95rem;">Learn More</a>
     </div>
   </div>
 </section>
@@ -229,10 +229,10 @@
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
       const href = this.getAttribute('href');
-      if (href !== '#') {
-        e.preventDefault();
+      if (href !== '#' && href !== '') {
         const target = document.querySelector(href);
         if (target) {
+          e.preventDefault();
           target.scrollIntoView({ behavior: 'smooth' });
         }
       }

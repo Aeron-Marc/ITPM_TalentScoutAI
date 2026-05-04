@@ -299,8 +299,8 @@
 (function() {
   console.log('Application modals loaded');
   
-  // Pending job application for confirmation
-  let pendingApplication = null;
+  // Pending job application for confirmation - use window property for reliability
+  window.pendingApplication = null;
 
   // Show confirmation modal - defined immediately
   window.showConfirmModal = function(jobData) {
@@ -336,9 +336,7 @@
       
 // Store pending application
     const isAnonymous = document.getElementById('applyAnonymously')?.checked || false;
-    pendingApplication = { jobTitle, companyName, jobPostId, location, isAnonymous };
-      
-      modal.classList.add('active');
+    window.pendingApplication = { jobTitle, companyName, jobPostId, location, isAnonymous };
       modal.setAttribute('aria-hidden', 'false');
       console.log('Modal shown successfully');
     } catch (e) {
@@ -357,20 +355,20 @@
     // Reset anonymous checkbox
     const checkbox = document.getElementById('applyAnonymously');
     if (checkbox) checkbox.checked = false;
-    pendingApplication = null;
+    window.pendingApplication = null;
   };
 
   // Execute the pending application
   window.executeApplication = async function() {
-    console.log('executeApplication called', pendingApplication);
-    if (!pendingApplication) {
+    console.log('executeApplication called', window.pendingApplication);
+    if (!window.pendingApplication) {
       console.error('No pending application');
       alert('Error: No application pending');
       return;
     }
     
-    const jobPostId = pendingApplication.jobPostId;
-    const isAnonymous = pendingApplication.isAnonymous;
+    const jobPostId = window.pendingApplication.jobPostId;
+    const isAnonymous = window.pendingApplication.isAnonymous;
     console.log('Submitting application for job:', jobPostId, 'anonymous:', isAnonymous);
     closeConfirmModal();
     

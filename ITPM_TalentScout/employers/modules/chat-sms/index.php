@@ -246,13 +246,15 @@ if ($selected_application_id > 0) {
     }
 
     .page-container {
-      max-width: 1400px;
+      max-width: 100%;
+      width: 100%;
       margin: 0 auto;
       padding: 2.5rem;
       display: grid;
       grid-template-columns: 350px 1fr;
       gap: 2rem;
       min-height: calc(100vh - 120px);
+      height: 100%;
     }
 
     .page-header {
@@ -349,6 +351,8 @@ if ($selected_application_id > 0) {
       flex-direction: column;
       overflow: hidden;
       box-shadow: var(--shadow-sm);
+      width: 100%;
+      height: 100%;
     }
 
     .chat-header {
@@ -573,33 +577,46 @@ if ($selected_application_id > 0) {
 
     /* Messages Area */
     .messages-area {
-      flex: 1;
+      flex: 1 1 auto;
       padding: 2rem;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 1.25rem;
       background: white;
+      width: 100%;
+      min-width: 0;
     }
 
     .message-group {
       display: flex;
       gap: 0.75rem;
       animation: slideInUp 0.3s ease-out;
+      flex-wrap: nowrap;
+      align-items: flex-end;
+      width: 100%;
+      margin-bottom: 0.5rem;
     }
 
     .message-group.own {
       justify-content: flex-end;
     }
 
+    .message-group.other {
+      justify-content: flex-start;
+    }
+
     .message-bubble {
-      max-width: 65%;
       padding: 1rem 1.35rem;
       border-radius: 12px;
-      word-wrap: break-word;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      white-space: normal;
       line-height: 1.6;
       font-size: 1rem;
       transition: all 0.2s ease;
+      display: inline-block;
+      min-width: 60px;
     }
 
     .message-group.other .message-bubble {
@@ -618,6 +635,12 @@ if ($selected_application_id > 0) {
       font-size: 0.85rem;
       color: var(--text-light);
       margin-top: 0.4rem;
+    }
+
+    .message-content {
+      display: flex;
+      flex-direction: column;
+      max-width: 75%;
     }
 
     /* Input Area */
@@ -779,7 +802,7 @@ if ($selected_application_id > 0) {
         padding: 1.5rem;
       }
 
-      .message-bubble {
+      .message-content {
         max-width: 80%;
       }
     }
@@ -796,8 +819,8 @@ if ($selected_application_id > 0) {
         top: 0;
       }
 
-      .message-bubble {
-        max-width: 95%;
+      .message-content {
+        max-width: 90%;
       }
 
       .footer-top {
@@ -903,7 +926,7 @@ if ($selected_application_id > 0) {
       <?php if (count($messages) > 0): ?>
         <?php foreach ($messages as $msg): ?>
           <div class="message-group <?php echo ($msg['sender_type'] === 'employer') ? 'own' : 'other'; ?>">
-            <div>
+            <div class="message-content">
               <div class="message-bubble">
                 <?php echo htmlspecialchars($msg['message']); ?>
                 <?php if ($msg['application_id'] > 0 && !empty($msg['job_title'])): ?>
@@ -1116,7 +1139,7 @@ if ($selected_application_id > 0) {
     const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     
     newMessage.innerHTML = `
-      <div>
+      <div class="message-content">
         <div class="message-bubble">${messageText}</div>
         <div class="message-time">${timeStr}</div>
       </div>

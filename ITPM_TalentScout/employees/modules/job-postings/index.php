@@ -2586,50 +2586,74 @@ $hasError = !empty($dbError);
       modal.setAttribute('aria-hidden', 'true');
     }
 
-    async function submitApplication(jobPostId, jobTitle = '', companyName = '') {
-      if (!window.isLoggedIn) {
-        window.location.href = '../../login.php';
-        return;
-      }
+    // Expose to global scope for onclick handlers
+    window.submitApplication = async function(jobPostId, jobTitle = '', companyName = '') {
+      try {
+        console.log('submitApplication called with jobPostId:', jobPostId);
+        
+        if (!window.isLoggedIn) {
+          window.location.href = '../../login.php';
+          return;
+        }
 
-      // Find job details if not provided
-      let jobData = null;
-      if (jobTitle && companyName) {
-        jobData = { title: jobTitle, company: companyName, jobPostId: jobPostId };
-      } else {
-        const job = window.dbJobs.find(j => j.id === jobPostId);
-        if (job) {
-          jobData = {
-            title: job.title || 'Unknown Position',
-            company: job.company_name || 'Unknown Company',
-            jobPostId: jobPostId,
-            location: job.location || 'Not specified'
-          };
+        // Ensure jobPostId is a number for consistent comparison
+        jobPostId = Number(jobPostId);
+        console.log('Looking for job with ID:', jobPostId, 'in', allJobs.length, 'jobs');
+
+        // Find job details if not provided
+        let jobData = null;
+        if (jobTitle && companyName) {
+          jobData = { title: jobTitle, company: companyName, jobPostId: jobPostId };
         } else {
-          // Fallback - use allJobs normalized data
-          const normalizedJob = allJobs.find(j => j.id === jobPostId);
-          if (normalizedJob) {
+          const job = window.dbJobs.find(j => Number(j.job_post_id) === jobPostId);
+          console.log('Found in dbJobs:', job);
+          
+          if (job) {
             jobData = {
-              title: normalizedJob.title || 'Unknown Position',
-              company: normalizedJob.company_name || 'Unknown Company',
+              title: job.title || 'Unknown Position',
+              company: job.company_name || 'Unknown Company',
               jobPostId: jobPostId,
-              location: normalizedJob.location || 'Not specified'
+              location: job.location || 'Not specified'
             };
+          } else {
+            // Fallback - use allJobs normalized data (uses .id not .job_post_id)
+            const normalizedJob = allJobs.find(j => Number(j.id) === jobPostId);
+            console.log('Found in allJobs:', normalizedJob);
+            
+            if (normalizedJob) {
+              jobData = {
+                title: normalizedJob.title || 'Unknown Position',
+                company: normalizedJob.company_name || 'Unknown Company',
+                jobPostId: jobPostId,
+                location: normalizedJob.location || 'Not specified'
+              };
+            }
           }
         }
-      }
 
-      // Show confirmation modal
-      if (jobData && jobData.title) {
-        showConfirmModal(jobData);
-      } else {
-        alert('Could not load job details. Please refresh the page and try again.');
+        console.log('Final jobData:', jobData);
+        
+        // Show confirmation modal
+        if (jobData && jobData.title && typeof window.showConfirmModal === 'function') {
+          window.showConfirmModal(jobData);
+        } else {
+          if (!jobData) {
+            alert('Could not load job details. Please refresh the page and try again.');
+          } else if (!jobData.title) {
+            alert('Job title not found. Please refresh the page and try again.');
+          } else {
+            alert('Confirmation modal function not available. Please refresh the page and try again.');
+          }
+        }
+      } catch (error) {
+        console.error('Error in submitApplication:', error);
+        alert('Error: ' + error.message);
       }
-    }
+    };
 
     function handleApplyClick() {
       if (activeJobForDetails) {
-        submitApplication(activeJobForDetails.id);
+        window.submitApplication(activeJobForDetails.id);
       }
     }
 
@@ -2654,27 +2678,27 @@ $hasError = !empty($dbError);
       }
 
       try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(query)}`, {
-          headers: {
-            'Accept': 'application/json'
-          }
-        });
+        // Call PHP backend instead of directly calling Nominatim (bypasses CORS)
+        const response = await fetch(`./geocode-location.php?location=${encodeURIComponent(query)}`);
 
         if (!response.ok) {
+          console.warn('Geocoding returned status:', response.status, 'for location:', query);
           jobsGeoCache.set(cacheKey, null);
           return null;
         }
 
-        const results = await response.json();
-        if (!Array.isArray(results) || !results.length) {
+        const data = await response.json();
+        
+        if (!data.success || !data.data) {
+          console.warn('Geocoding failed for location:', query, data.message);
           jobsGeoCache.set(cacheKey, null);
           return null;
         }
 
         const point = {
-          lat: parseFloat(results[0].lat),
-          lng: parseFloat(results[0].lon),
-          label: results[0].display_name || query
+          lat: data.data.lat,
+          lng: data.data.lng,
+          label: data.data.label || query
         };
 
         if (Number.isNaN(point.lat) || Number.isNaN(point.lng)) {
@@ -2683,6 +2707,7 @@ $hasError = !empty($dbError);
         }
 
         jobsGeoCache.set(cacheKey, point);
+        console.log('Successfully geocoded:', query, '→', point);
         return point;
       } catch (error) {
         console.error('Geocoding failed for location:', query, error);
