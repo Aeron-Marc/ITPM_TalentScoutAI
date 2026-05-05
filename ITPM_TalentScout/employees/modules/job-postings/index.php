@@ -2445,8 +2445,8 @@ $hasError = !empty($dbError);
         min,
         max,
         text: min === max ?
-          `&#8369;${min.toLocaleString()} / mo` :
-          `&#8369;${min.toLocaleString()} &#8211; &#8369;${max.toLocaleString()} / mo`
+          `₱${min.toLocaleString()} / mo` :
+          `₱${min.toLocaleString()} – ₱${max.toLocaleString()} / mo`
       };
     }
 

@@ -1079,7 +1079,7 @@ $stmt->close();
                     <div class="job-meta">
                       📍 <?php echo htmlspecialchars($job['location']); ?> •
                       💼 <?php echo htmlspecialchars($job['work_type']); ?> •
-                      💰 <?php echo htmlspecialchars($job['salary']); ?>
+                      ₱ <?php echo htmlspecialchars($job['salary']); ?>
                     </div>
                   </div>
                   <div style="text-align: center;">

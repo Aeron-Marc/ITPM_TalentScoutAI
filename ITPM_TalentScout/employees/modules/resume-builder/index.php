@@ -1373,7 +1373,7 @@ if ($apiAction === 'save' || $apiAction === 'load') {
             <img
               class="rp-photo"
               id="previewPhoto"
-              src="https://via.placeholder.com/80x95.png?text=Photo"
+              src="../../../placeholder.png"
               alt="Profile Photo" />
             <div>
               <h2 class="rp-name" id="previewName">YOUR NAME</h2>
@@ -1626,10 +1626,11 @@ if ($apiAction === 'save' || $apiAction === 'load') {
   </footer>
 
   <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
-    integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnQ=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"></script>
+    src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+  ></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.min.js"
+  ></script>
   <script src="../../employee-auth.js"></script>
   <script>
     const STORAGE_KEY = "tsEmployeeResumeData";
@@ -2090,7 +2091,7 @@ if ($apiAction === 'save' || $apiAction === 'load') {
 
       preview.photo.src =
         selectedPhotoDataUrl ||
-        "https://via.placeholder.com/80x95.png?text=Photo";
+        "../../../placeholder.png";
     }
 
     function collectData() {
@@ -2590,7 +2591,7 @@ if ($apiAction === 'save' || $apiAction === 'load') {
       });
 
     preview.photo.addEventListener("error", function() {
-      preview.photo.src = "https://via.placeholder.com/80x95.png?text=Photo";
+      preview.photo.src = "../../../placeholder.png";
     });
 
     document
@@ -2606,38 +2607,64 @@ if ($apiAction === 'save' || $apiAction === 'load') {
         btn.disabled = true;
         btn.textContent = "Generating…";
 
-        const opt = {
-          margin: [0.45, 0.45, 0.45, 0.45],
-          filename: safeName + "_resume.pdf",
-          image: {
-            type: "jpeg",
-            quality: 0.98
-          },
-          html2canvas: {
-            scale: 2,
-            useCORS: true,
-            logging: false
-          },
-          jsPDF: {
+        console.log("Starting PDF generation for element:", element);
+        console.log("html2canvas:", typeof html2canvas);
+        console.log("jsPDF:", typeof jsPDF);
+        console.log("Element visible:", element.offsetParent !== null);
+        console.log("Element dimensions:", element.offsetWidth, "x", element.offsetHeight);
+
+        html2canvas(element, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: "#ffffff",
+          logging: false
+        }).then(function(canvas) {
+          console.log("Canvas generated:", canvas.width, "x", canvas.height);
+          
+          const imgData = canvas.toDataURL("image/jpeg", 0.98);
+          console.log("Image data generated, length:", imgData.length);
+          
+          const pdf = new jsPDF({
             unit: "in",
             format: "letter",
             orientation: "portrait"
-          },
-        };
-
-        html2pdf()
-          .set(opt)
-          .from(element)
-          .save()
-          .then(function() {
-            btn.disabled = false;
-            btn.innerHTML = "&#8595; Download PDF";
-          })
-          .catch(function() {
-            btn.disabled = false;
-            btn.innerHTML = "&#8595; Download PDF";
-            alert("Could not generate PDF. Please try again.");
           });
+          
+          const pdfWidth = pdf.internal.pageSize.getWidth();
+          const pdfHeight = pdf.internal.pageSize.getHeight();
+          const margin = 0.45;
+          
+          const availableWidth = pdfWidth - (margin * 2);
+          const availableHeight = pdfHeight - (margin * 2);
+          
+          const canvasWidth = canvas.width;
+          const canvasHeight = canvas.height;
+          const canvasRatio = canvasWidth / canvasHeight;
+          
+          let imgWidth = availableWidth;
+          let imgHeight = availableWidth / canvasRatio;
+          
+          if (imgHeight > availableHeight) {
+            imgHeight = availableHeight;
+            imgWidth = availableHeight * canvasRatio;
+          }
+          
+          const x = (pdfWidth - imgWidth) / 2;
+          const y = margin;
+          
+          pdf.addImage(imgData, "JPEG", x, y, imgWidth, imgHeight);
+          pdf.save(safeName + "_resume.pdf");
+          
+          console.log("PDF saved successfully");
+          btn.disabled = false;
+          btn.innerHTML = "&#8595; Download PDF";
+        }).catch(function(err) {
+          console.error("PDF generation error:", err);
+          btn.disabled = false;
+          btn.innerHTML = "&#8595; Download PDF";
+          alert("Could not generate PDF: " + err.message);
+        });
       });
 
     function shouldResetForNavigation(anchor) {

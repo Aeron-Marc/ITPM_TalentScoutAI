@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 05, 2026 at 01:04 AM
+-- Generation Time: May 05, 2026 at 07:33 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -71,10 +71,20 @@ INSERT INTO `application` (`application_id`, `job_post_id`, `employee_id`, `stat
 (11, 4, 10, 'Pending', NULL, '2026-05-03', 'none', NULL, NULL, NULL, 0),
 (12, 3, 10, 'Pending', NULL, '2026-05-03', 'none', NULL, NULL, NULL, 0),
 (13, 1, 10, 'Pending', NULL, '2026-05-03', 'none', NULL, NULL, NULL, 0),
-(14, 11, 10, 'Pending', NULL, '2026-05-05', 'none', NULL, NULL, NULL, 0),
-(15, 10, 10, 'Pending', NULL, '2026-05-05', 'none', NULL, NULL, NULL, 0),
-(16, 9, 10, 'Pending', NULL, '2026-05-05', 'none', NULL, NULL, NULL, 0),
-(17, 2, 10, 'Pending', NULL, '2026-05-05', 'none', NULL, NULL, NULL, 0);
+(14, 11, 10, 'Offer Received', NULL, '2026-05-05', 'accepted', NULL, NULL, '2026-05-05 00:22:13', 0),
+(15, 10, 10, 'Interview Scheduled', NULL, '2026-05-05', 'accepted', '', '2026-05-05 00:28:28', '2026-05-05 00:28:32', 0),
+(16, 9, 10, 'Interview Scheduled', NULL, '2026-05-05', 'none', NULL, NULL, NULL, 0),
+(17, 2, 10, 'Pending', NULL, '2026-05-05', 'none', NULL, NULL, NULL, 0),
+(18, 10, 5, 'Pending', NULL, '2026-05-05', 'none', NULL, NULL, NULL, 0),
+(19, 8, 5, 'Interview Scheduled', NULL, '2026-05-05', 'accepted', 'See u boi', '2026-05-05 03:40:03', '2026-05-05 03:40:24', 1),
+(20, 1, 5, 'Pending', NULL, '2026-05-05', 'none', NULL, NULL, NULL, 0),
+(21, 7, 5, 'Pending', NULL, '2026-05-05', 'none', NULL, NULL, NULL, 0),
+(22, 9, 5, 'Pending', NULL, '2026-05-05', 'none', NULL, NULL, NULL, 0),
+(23, 5, 5, 'Pending', NULL, '2026-05-05', 'none', NULL, NULL, NULL, 0),
+(24, 4, 5, 'Pending', NULL, '2026-05-05', 'none', NULL, NULL, NULL, 0),
+(25, 6, 5, 'Pending', NULL, '2026-05-05', 'none', NULL, NULL, NULL, 0),
+(26, 11, 5, 'Pending', NULL, '2026-05-05', 'none', NULL, NULL, NULL, 0),
+(27, 11, 6, 'Pending', NULL, '2026-05-05', 'none', NULL, NULL, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -133,7 +143,9 @@ INSERT INTO `employee_additional_info` (`info_id`, `resume_id`, `description`) V
 (15, 7, 'Certifications: Professional Engineer (PE), PMP'),
 (16, 7, 'Awards: Active participant in engineering community projects.'),
 (17, 2, 'Certifications: Professional Engineer (PE), PMP'),
-(18, 2, 'Awards: Active participant in engineering community projects.');
+(18, 2, 'Awards: Active participant in engineering community projects.'),
+(23, 10, 'Certifications: Professional Engineer (PE), PMP'),
+(24, 10, 'Awards: Active participant in engineering community projects.');
 
 -- --------------------------------------------------------
 
@@ -162,7 +174,8 @@ INSERT INTO `employee_education` (`education_id`, `resume_id`, `degree`, `school
 (7, 7, 'Bachelor of Mechanical Engineering with Honors', 'University of Engineering Excellence', '2016-08-01', '2019-10-01', 0, 'Major in Automotive Technology. Thesis on technological advancements in mechatronics.'),
 (8, 2, 'Bachelor of Mechanical Engineering with Honors', 'University of Engineering Excellence', '2016-08-01', '2019-10-01', 0, 'Major in Automotive Technology. Thesis on technological advancements in mechatronics.'),
 (10, 8, '', '', NULL, NULL, 1, ''),
-(12, 9, '', '', NULL, NULL, 1, '');
+(13, 9, '', '', NULL, NULL, 1, ''),
+(16, 10, 'Bachelor of Mechanical Engineering with Honors', 'University of Engineering Excellence', '2016-08-01', '2019-10-01', 0, 'Major in Automotive Technology. Thesis on technological advancements in mechatronics.');
 
 -- --------------------------------------------------------
 
@@ -195,7 +208,9 @@ INSERT INTO `employee_experience` (`experience_id`, `resume_id`, `job_title`, `c
 (16, 2, 'Mechatronics Engineer', 'Borcelle Technologies', '2023-01-01', NULL, 1),
 (17, 2, 'System Engineer', 'Arrowai Industries', '2021-02-01', '2022-12-01', 0),
 (19, 8, '', '', NULL, NULL, 1),
-(21, 9, '', '', NULL, NULL, 1);
+(22, 9, '', '', NULL, NULL, 1),
+(27, 10, 'Mechatronics Engineer', 'Borcelle Technologies', '2023-01-01', NULL, 1),
+(28, 10, 'System Engineer', 'Arrowai Industries', '2021-02-01', '2022-12-01', 0);
 
 -- --------------------------------------------------------
 
@@ -237,7 +252,35 @@ INSERT INTO `employee_skill` (`employee_skill_id`, `employee_id`, `skill_name`) 
 (23, 10, 'javascript'),
 (24, 10, 'html'),
 (26, 10, 'javascript'),
-(27, 10, 'html');
+(27, 10, 'html'),
+(28, 10, 'CSS'),
+(29, 10, 'Java'),
+(30, 10, 'javascript'),
+(31, 10, 'html'),
+(32, 10, 'java'),
+(33, 10, 'css'),
+(37, 5, 'Java'),
+(38, 5, 'Mechatronics System Integration'),
+(39, 5, 'Automotive Engineering Technology'),
+(40, 5, 'Robotics and Automation'),
+(41, 5, 'CAD for Mechatronics'),
+(42, 5, 'Project Management'),
+(45, 5, 'Mechatronics System Integration'),
+(46, 5, 'Automotive Engineering Technology'),
+(47, 5, 'Robotics and Automation'),
+(48, 5, 'CAD for Mechatronics'),
+(49, 5, 'Project Management'),
+(50, 5, 'Web Development'),
+(51, 5, 'JavaScript'),
+(52, 5, 'Java'),
+(60, 5, 'Mechatronics System Integration'),
+(61, 5, 'Automotive Engineering Technology'),
+(62, 5, 'Robotics and Automation'),
+(63, 5, 'CAD for Mechatronics'),
+(64, 5, 'Project Management'),
+(65, 5, 'Web Development'),
+(66, 5, 'JavaScript'),
+(67, 5, 'Java');
 
 -- --------------------------------------------------------
 
@@ -309,7 +352,13 @@ INSERT INTO `experience_bullets` (`bullet_id`, `experience_id`, `description`) V
 (46, 16, 'Implemented preventive maintenance strategies, resulting in a 20% decrease in equipment downtime.'),
 (47, 17, 'Designed and optimized a robotic control system, realizing a 12% performance improvement.'),
 (48, 17, 'Coordinated testing and validation, ensuring compliance with industry standards.'),
-(49, 17, 'Provided technical expertise, contributing to a 15% reduction in system failures.');
+(49, 17, 'Provided technical expertise, contributing to a 15% reduction in system failures.'),
+(62, 27, 'Led development of an advanced automation system, achieving a 15% increase in operational efficiency.'),
+(63, 27, 'Streamlined manufacturing processes, reducing production costs by 10%.'),
+(64, 27, 'Implemented preventive maintenance strategies, resulting in a 20% decrease in equipment downtime.'),
+(65, 28, 'Designed and optimized a robotic control system, realizing a 12% performance improvement.'),
+(66, 28, 'Coordinated testing and validation, ensuring compliance with industry standards.'),
+(67, 28, 'Provided technical expertise, contributing to a 15% reduction in system failures.');
 
 -- --------------------------------------------------------
 
@@ -348,7 +397,12 @@ CREATE TABLE `interviews` (
 --
 
 INSERT INTO `interviews` (`interview_id`, `application_id`, `employer_id`, `employee_id`, `scheduled_datetime`, `confirmation_message`, `status`, `created_at`, `updated_at`) VALUES
-(1, 9, 8, 10, '2026-05-07 03:42:00', '', 'accepted', '2026-05-03 19:39:13', '2026-05-03 19:42:41');
+(1, 9, 8, 10, '2026-05-07 03:42:00', '', 'accepted', '2026-05-03 19:39:13', '2026-05-03 19:42:41'),
+(2, 15, 8, 5, '2026-05-07 11:11:00', 'aa', 'scheduled', '2026-05-05 00:23:03', '2026-05-05 00:23:03'),
+(3, 15, 8, 5, '2026-05-29 15:16:00', 'aa', 'scheduled', '2026-05-05 00:23:12', '2026-05-05 00:23:12'),
+(4, 15, 8, 5, '2026-05-29 15:16:00', 'aa', 'scheduled', '2026-05-05 00:23:15', '2026-05-05 00:23:15'),
+(5, 15, 8, 10, '2026-05-20 12:26:00', 'aaa', 'accepted', '2026-05-05 00:23:31', '2026-05-05 00:23:36'),
+(6, 19, 8, 5, '2026-05-27 05:39:00', 'Punta ka boi', 'accepted', '2026-05-05 03:39:11', '2026-05-05 03:39:22');
 
 -- --------------------------------------------------------
 
@@ -433,7 +487,25 @@ INSERT INTO `message` (`message_id`, `sender_id`, `sender_type`, `receiver_id`, 
 (20, 8, 'employer', 5, 'employee', 'aa', 0, '2026-05-05 06:13:26'),
 (21, 10, 'employee', 8, 'employer', 'Yes', 0, '2026-05-05 06:23:09'),
 (22, 10, 'employee', 8, 'employer', 'Yes', 0, '2026-05-05 06:23:50'),
-(23, 10, 'employee', 8, 'employer', 'Tes', 0, '2026-05-05 06:23:57');
+(23, 10, 'employee', 8, 'employer', 'Tes', 0, '2026-05-05 06:23:57'),
+(24, 8, 'employer', 9, 'employee', 'aa', 0, '2026-05-05 08:09:55'),
+(25, 8, 'employer', 10, 'employee', 'Your application has been received and is pending review.', 14, '2026-05-05 08:13:20'),
+(26, 8, 'employer', 10, 'employee', 'Congratulations! Your application has been moved to interview stage.', 14, '2026-05-05 08:13:23'),
+(27, 8, 'employer', 10, 'employee', 'Congratulations! You have been hired! Welcome aboard!', 14, '2026-05-05 08:14:11'),
+(28, 8, 'employer', 10, 'employee', 'Congratulations! Your application has been moved to interview stage.', 14, '2026-05-05 08:14:15'),
+(29, 8, 'employer', 10, 'employee', 'Great news! We would like to extend a job offer to you.', 14, '2026-05-05 08:14:58'),
+(30, 10, 'employee', 8, 'employer', '🎉 I ACCEPT THE JOB OFFER! Thank you so much for this opportunity. I look forward to joining Bawal Tamad!', 14, '2026-05-05 08:22:13'),
+(31, 8, 'employer', 5, 'employee', 'Interview scheduled for May 07, 2026 11:11 AM. aa', 15, '2026-05-05 08:23:03'),
+(32, 8, 'employer', 5, 'employee', 'Interview scheduled for May 29, 2026 3:16 PM. aa', 15, '2026-05-05 08:23:12'),
+(33, 8, 'employer', 5, 'employee', 'Interview scheduled for May 29, 2026 3:16 PM. aa', 15, '2026-05-05 08:23:15'),
+(34, 8, 'employer', 10, 'employee', '📅 Interview Scheduled! Your application has been moved to interview stage. Please check your messages for details.', 15, '2026-05-05 08:23:31'),
+(35, 10, 'employee', 8, 'employer', '✅ I accept the scheduled interview for May 20, 2026 12:26 PM. Thank you!', 15, '2026-05-05 08:23:36'),
+(36, 8, 'employer', 10, 'employee', '🎉 JOB OFFER! Congratulations! We are pleased to offer you the position. Please respond to this offer.', 15, '2026-05-05 08:28:28'),
+(37, 10, 'employee', 8, 'employer', '🎉 I ACCEPT THE JOB OFFER! Thank you so much for this opportunity. I look forward to joining Bawal Tamad!', 15, '2026-05-05 08:28:32'),
+(38, 8, 'employer', 5, 'employee', '📅 Interview scheduled for May 27, 2026 5:39 AM. Punta ka boi', 19, '2026-05-05 11:39:11'),
+(39, 5, 'employee', 8, 'employer', '✅ I accept the scheduled interview for May 27, 2026 5:39 AM. Thank you!', 19, '2026-05-05 11:39:22'),
+(40, 8, 'employer', 5, 'employee', '🎉 JOB OFFER! Congratulations! See u boi', 19, '2026-05-05 11:40:03'),
+(41, 5, 'employee', 8, 'employer', '🎉 I ACCEPT THE JOB OFFER! Thank you so much for this opportunity. I look forward to joining Bawal Tamad!', 19, '2026-05-05 11:40:24');
 
 -- --------------------------------------------------------
 
@@ -479,7 +551,8 @@ INSERT INTO `resumes` (`resume_id`, `employee_id`, `full_name`, `photo_data_url`
 (6, 7, 'Andre A. Cachola', '', '381, Sampaga Balayan Batangas', '09772412273', 'andre@gmail.com', 'millan.linkedin.com', 'Results-oriented Mechanical and Mechatronics Engineer seeking a challenging role to apply expertise in designing and implementing innovative solutions for complex engineering challenges.', '2026-03-22 09:22:49', '2026-03-22 09:22:49'),
 (7, 8, 'Felman I. Eleponga', '', '381, Sampaga Balayan Batangas', '+639772412273', 'felman@gmail.com', 'www.reallygreatsite.com', 'Results-oriented Mechanical and Mechatronics Engineer seeking a challenging role to apply expertise in designing and implementing innovative solutions for complex engineering challenges.', '2026-03-22 09:42:57', '2026-03-22 09:42:57'),
 (8, 9, '', '', '', '', '', '', '', '2026-04-30 11:32:44', '2026-04-30 11:32:44'),
-(9, 10, 'Aeron Marc M. Salanguit', '', '343 Luna St.', '', 'saeronmarc@gmail.com', '', '', '2026-05-04 15:04:25', '2026-05-04 15:06:56');
+(9, 10, 'Aeron Marc M. Salanguit', '', '343 Luna St.', '', 'saeronmarc@gmail.com', '', '', '2026-05-04 15:04:25', '2026-05-04 15:06:56'),
+(10, 5, 'Benjamin Shah', '', '123 Anywhere St., Any City', '123-456-7890', 'hello@reallygreatsite.com', 'www.reallygreatsite.com', 'Results-oriented Mechanical and Mechatronics Engineer seeking a challenging role to apply expertise in designing and implementing innovative solutions for complex engineering challenges.', '2026-05-05 05:12:37', '2026-05-05 05:12:37');
 
 -- --------------------------------------------------------
 
@@ -512,8 +585,18 @@ INSERT INTO `resume_skills` (`skill_id`, `resume_id`, `skill_name`) VALUES
 (30, 2, 'Python'),
 (31, 2, 'bago'),
 (33, 8, 'javascript'),
-(36, 9, 'javascript'),
-(37, 9, 'html');
+(38, 9, 'javascript'),
+(39, 9, 'html'),
+(40, 9, 'java'),
+(41, 9, 'css'),
+(55, 10, 'Mechatronics System Integration'),
+(56, 10, 'Automotive Engineering Technology'),
+(57, 10, 'Robotics and Automation'),
+(58, 10, 'CAD for Mechatronics'),
+(59, 10, 'Project Management'),
+(60, 10, 'Web Development'),
+(61, 10, 'JavaScript'),
+(62, 10, 'Java');
 
 --
 -- Indexes for dumped tables
@@ -638,7 +721,7 @@ ALTER TABLE `resume_skills`
 -- AUTO_INCREMENT for table `application`
 --
 ALTER TABLE `application`
-  MODIFY `application_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `application_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT for table `employee`
@@ -650,25 +733,25 @@ ALTER TABLE `employee`
 -- AUTO_INCREMENT for table `employee_additional_info`
 --
 ALTER TABLE `employee_additional_info`
-  MODIFY `info_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `info_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `employee_education`
 --
 ALTER TABLE `employee_education`
-  MODIFY `education_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `education_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `employee_experience`
 --
 ALTER TABLE `employee_experience`
-  MODIFY `experience_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `experience_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `employee_skill`
 --
 ALTER TABLE `employee_skill`
-  MODIFY `employee_skill_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `employee_skill_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
 
 --
 -- AUTO_INCREMENT for table `employer`
@@ -680,7 +763,7 @@ ALTER TABLE `employer`
 -- AUTO_INCREMENT for table `experience_bullets`
 --
 ALTER TABLE `experience_bullets`
-  MODIFY `bullet_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
+  MODIFY `bullet_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=68;
 
 --
 -- AUTO_INCREMENT for table `interview`
@@ -692,7 +775,7 @@ ALTER TABLE `interview`
 -- AUTO_INCREMENT for table `interviews`
 --
 ALTER TABLE `interviews`
-  MODIFY `interview_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `interview_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `job_post`
@@ -704,7 +787,7 @@ ALTER TABLE `job_post`
 -- AUTO_INCREMENT for table `message`
 --
 ALTER TABLE `message`
-  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
 
 --
 -- AUTO_INCREMENT for table `report`
@@ -716,13 +799,13 @@ ALTER TABLE `report`
 -- AUTO_INCREMENT for table `resumes`
 --
 ALTER TABLE `resumes`
-  MODIFY `resume_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `resume_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `resume_skills`
 --
 ALTER TABLE `resume_skills`
-  MODIFY `skill_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+  MODIFY `skill_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
 
 --
 -- Constraints for dumped tables
