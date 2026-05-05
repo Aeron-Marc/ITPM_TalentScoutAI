@@ -170,10 +170,21 @@ if ($apiAction === 'save' || $apiAction === 'load') {
       $resumeRow = $resumeRes->fetch_assoc();
 
       if (!$resumeRow) {
+        // No resume exists yet, load existing skills from employee_skill table
+        $skills = [];
+        $employeeSkillsStmt = $conn->prepare('SELECT skill_name FROM employee_skill WHERE employee_id = ? ORDER BY skill_id ASC');
+        $employeeSkillsStmt->bind_param('i', $employeeId);
+        $employeeSkillsStmt->execute();
+        $employeeSkillsRes = $employeeSkillsStmt->get_result();
+        while ($row = $employeeSkillsRes->fetch_assoc()) {
+          $skills[] = (string)$row['skill_name'];
+        }
+
         rbJsonResponse([
           'success' => true,
           'employee_id' => $employeeId,
           'data' => null,
+          'existing_skills' => $skills, // Pre-populate with existing skills
         ]);
       }
 
@@ -186,6 +197,16 @@ if ($apiAction === 'save' || $apiAction === 'load') {
       $skillsRes = $skillsStmt->get_result();
       while ($row = $skillsRes->fetch_assoc()) {
         $skills[] = (string)$row['skill_name'];
+      }
+
+      $employeeSkillsStmt = $conn->prepare('SELECT skill_name FROM employee_skill WHERE employee_id = ?');
+      $employeeSkillsStmt->bind_param('i', $employeeId);
+      $employeeSkillsStmt->execute();
+      $employeeSkillsRes = $employeeSkillsStmt->get_result();
+      while ($row = $employeeSkillsRes->fetch_assoc()) {
+        if (!in_array($row['skill_name'], $skills)) {
+          $skills[] = (string)$row['skill_name'];
+        }
       }
 
       $additionalLines = [];
@@ -2159,7 +2180,7 @@ if ($apiAction === 'save' || $apiAction === 'load') {
         throw new Error(result.message || "Database load failed.");
       }
 
-      return result.data;
+      return result;
     }
 
     function applyData(data) {
@@ -2181,7 +2202,7 @@ if ($apiAction === 'save' || $apiAction === 'load') {
         data.workExperience : [];
       const educationItems = Array.isArray(data.education) ?
         data.education : [];
-      const skillItems = Array.isArray(data.skills) ? data.skills : [];
+      const skillItems = Array.isArray(data.skills) ? data.skills : (Array.isArray(data.existing_skills) ? data.existing_skills : []);
 
       if (workItems.length) {
         workItems.forEach((item) => createWorkEntry(item));
@@ -2270,7 +2291,7 @@ if ($apiAction === 'save' || $apiAction === 'load') {
         email: parsed.email || "",
         website: parsed.website || "",
         summary: parsed.summary || "",
-        skills: Array.isArray(parsed.skills) ? parsed.skills : [],
+        skills: Array.isArray(parsed.skills) ? parsed.skills : (Array.isArray(parsed.existing_skills) ? parsed.existing_skills : []),
         additional: parsed.additional || "",
         workExperience: [],
         education: [],
@@ -2405,9 +2426,13 @@ if ($apiAction === 'save' || $apiAction === 'load') {
       }
 
       try {
-        const dataFromDb = await loadResumeFromDatabase();
-        if (dataFromDb) {
-          const normalized = normalizeLegacyData(dataFromDb);
+        const result = await loadResumeFromDatabase();
+        if (result && result.success) {
+          const dataToUse = result.data || {};
+          if (!dataToUse.skills && result.existing_skills) {
+            dataToUse.existing_skills = result.existing_skills;
+          }
+          const normalized = normalizeLegacyData(dataToUse);
           applyData(normalized);
           localStorage.setItem(getCurrentStorageKey(), JSON.stringify(normalized));
           return;

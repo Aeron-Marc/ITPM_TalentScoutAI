@@ -1323,26 +1323,42 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
       </div>
     </footer>
 
-    <!-- Confirmation Modal -->
-    <div id="applicationConfirmModal" class="job-modal-backdrop" aria-hidden="true">
-      <div class="job-modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
-        <div class="job-modal-header">
-          <h3 class="job-modal-title" id="confirmTitle">Confirm Application</h3>
-          <button type="button" class="job-modal-close" id="closeConfirmModal" aria-label="Close confirmation">&times;</button>
+    <!-- Confirmation Modal (Same style as browse jobs) -->
+    <div id="applicationConfirmModal" class="modal-overlay" aria-hidden="true">
+      <div class="modal-content modal-confirm" role="dialog" aria-modal="true">
+        <div class="modal-header">
+          <button type="button" class="modal-close-btn" id="aiCloseConfirmBtn" aria-label="Close confirmation" style="position: absolute; top: 1rem; right: 1rem;">&times;</button>
+          <div class="modal-icon confirm-icon">📝</div>
+          <h3 class="modal-title">Confirm Your Application</h3>
         </div>
-        <div class="job-modal-body">
-          <p style="margin-bottom: 1.5rem; color: var(--text-mid);">Please review the job details before submitting your application.</p>
-          <div class="job-modal-section">
-            <h4 id="confirmJobTitle" style="color: var(--primary);">—</h4>
-            <p id="confirmCompanyName" style="color: var(--text-mid); margin-bottom: 0;">—</p>
+        <div class="modal-body">
+          <p>You are about to apply for this position:</p>
+          <div class="confirm-details">
+            <div class="confirm-detail-row">
+              <span class="confirm-label">Position:</span>
+              <span class="confirm-value" id="aiConfirmJobTitle">-</span>
+            </div>
+            <div class="confirm-detail-row">
+              <span class="confirm-label">Company:</span>
+              <span class="confirm-value" id="aiConfirmCompany">-</span>
+            </div>
+            <div class="confirm-detail-row">
+              <span class="confirm-label">Location:</span>
+              <span class="confirm-value" id="aiConfirmLocation">-</span>
+            </div>
           </div>
-          <p style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-light); border-radius: var(--radius); border-left: 4px solid var(--primary); color: var(--text-mid); font-size: 0.9rem;">
-            Once submitted, your application will be sent to the employer. You can track the status in your Applications page.
-          </p>
+          <div class="anonymous-option">
+            <label class="anonymous-checkbox">
+              <input type="checkbox" id="aiApplyAnonymously">
+              <span class="checkbox-label">Apply Anonymously</span>
+            </label>
+            <p class="anonymous-note">Your identity will be hidden from the employer</p>
+          </div>
+          <p class="confirm-warning">⚠️ Once submitted, you cannot withdraw your application.</p>
         </div>
-        <div class="job-modal-footer">
-          <button type="button" class="btn btn-secondary" id="cancelConfirmBtn">Cancel</button>
-          <button type="button" class="btn btn-primary" id="confirmApplyBtn">Confirm Application</button>
+        <div class="modal-actions">
+          <button type="button" class="btn-modal btn-cancel" id="aiCancelConfirmBtn">Cancel</button>
+          <button type="button" class="btn-modal btn-confirm" id="aiConfirmApplyBtn">Submit Application</button>
         </div>
       </div>
     </div>
@@ -1380,8 +1396,8 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
           </div>
         </div>
         <div class="success-actions">
-          <button type="button" class="btn btn-secondary" id="viewApplicationsBtn">View Applications</button>
-          <button type="button" class="btn btn-primary" id="closeSuccessBtn">Browse More Jobs</button>
+          <button type="button" class="btn-secondary" id="viewApplicationsBtn">View Applications</button>
+          <button type="button" class="btn-primary" id="closeSuccessBtn">Browse More Jobs</button>
         </div>
       </div>
     </div>
@@ -1652,9 +1668,8 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
       });
 
       // Handle AI Matching confirmation modal buttons
-      const aiConfirmBtn = document.getElementById('confirmApplyBtn');
-      const aiCancelBtn = document.getElementById('cancelConfirmBtn');
-      const aiCloseBtn = document.getElementById('closeConfirmModal');
+      const aiConfirmBtn = document.getElementById('aiConfirmApplyBtn');
+      const aiCancelBtn = document.getElementById('aiCancelConfirmBtn');
       const aiConfirmModal = document.getElementById('applicationConfirmModal');
 
       if (aiConfirmBtn) {
@@ -1662,7 +1677,8 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
           if (window.pendingApplication && window.pendingApplication.jobPostId) {
             const formData = new FormData();
             formData.append('job_post_id', window.pendingApplication.jobPostId);
-            formData.append('is_anonymous', window.pendingApplication.isAnonymous ? '1' : '0');
+            const isAnonymous = document.getElementById('aiApplyAnonymously').checked;
+            formData.append('is_anonymous', isAnonymous ? '1' : '0');
 
             fetch('../job-postings/submit-application.php', {
               method: 'POST',
@@ -1675,7 +1691,9 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
                 document.getElementById('successCompany').textContent = data.application.company_name;
                 document.getElementById('successDate').textContent = new Date(data.application.application_date).toLocaleDateString();
                 aiConfirmModal.classList.remove('active');
-                document.getElementById('successModal').classList.add('active');
+                const successModal = document.getElementById('successModal');
+                successModal.classList.add('active');
+                successModal.setAttribute('aria-hidden', 'false');
               } else {
                 showNotification('✗ Error: ' + (data.message || 'Failed to submit application'));
                 aiConfirmModal.classList.remove('active');
@@ -1697,8 +1715,9 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
         });
       }
 
-      if (aiCloseBtn) {
-        aiCloseBtn.addEventListener('click', function() {
+      const aiCloseConfirmBtn = document.getElementById('aiCloseConfirmBtn');
+      if (aiCloseConfirmBtn) {
+        aiCloseConfirmBtn.addEventListener('click', function() {
           aiConfirmModal.classList.remove('active');
           window.pendingApplication = null;
         });
@@ -1710,6 +1729,48 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
             aiConfirmModal.classList.remove('active');
             window.pendingApplication = null;
           }
+        });
+      }
+
+      // Success Modal Event Listeners
+      const successModal = document.getElementById('successModal');
+      const closeSuccessBtn = document.getElementById('closeSuccessBtn');
+      const closeSuccessXBtn = document.getElementById('closeSuccessXBtn');
+      const viewApplicationsBtn = document.getElementById('viewApplicationsBtn');
+
+      function closeSuccessModal() {
+        const modal = document.getElementById('successModal');
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+
+      if (successModal) {
+        successModal.addEventListener('click', event => {
+          if (event.target === successModal) {
+            closeSuccessModal();
+          }
+        });
+      }
+
+      if (closeSuccessBtn) {
+        closeSuccessBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          closeSuccessModal();
+        });
+      }
+
+      if (closeSuccessXBtn) {
+        closeSuccessXBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          closeSuccessModal();
+        });
+      }
+
+      if (viewApplicationsBtn) {
+        viewApplicationsBtn.addEventListener('click', () => {
+          window.location.href = '../applicant-tracking/index.php';
         });
       }
     </script>
@@ -1740,106 +1801,224 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
         display: none;
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 9999;
+        background: rgba(42, 42, 34, 0.55);
+        z-index: 3000;
         align-items: center;
         justify-content: center;
+        padding: 1.25rem;
+        backdrop-filter: blur(4px);
       }
       .success-modal-backdrop.active {
         display: flex;
         animation: fadeIn 0.3s ease-out;
       }
-      .success-modal {
-        background: white;
-        border-radius: 12px;
-        padding: 2.5rem;
-        max-width: 420px;
-        width: 90vw;
-        max-height: 85vh;
-        overflow-y: auto;
-        position: relative;
-        animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
       }
+      .success-modal {
+        width: min(480px, 100%);
+        background: #fff;
+        border-radius: var(--radius-xl);
+        box-shadow: 0 24px 60px rgba(42,42,34,0.25);
+        overflow: hidden;
+        text-align: center;
+        padding: 2.5rem;
+        animation: slideUp 0.4s ease-out;
+      }
+
+      @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+
       .success-checkmark {
         width: 80px;
         height: 80px;
         margin: 0 auto 1.5rem;
+        background: linear-gradient(135deg, var(--sage) 0%, var(--sage-deep) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: scaleIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
       }
+
+      @keyframes scaleIn {
+        from { transform: scale(0); }
+        to { transform: scale(1); }
+      }
+
       .success-checkmark svg {
-        width: 100%;
-        height: 100%;
-      }
-      .success-checkmark-circle {
-        stroke: var(--primary);
+        width: 48px;
+        height: 48px;
+        stroke: white;
         stroke-width: 2;
         fill: none;
-        animation: scaleIn 0.4s ease-out;
-      }
-      .success-checkmark-line {
-        stroke: var(--primary);
-        stroke-width: 3;
         stroke-linecap: round;
-        fill: none;
-        animation: drawLine 0.5s ease-out 0.2s both;
+        stroke-linejoin: round;
       }
-      @keyframes scaleIn {
-        from { transform: scale(0); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
+
+      .success-checkmark-line {
+        stroke-dasharray: 50;
+        stroke-dashoffset: 50;
+        animation: drawLine 0.6s ease-out forwards;
+        animation-delay: 0.3s;
       }
-      @keyframes drawLine {
-        from { stroke-dashoffset: 8; }
+
+      .success-checkmark-circle {
+        stroke-dasharray: 166;
+        stroke-dashoffset: 166;
+        animation: drawCircle 0.6s ease-out forwards;
+        animation-delay: 0.2s;
+      }
+
+      @keyframes drawCircle {
         to { stroke-dashoffset: 0; }
       }
-      .success-checkmark-line {
-        stroke-dasharray: 8;
+
+      @keyframes drawLine {
+        to { stroke-dashoffset: 0; }
       }
+
       .success-title {
+        font-family: 'Playfair Display', serif;
         font-size: 1.5rem;
-        font-weight: 700;
-        text-align: center;
-        color: var(--text-dark);
-        margin-bottom: 0.75rem;
+        font-weight: 800;
+        color: var(--charcoal);
+        margin-bottom: 0.5rem;
       }
+
       .success-message {
-        text-align: center;
-        color: var(--text-mid);
-        margin-bottom: 2rem;
         font-size: 0.95rem;
+        color: var(--warm-mid);
+        margin-bottom: 1.5rem;
         line-height: 1.5;
       }
       .success-details {
-        background: var(--bg-light);
-        border-radius: 8px;
+        background: var(--sand);
+        border-radius: var(--radius-lg);
         padding: 1.25rem;
-        margin-bottom: 1.75rem;
-        border-left: 4px solid var(--primary);
+        margin-bottom: 1.5rem;
+        text-align: left;
       }
       .success-detail-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0.75rem 0;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 0.6rem 0;
+        border-bottom: 1px solid var(--sand-dark);
       }
       .success-detail-row:last-child {
         border-bottom: none;
       }
       .success-detail-label {
-        color: var(--text-mid);
-        font-size: 0.9rem;
-        font-weight: 500;
+        font-weight: 600;
+        color: var(--warm-mid);
+        font-size: 0.85rem;
       }
       .success-detail-value {
-        color: var(--text-dark);
-        font-weight: 600;
+        font-weight: 700;
+        color: var(--charcoal);
+        text-align: right;
       }
       .success-actions {
         display: flex;
-        gap: 1rem;
+        gap: 0.75rem;
+        justify-content: center;
       }
       .success-actions button {
         flex: 1;
       }
+      
+      .btn-primary {
+        padding: 0.65rem 1.5rem;
+        background: var(--sage-deep);
+        color: #fff;
+        border-radius: var(--radius-pill);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.86rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+        box-shadow: 0 4px 14px rgba(74,107,80,0.22);
+      }
+
+      .btn-primary:hover { background: var(--sage); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(74,107,80,0.3); }
+
+      .btn-secondary {
+        padding: 0.65rem 1.5rem;
+        background: transparent;
+        color: var(--warm-mid);
+        border-radius: var(--radius-pill);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.86rem;
+        font-weight: 500;
+        border: 1.5px solid var(--stone-light);
+        cursor: pointer;
+        transition: background 0.2s, border-color 0.2s, transform 0.15s;
+      }
+
+      .btn-secondary:hover { background: var(--sand); border-color: var(--stone); transform: translateY(-1px); }
+
+      /* Modal Buttons */
+      .btn-modal {
+        padding: 0.65rem 1.5rem;
+        border-radius: 999px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+      }
+
+      .btn-cancel {
+        background: #fff;
+        border: 1px solid #c4b9a8;
+        color: #5a5448;
+      }
+
+      .btn-cancel:hover {
+        background: #f5f0e8;
+        border-color: #8a8070;
+      }
+
+      .btn-confirm {
+        background: #4a6b50;
+        color: #fff;
+      }
+
+      .btn-confirm:hover {
+        background: #6b8f71;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(74, 107, 80, 0.3);
+      }
+
+      /* Modal Close Button */
+      .modal-close-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: transparent;
+        border: 1px solid #c4b9a8;
+        color: #5a5448;
+        font-size: 1.5rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        padding: 0;
+      }
+
+      .modal-close-btn:hover {
+        background: #f5f0e8;
+        border-color: #8a8070;
+      }
+
       @keyframes fadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
@@ -1853,6 +2032,22 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
           transform: scale(1);
           opacity: 1;
         }
+      }
+
+      /* Confirmation Modal */
+      .job-modal-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(42, 42, 34, 0.55);
+        z-index: 2500;
+        align-items: center;
+        justify-content: center;
+        padding: 1.25rem;
+        backdrop-filter: blur(4px);
+      }
+      .job-modal-backdrop.active {
+        display: flex;
       }
     </style>
   <?php include_once __DIR__ . '/../common/application-modals.php'; ?>
@@ -1870,8 +2065,10 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
         };
 
         // Update modal content
-        document.getElementById('confirmJobTitle').textContent = jobData.title;
-        document.getElementById('confirmCompanyName').textContent = jobData.company;
+        document.getElementById('aiConfirmJobTitle').textContent = jobData.title;
+        document.getElementById('aiConfirmCompany').textContent = jobData.company;
+        document.getElementById('aiConfirmLocation').textContent = jobData.location || 'Not specified';
+        document.getElementById('aiApplyAnonymously').checked = false;
         
         // Show the modal
         document.getElementById('applicationConfirmModal').classList.add('active');

@@ -913,7 +913,7 @@ $stmt->close();
                   </div>
                   <div class="form-group">
                     <label class="form-label">Application Deadline</label>
-                    <input type="date" name="application_deadline" class="input">
+                    <input type="date" name="application_deadline" class="input" min="<?php echo date('Y-m-d'); ?>">
                   </div>
                 </div>
                 <div class="form-group">
@@ -996,7 +996,7 @@ $stmt->close();
                   </div>
                   <div class="form-group">
                     <label class="form-label">Application Deadline</label>
-                    <input type="date" name="edit_application_deadline" id="edit_application_deadline" class="input">
+                    <input type="date" name="edit_application_deadline" id="edit_application_deadline" class="input" min="<?php echo date('Y-m-d'); ?>">
                   </div>
                 </div>
                 <div class="form-group">

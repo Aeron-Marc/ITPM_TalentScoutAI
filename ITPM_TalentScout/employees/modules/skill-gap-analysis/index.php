@@ -22,19 +22,16 @@ $employee_result = $employee_stmt->get_result();
 $employee_data = $employee_result->fetch_assoc();
 $employee_name = isset($employee_data) ? $employee_data['first_name'] . ' ' . $employee_data['last_name'] : 'User';
 
-// Get employee's most recent resume and skills
-$resume_query = "SELECT rs.skill_name FROM resumes r 
-                 JOIN resume_skills rs ON r.resume_id = rs.resume_id 
-                 WHERE r.employee_id = ? 
-                 ORDER BY r.updated_at DESC LIMIT 50";
-$resume_stmt = $conn->prepare($resume_query);
-$resume_stmt->bind_param("i", $employee_id);
-$resume_stmt->execute();
-$resume_result = $resume_stmt->get_result();
+// Get employee's skills from employee_skill table (more reliable than resume)
+$employee_skills_query = "SELECT DISTINCT skill_name FROM employee_skill WHERE employee_id = ?";
+$employee_skills_stmt = $conn->prepare($employee_skills_query);
+$employee_skills_stmt->bind_param("i", $employee_id);
+$employee_skills_stmt->execute();
+$employee_skills_result = $employee_skills_stmt->get_result();
 
 // Build employee skills array
 $employee_skills = array();
-while ($skill = $resume_result->fetch_assoc()) {
+while ($skill = $employee_skills_result->fetch_assoc()) {
     $employee_skills[] = strtolower(trim($skill['skill_name']));
 }
 
@@ -436,8 +433,8 @@ $critical_gaps_count = count($skill_gaps_display);
         background: #fff;
         border: 1px solid rgba(139,128,112,0.12);
         border-radius: var(--radius-xl);
-        padding: 1.75rem;
-        margin-bottom: 1.5rem;
+        padding: 1.25rem;
+        margin-bottom: 0.75rem;
         box-shadow: 0 4px 24px rgba(42,42,34,0.05);
         transition: box-shadow 0.25s;
       }
@@ -450,7 +447,7 @@ $critical_gaps_count = count($skill_gaps_display);
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1.25rem;
+        margin-bottom: 0.75rem;
       }
 
       .skill-section-title {
@@ -522,7 +519,7 @@ $critical_gaps_count = count($skill_gaps_display);
       }
 
       .progress-wrap {
-        margin-bottom: 0.8rem;
+        margin-bottom: 0.6rem;
       }
 
       .progress-wrap:last-child {
@@ -592,7 +589,8 @@ $critical_gaps_count = count($skill_gaps_display);
         background: #fff;
         border: 1px solid rgba(139,128,112,0.12);
         border-radius: var(--radius-xl);
-        padding: 1.75rem;
+        padding: 1.25rem;
+        margin-bottom: 0.75rem;
         box-shadow: 0 4px 24px rgba(42,42,34,0.05);
         transition: box-shadow 0.25s;
       }
@@ -603,7 +601,7 @@ $critical_gaps_count = count($skill_gaps_display);
 
       .chart-card h3 {
         font-family: 'Playfair Display', serif;
-        margin-bottom: 1rem;
+        margin-bottom: 0.75rem;
         font-size: 1rem;
         font-weight: 700;
         color: var(--charcoal);
@@ -614,14 +612,15 @@ $critical_gaps_count = count($skill_gaps_display);
         background: #fff;
         border: 1px solid rgba(139,128,112,0.12);
         border-radius: var(--radius-xl);
-        padding: 1.75rem;
-        margin-bottom: 2rem;
+        padding: 1.25rem;
+        margin-bottom: 1.25rem;
         box-shadow: 0 4px 24px rgba(42,42,34,0.05);
+        width: calc(100% + 370px);
       }
 
       .stats-table-wrap h3 {
         font-family: 'Playfair Display', serif;
-        margin-bottom: 1rem;
+        margin-bottom: 0.75rem;
         font-size: 1rem;
         font-weight: 700;
         color: var(--charcoal);
@@ -686,8 +685,8 @@ $critical_gaps_count = count($skill_gaps_display);
         background: #fff;
         border: 1px solid rgba(139,128,112,0.12);
         border-radius: var(--radius-xl);
-        padding: 1.5rem;
-        margin-bottom: 1.25rem;
+        padding: 1.25rem;
+        margin-bottom: 0.75rem;
         box-shadow: 0 4px 24px rgba(42,42,34,0.05);
         transition: box-shadow 0.25s;
       }
@@ -701,88 +700,8 @@ $critical_gaps_count = count($skill_gaps_display);
         font-size: 0.92rem;
         font-weight: 700;
         color: var(--charcoal);
-        margin-bottom: 1rem;
+        margin-bottom: 0.75rem;
         letter-spacing: -0.01em;
-      }
-
-      /* ── CAREER PATH ── */
-      .career-path {
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-      }
-
-      .path-step {
-        display: flex;
-        align-items: flex-start;
-        gap: 0.75rem;
-        padding-bottom: 1.25rem;
-        position: relative;
-      }
-
-      .path-step:last-child {
-        padding-bottom: 0;
-      }
-
-      .path-step::before {
-        content: "";
-        position: absolute;
-        left: 14px;
-        top: 28px;
-        bottom: 0;
-        width: 2px;
-        background: var(--sand-dark);
-      }
-
-      .path-step:last-child::before {
-        display: none;
-      }
-
-      .path-dot {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.72rem;
-        font-weight: 700;
-        flex-shrink: 0;
-        position: relative;
-        z-index: 1;
-      }
-
-      .path-dot.done {
-        background: var(--sage);
-        color: #fff;
-      }
-
-      .path-dot.current {
-        background: var(--gold-pale);
-        color: var(--sage-deep);
-        border: 2px solid var(--sage);
-      }
-
-      .path-dot.next {
-        background: var(--sand);
-        color: var(--warm-light);
-        border: 1px solid var(--stone-light);
-      }
-
-      .path-info {
-        padding-top: 0.15rem;
-      }
-
-      .path-title {
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: var(--charcoal);
-      }
-
-      .path-sub {
-        font-size: 0.78rem;
-        color: var(--warm-light);
-        margin-top: 0.15rem;
       }
 
       /* ── MICRO STATS ── */
@@ -1042,7 +961,6 @@ $critical_gaps_count = count($skill_gaps_display);
             <div class="summary-pills">
               <span class="summary-pill pill-green">✓ <?php echo count($current_skills); ?> Verified Skills</span>
               <span class="summary-pill pill-red">✗ <?php echo $critical_gaps_count; ?> Critical Gaps</span>
-              <span class="summary-pill pill-yellow">⚠ 2 Partial Skills</span>
             </div>
           </div>
         </div>
@@ -1077,107 +995,41 @@ $critical_gaps_count = count($skill_gaps_display);
           </div>
         </div>
 
-        <!-- SKILL GAPS -->
-        <div class="skill-section reveal reveal-delay-2">
-          <div class="skill-section-header">
-            <div class="skill-section-title">Identified Skill Gaps</div>
-            <span class="badge badge-red"><?php echo $critical_gaps_count; ?> Critical</span>
-          </div>
-          <p
-            style="
-              font-size: 0.87rem;
-              color: var(--warm-mid);
-              margin-bottom: 1.25rem;
-            "
-          >
-            These skills are in demand across <?php echo $total_jobs; ?>+ job postings but
-            are missing from your profile.
-          </p>
-          <div class="skill-grid">
-            <?php foreach ($skill_gaps_display as $skill => $data): ?>
-              <div class="skill-item">
-                <div class="skill-label-row">
-                  <span class="skill-name"><?php echo htmlspecialchars($data['name']); ?></span
-                  ><span class="skill-pct bad">0%</span>
-                </div>
-                <div class="progress-bar">
-                  <div class="progress-fill gap" style="width: 5%"></div>
-                </div>
-                <div
-                  style="font-size: 0.78rem; color: #856404; margin-top: 0.3rem"
-                >
-                  Required by <?php echo $data['demand_count']; ?> jobs (<?php echo $data['demand_percent']; ?>%)
-                </div>
-              </div>
-            <?php endforeach; ?>
-          </div>
-          <div
-            style="
-              margin-top: 1.25rem;
-              padding-top: 1.25rem;
-              border-top: 1px solid var(--sand-dark);
-            "
-          >
-            <div
-              style="
-                font-size: 0.87rem;
-                font-weight: 600;
-                color: var(--charcoal);
-                margin-bottom: 0.5rem;
-              "
-            >
-              All Gap Tags
-            </div>
-            <div>
-              <?php 
-              $gap_count = 0;
-              foreach ($skill_gaps as $skill => $data):
-                if ($gap_count >= 5) break;
-              ?>
-                <span class="gap-tag missing">✗ <?php echo htmlspecialchars($data['name']); ?></span>
-              <?php 
-                $gap_count++;
-              endforeach; 
-              ?>
-            </div>
-          </div>
-        </div>
-
-        <!-- SKILL TRENDS VISUALIZATION -->
-        <div style="margin-bottom: 1.5rem" class="reveal reveal-delay-3">
-          <div class="section-label">Market Insights</div>
-          <h2 class="section-title" style="font-size: 1.5rem">
-            Current Skill Trends
-          </h2>
-          <p
-            style="
-              color: var(--warm-mid);
-              font-size: 0.9rem;
-              margin-top: 0.3rem;
-            "
-          >
-            See which skills are most in-demand across job postings in your market.
-          </p>
-        </div>
-
-        <!-- CHARTS CONTAINER -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
-          <!-- BAR CHART: Top Skills Demand -->
-          <div class="chart-card reveal reveal-delay-3">
-            <h3>Top Demanded Skills</h3>
-            <canvas id="skillDemandChart" height="250"></canvas>
-          </div>
-
-          <!-- PIE CHART: Skills Distribution -->
-          <div class="chart-card reveal reveal-delay-4">
-            <h3>Skill Distribution</h3>
-            <canvas id="skillDistributionChart" height="250"></canvas>
-          </div>
-        </div>
-
         <!-- SKILL STATS TABLE -->
         <div class="stats-table-wrap reveal reveal-delay-5">
-          <h3>Skill Market Analysis</h3>
+          <h3>Market Demand & Your Skills</h3>
+          
+          <!-- Market Demand Progress Bars -->
+          <div style="margin-bottom: 2rem;">
+            <div style="font-size: 0.82rem; color: var(--warm-mid); margin-bottom: 1rem;">
+              <strong>Top Market Demand:</strong> Most requested skills in job postings right now:
+            </div>
+            <?php
+              $skill_count = 0;
+              foreach ($market_skills as $skill => $frequency) {
+                if ($skill_count >= 5) break;
+                $percentage = $total_jobs > 0 ? round(($frequency / $total_jobs) * 100, 0) : 0;
+            ?>
+            <div class="progress-wrap">
+              <div class="progress-label">
+                <span><?php echo htmlspecialchars(ucwords($skill)); ?></span><span><?php echo $percentage; ?>%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: <?php echo $percentage; ?>%"></div>
+              </div>
+            </div>
+            <?php
+                $skill_count++;
+              }
+            ?>
+          </div>
+
+          <!-- Detailed Analysis Table -->
+          <div style="margin-bottom: 1rem;">
+            <div style="font-size: 0.82rem; color: var(--warm-mid); margin-bottom: 1rem;">
+              <strong>Detailed Analysis:</strong> Top 10 skills ranked by market demand:
+            </div>
+          </div>
           <table style="width: 100%; border-collapse: collapse;">
             <thead>
               <tr class="table-header-row">
@@ -1213,126 +1065,6 @@ $critical_gaps_count = count($skill_gaps_display);
           </table>
         </div>
 
-        <!-- Chart.js Library -->
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script>
-          // Prepare data for charts
-          const marketSkills = <?php echo json_encode(array_slice($market_skills, 0, 8)); ?>;
-          const employeeSkills = <?php echo json_encode($employee_skills); ?>;
-          const totalJobs = <?php echo $total_jobs; ?>;
-
-          // Extract labels and data
-          let skillLabels = [];
-          let skillDemand = [];
-          let skillColors = [];
-          
-          for (const [skill, count] of Object.entries(marketSkills)) {
-            skillLabels.push(skill.charAt(0).toUpperCase() + skill.slice(1));
-            skillDemand.push(count);
-            // Color based on if user has skill
-            if (employeeSkills.includes(skill.toLowerCase())) {
-              skillColors.push('rgba(107, 143, 113, 0.7)'); // Sage for have
-            } else {
-              skillColors.push('rgba(220, 38, 38, 0.7)'); // Red for need
-            }
-          }
-
-          // Bar Chart: Top Skills Demand
-          const barCtx = document.getElementById('skillDemandChart').getContext('2d');
-          new Chart(barCtx, {
-            type: 'bar',
-            data: {
-              labels: skillLabels,
-              datasets: [{
-                label: 'Job Postings Requiring Skill',
-                data: skillDemand,
-                backgroundColor: skillColors,
-                borderColor: skillColors.map(c => c.replace('0.7', '1')),
-                borderWidth: 2,
-                borderRadius: 5
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: true,
-              indexAxis: 'y',
-              plugins: {
-                legend: {
-                  display: false
-                },
-                tooltip: {
-                  callbacks: {
-                    label: function(context) {
-                      const pct = ((context.parsed.x / totalJobs) * 100).toFixed(1);
-                      return context.parsed.x + ' jobs (' + pct + '%)';
-                    }
-                  }
-                }
-              },
-              scales: {
-                x: {
-                  beginAtZero: true,
-                  ticks: {
-                    font: { size: 11 }
-                  }
-                },
-                y: {
-                  ticks: {
-                    font: { size: 12 }
-                  }
-                }
-              }
-            }
-          });
-
-          // Pie Chart: Skills Distribution (Have vs Need)
-          const haveCount = skillDemand.reduce((sum, demand, idx) => 
-            sum + (employeeSkills.includes(skillLabels[idx].toLowerCase()) ? 1 : 0), 0
-          );
-          const needCount = skillDemand.length - haveCount;
-
-          const pieCtx = document.getElementById('skillDistributionChart').getContext('2d');
-          new Chart(pieCtx, {
-            type: 'doughnut',
-            data: {
-              labels: ['Skills You Have', 'Skills to Learn'],
-              datasets: [{
-                data: [haveCount, needCount],
-                backgroundColor: [
-                  'rgba(107, 143, 113, 0.8)',  // Sage green
-                  'rgba(220, 38, 38, 0.8)'     // Red
-                ],
-                borderColor: [
-                  'rgba(107, 143, 113, 1)',
-                  'rgba(220, 38, 38, 1)'
-                ],
-                borderWidth: 2
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: true,
-              plugins: {
-                legend: {
-                  position: 'bottom',
-                  labels: {
-                    font: { size: 12 },
-                    padding: 15
-                  }
-                },
-                tooltip: {
-                  callbacks: {
-                    label: function(context) {
-                      const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                      const pct = ((context.parsed / total) * 100).toFixed(1);
-                      return context.label + ': ' + context.parsed + ' (' + pct + '%)';
-                    }
-                  }
-                }
-              }
-            }
-          });
-        </script>
       </div>
 
       <!-- SIDEBAR -->
@@ -1359,108 +1091,6 @@ $critical_gaps_count = count($skill_gaps_display);
           <div class="micro-stat">
             <span>Potential Score</span
             ><span class="micro-val" style="color: var(--sage)"><?php echo min(100, $employability_score + 20); ?>%</span>
-          </div>
-        </div>
-
-        <div class="side-card reveal reveal-delay-1">
-          <div class="side-card-title">Career Path</div>
-          <div class="career-path">
-            <div class="path-step">
-              <div class="path-dot done">✓</div>
-              <div class="path-info">
-                <div class="path-title">Junior Developer</div>
-                <div class="path-sub">Current level • Achieved</div>
-              </div>
-            </div>
-            <div class="path-step">
-              <div class="path-dot current">→</div>
-              <div class="path-info">
-                <div class="path-title">Mid-Level Developer</div>
-                <div class="path-sub">In progress • +3 skills needed</div>
-              </div>
-            </div>
-            <div class="path-step">
-              <div class="path-dot next">3</div>
-              <div class="path-info">
-                <div class="path-title">Senior Developer</div>
-                <div class="path-sub">Future goal • 2–3 years</div>
-              </div>
-            </div>
-            <div class="path-step">
-              <div class="path-dot next">4</div>
-              <div class="path-info">
-                <div class="path-title">Tech Lead / Architect</div>
-                <div class="path-sub">Long-term target</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="side-card reveal reveal-delay-2">
-          <div class="side-card-title">Job Market Demand</div>
-          <div
-            style="
-              font-size: 0.82rem;
-              color: var(--warm-mid);
-              margin-bottom: 1rem;
-            "
-          >
-            Most requested skills in Nasugbu tech jobs right now:
-          </div>
-          <div class="progress-wrap">
-            <div class="progress-label">
-              <span>JavaScript</span><span>94%</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 94%"></div>
-            </div>
-          </div>
-          <div class="progress-wrap">
-            <div class="progress-label">
-              <span>React / Vue</span><span>78%</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 78%"></div>
-            </div>
-          </div>
-          <div class="progress-wrap">
-            <div class="progress-label">
-              <span>TypeScript</span><span>72%</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 72%"></div>
-            </div>
-          </div>
-          <div class="progress-wrap">
-            <div class="progress-label"><span>SQL</span><span>65%</span></div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 65%"></div>
-            </div>
-          </div>
-          <div class="progress-wrap">
-            <div class="progress-label">
-              <span>Python</span><span>58%</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 58%"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="side-card reveal reveal-delay-3">
-          <div class="side-card-title">Quick Actions</div>
-          <div style="display: flex; flex-direction: column; gap: 0.6rem">
-            <a
-              href="../ai-matching/"
-              class="btn-sage"
-              >View Job Matches</a
-            >
-            <a
-              href="../job-postings/"
-              class="btn-outline"
-              >Browse Jobs</a
-            >
-
           </div>
         </div>
       </aside>

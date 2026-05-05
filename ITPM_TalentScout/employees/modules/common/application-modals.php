@@ -166,8 +166,10 @@
 .confirm-detail-row {
   display: flex;
   justify-content: space-between;
-  padding: 0.4rem 0;
+  padding: 0.6rem 0;
   border-bottom: 1px solid #ece5d5;
+  align-items: flex-start;
+  gap: 1rem;
 }
 
 .confirm-detail-row:last-child {
@@ -178,6 +180,7 @@
   font-size: 0.85rem;
   color: #8a8070;
   font-weight: 500;
+  flex-shrink: 0;
 }
 
 .confirm-value {
@@ -185,7 +188,9 @@
   color: #2a2a22;
   font-weight: 600;
   text-align: right;
-  max-width: 60%;
+  flex: 1;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .confirm-warning {
