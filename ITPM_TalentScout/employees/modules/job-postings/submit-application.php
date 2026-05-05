@@ -60,7 +60,7 @@ try {
     $checkStmt->close();
 
     // Check if user has already applied for this job
-    $checkAppliedQuery = "SELECT application_id FROM application WHERE employee_id = ? AND job_post_id = ?";
+    $checkAppliedQuery = "SELECT application_id, status, application_date FROM application WHERE employee_id = ? AND job_post_id = ?";
     $checkAppliedStmt = $conn->prepare($checkAppliedQuery);
     if (!$checkAppliedStmt) {
         throw new Exception("Prepare failed: " . $conn->error);
@@ -73,10 +73,19 @@ try {
 
     $appliedResult = $checkAppliedStmt->get_result();
     if ($appliedResult->num_rows > 0) {
+        $existingApp = $appliedResult->fetch_assoc();
         $checkAppliedStmt->close();
         closeConnection($conn);
         http_response_code(409);
-        echo json_encode(['success' => false, 'message' => 'You have already applied for this job']);
+        echo json_encode([
+            'success' => false, 
+            'message' => 'You have already applied for this job',
+            'existing_application' => [
+                'application_id' => $existingApp['application_id'],
+                'status' => $existingApp['status'],
+                'application_date' => $existingApp['application_date']
+            ]
+        ]);
         exit;
     }
 

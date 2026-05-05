@@ -522,6 +522,8 @@ $hasError = !empty($dbError);
 
     .jobs-map {
       position: relative;
+      height: 400px;
+      min-height: 300px;
     }
 
     .jobs-map-section {
@@ -2604,7 +2606,9 @@ $hasError = !empty($dbError);
         let jobData = null;
         if (jobTitle && companyName) {
           jobData = { title: jobTitle, company: companyName, jobPostId: jobPostId };
+          console.log('Using provided job data:', jobData);
         } else {
+          console.log('Searching dbJobs for ID:', jobPostId);
           const job = window.dbJobs.find(j => Number(j.job_post_id) === jobPostId);
           console.log('Found in dbJobs:', job);
           
@@ -2719,14 +2723,30 @@ $hasError = !empty($dbError);
     function initJobsMap() {
       if (!window.L || jobsMap) return;
 
-      initMapLayers();
+      const mapContainer = document.getElementById('jobsMap');
+      if (!mapContainer) {
+        console.error('Map container not found');
+        return;
+      }
 
-      jobsMap = L.map('jobsMap', {
-        scrollWheelZoom: false,
-        zoomControl: true
-      }).setView([14.068, 120.633], 12);
+      if (mapContainer.offsetHeight === 0) {
+        console.warn('Map container has no height - check CSS');
+      }
 
-      currentMapLayer = mapLayers.default.addTo(jobsMap);
+      try {
+        initMapLayers();
+
+        jobsMap = L.map('jobsMap', {
+          scrollWheelZoom: false,
+          zoomControl: true
+        }).setView([14.068, 120.633], 12);
+
+        currentMapLayer = mapLayers.default.addTo(jobsMap);
+      } catch (error) {
+        console.error('Failed to initialize map:', error);
+        const status = document.getElementById('mapStatus');
+        if (status) status.textContent = 'Map failed to load';
+      }
     }
 
     function clearJobMarkers() {
@@ -2762,11 +2782,24 @@ $hasError = !empty($dbError);
 
     async function renderJobsMapInternal(jobs, token) {
       const status = document.getElementById('mapStatus');
-      if (!status) return;
-      if (token !== jobsMapRenderToken) return;
+      console.log('renderJobsMapInternal called with', jobs?.length, 'jobs, token:', token);
+      if (!status) {
+        console.error('Map status element not found');
+        return;
+      }
+      if (token !== jobsMapRenderToken) {
+        console.log('Token mismatch, returning');
+        return;
+      }
 
+      console.log('Calling initJobsMap...');
       initJobsMap();
-      if (!jobsMap) return;
+      console.log('jobsMap after init:', jobsMap);
+      if (!jobsMap) {
+        console.error('Map not initialized');
+        status.textContent = 'Map failed to initialize';
+        return;
+      }
 
       clearJobMarkers();
       status.textContent = jobs.length ? 'Geocoding job locations...' : 'No jobs to show';

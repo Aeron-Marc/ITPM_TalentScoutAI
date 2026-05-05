@@ -55,7 +55,10 @@ $stmt->close();
 // Get selected conversation (first one or from request)
 $selected_employee_id = isset($_GET['employee_id']) ? intval($_GET['employee_id']) : (count($conversations) > 0 ? $conversations[0]['employee_id'] : 0);
 $selected_employee_name = '';
-if ($selected_employee_id > 0) {
+$is_new_conversation = false;
+
+// If employee_id is provided but not in conversations, it's a new conversation
+if ($selected_employee_id > 0 && count($conversations) > 0) {
   foreach ($conversations as $conv) {
     if ($conv['employee_id'] === $selected_employee_id) {
       $selected_employee_name = $conv['display_name'];
@@ -64,7 +67,28 @@ if ($selected_employee_id > 0) {
   }
 }
 
-// Fetch messages for selected conversation
+// If still no name found, get employee directly from database
+if ($selected_employee_id > 0 && empty($selected_employee_name)) {
+  $empStmt = $conn->prepare("SELECT first_name, last_name FROM employee WHERE employee_id = ?");
+  $empStmt->bind_param("i", $selected_employee_id);
+  $empStmt->execute();
+  $empResult = $empStmt->get_result();
+  if ($empRow = $empResult->fetch_assoc()) {
+    $selected_employee_name = $empRow['first_name'] . ' ' . $empRow['last_name'];
+    $is_new_conversation = true;
+  }
+  $empStmt->close();
+}
+
+// If new conversation, add to conversations list
+if ($is_new_conversation && $selected_employee_id > 0) {
+  $conversations[] = [
+    'employee_id' => $selected_employee_id,
+    'display_name' => $selected_employee_name
+  ];
+}
+
+// Fetch messages for selected conversation (or empty if new conversation)
 $messages = [];
 if ($selected_employee_id > 0) {
   $stmt = $conn->prepare("SELECT m.*, e.first_name, e.last_name, a.job_post_id, j.title as job_title
@@ -97,7 +121,7 @@ if ($selected_employee_id > 0) {
   $stmt->execute();
   $result = $stmt->get_result();
   while ($row = $result->fetch_assoc()) {
-    $applications_with_candidate[] = $row;
+$applications_with_candidate[] = $row;
   }
   $stmt->close();
 }
@@ -118,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $stmt->execute();
       $stmt->close();
       
-      $msg = "Interview scheduled for " . date('M d, Y g:i A', strtotime($scheduled_datetime)) . ". " . ($confirmation_message ? $confirmation_message : "Please confirm your availability.");
+      $msg = "📅 Interview scheduled for " . date('M d, Y g:i A', strtotime($scheduled_datetime)) . ". " . ($confirmation_message ? $confirmation_message : "Please confirm your availability.");
       $stmt = $conn->prepare("INSERT INTO message (sender_id, sender_type, receiver_id, receiver_type, message, application_id, timestamp) VALUES (?, 'employer', ?, 'employee', ?, ?, NOW())");
       $stmt->bind_param("iisi", $employer_id, $selected_employee_id, $msg, $application_id);
       $stmt->execute();
@@ -157,12 +181,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $reject_message = trim($_POST['reject_message'] ?? '');
     
     if ($application_id > 0) {
-      $stmt = $conn->prepare("UPDATE application SET status = 'rejected' WHERE application_id = ?");
+      $stmt = $conn->prepare("UPDATE application SET status = 'Rejected' WHERE application_id = ?");
       $stmt->bind_param("i", $application_id);
       $stmt->execute();
       $stmt->close();
       
-      $msg = "Application Update: " . ($reject_message ? $reject_message : "Thank you for your interest. We have decided to move forward with other candidates.");
+      $msg = "❌ Application Status Update: " . ($reject_message ?: "Thank you for your interest. We have decided to move forward with other candidates.");
       $stmt = $conn->prepare("INSERT INTO message (sender_id, sender_type, receiver_id, receiver_type, message, application_id, timestamp) VALUES (?, 'employer', ?, 'employee', ?, ?, NOW())");
       $stmt->bind_param("iisi", $employer_id, $selected_employee_id, $msg, $application_id);
       $stmt->execute();
@@ -173,7 +197,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
   }
   
-  // Cancel Interview
+// Cancel Interview
   if (isset($_POST['action']) && $_POST['action'] === 'cancel_interview') {
     $interview_id = intval($_POST['interview_id'] ?? 0);
     
@@ -188,7 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
   }
 }
-
+ 
 // Fetch current interview status for selected application
 $current_interview = null;
 $application_hire_status = null;
@@ -280,9 +304,9 @@ if ($selected_application_id > 0) {
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 1.5rem;
-      height: fit-content;
-      position: sticky;
-      top: 90px;
+      height: calc(100vh - 180px);
+      display: flex;
+      flex-direction: column;
       box-shadow: var(--shadow-sm);
     }
 
@@ -295,12 +319,34 @@ if ($selected_application_id > 0) {
       border-bottom: 2px solid var(--border);
       text-transform: uppercase;
       letter-spacing: 1px;
+      flex-shrink: 0;
     }
 
     .conversation-list {
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
+      overflow-y: auto;
+      flex: 1;
+      padding-right: 0.5rem;
+    }
+
+    .conversation-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .conversation-list::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
+    }
+
+    .conversation-list::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 3px;
+    }
+
+    .conversation-list::-webkit-scrollbar-thumb:hover {
+      background: #aaa;
     }
 
     .conversation-item {
@@ -310,6 +356,7 @@ if ($selected_application_id > 0) {
       transition: all 0.25s ease;
       border-left: 4px solid transparent;
       background: transparent;
+      flex-shrink: 0;
     }
 
     .conversation-item:hover {

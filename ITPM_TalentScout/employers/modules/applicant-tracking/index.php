@@ -23,11 +23,15 @@ $stmt = $conn->prepare("SELECT
   a.application_date,
   e.first_name,
   e.last_name,
-  jp.title as job_title
+  jp.title as job_title,
+  jp.skills as job_skills,
+  GROUP_CONCAT(DISTINCT es.skill_name ORDER BY es.skill_name SEPARATOR ', ') as candidate_skills
 FROM application a
 JOIN job_post jp ON a.job_post_id = jp.job_post_id
 JOIN employee e ON a.employee_id = e.employee_id
+LEFT JOIN employee_skill es ON a.employee_id = es.employee_id
 WHERE jp.employer_id = ?
+GROUP BY a.application_id, a.job_post_id, a.employee_id, a.status, a.hire_status, a.application_date, e.first_name, e.last_name, jp.title, jp.skills
 ORDER BY a.application_date DESC");
 $stmt->bind_param("i", $employer_id);
 $stmt->execute();
@@ -453,6 +457,12 @@ foreach ($applications as $app) {
       background: #fdd;
       border-color: #f99;
     }
+
+    .status-btn-active {
+      background: var(--primary-dark) !important;
+      border-color: var(--primary-dark) !important;
+      color: white !important;
+    }
   </style>
 </head>
 <body>
@@ -533,27 +543,51 @@ foreach ($applications as $app) {
               $status_class = 'status-applied';
               if ($hireStatus === 'accepted') {
                 $status_class = 'status-hired';
+                $displayStatus = 'Hired';
               } elseif ($hireStatus === 'rejected') {
                 $status_class = 'status-rejected';
+                $displayStatus = 'Offer Declined';
               } elseif ($hireStatus === 'offered') {
                 $status_class = 'status-offer';
+                $displayStatus = 'Offer Sent';
               } else {
                 $status = strtolower($app['status']);
-                if ($status === 'interview scheduled') $status_class = 'status-interview';
-                if ($status === 'rejected') $status_class = 'status-rejected';
+                if ($status === 'interview scheduled') {
+                  $status_class = 'status-interview';
+                  $displayStatus = 'Interview';
+                } elseif ($status === 'rejected') {
+                  $status_class = 'status-rejected';
+                  $displayStatus = 'Rejected';
+                } else {
+                  $displayStatus = 'Applied';
+                }
               }
               
-              // Generate match score (random for now, could be calculated from skills later)
-              $match_score = rand(75, 98);
+              // Simple skill-based match score algorithm
+              $job_skills = !empty($app['job_skills']) 
+                  ? array_map('trim', array_filter(explode(',', $app['job_skills']))) 
+                  : [];
+              $candidate_skills = !empty($app['candidate_skills']) 
+                  ? array_map('trim', array_filter(explode(',', $app['candidate_skills']))) 
+                  : [];
+              
+              $matching_skills = array_intersect($job_skills, $candidate_skills);
+              $match_score = count($job_skills) > 0 
+                  ? round((count($matching_skills) / count($job_skills)) * 100) 
+                  : 0;
             ?>
             <tr data-application-id="<?php echo $app['application_id']; ?>">
               <td class="candidate-col"><?php echo htmlspecialchars($app['first_name'] . ' ' . $app['last_name']); ?></td>
               <td class="position-col"><?php echo htmlspecialchars($app['job_title']); ?></td>
               <td><span class="status-col <?php echo $status_class; ?>"><?php echo htmlspecialchars($displayStatus); ?></span></td>
-              <td class="match-score"><?php echo $match_score; ?>%</td>
+              <td class="match-score" style="color: <?php 
+                  if ($match_score >= 80) echo '#28a745';
+                  elseif ($match_score >= 50) echo '#ffc107';
+                  else echo '#dc3545';
+                ?>;"><?php echo $match_score; ?>%</td>
               <td class="date-col"><?php echo date('M j, Y', strtotime($app['application_date'])); ?></td>
               <td class="action-col">
-                <button class="btn-small view-details" data-application-id="<?php echo $app['application_id']; ?>">View</button>
+                <button class="btn-small view-details" onclick="openApplicationModal(<?php echo $app['application_id']; ?>)">View</button>
               </td>
             </tr>
             <?php endforeach; ?>
@@ -569,8 +603,46 @@ foreach ($applications as $app) {
     </div>
   </div>
 
+  <!-- Status Update Confirmation Modal -->
+  <div id="statusModal" class="modal" style="display: none; z-index: 3000;">
+    <div class="modal-overlay" onclick="closeStatusModal()"></div>
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <h2>Confirm Status Change</h2>
+        <button class="modal-close" onclick="closeStatusModal()">×</button>
+      </div>
+      <div class="modal-body" style="text-align: center;">
+        <p style="font-size: 1.1rem; margin-bottom: 1rem;">Are you sure you want to change status to:</p>
+        <div id="newStatusDisplay" style="font-weight: 700; font-size: 1.3rem; color: var(--primary-dark); margin-bottom: 1.5rem;"></div>
+        <p style="font-size: 0.9rem; color: var(--text-light);">This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer" style="justify-content: center;">
+        <button class="btn btn-outline" onclick="closeStatusModal()">Cancel</button>
+        <button class="btn btn-primary" id="confirmStatusBtn">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Modal -->
+  <div id="notificationModal" class="modal" style="display: none; z-index: 3001;">
+    <div class="modal-overlay" onclick="closeNotificationModal()"></div>
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <h2 id="notificationTitle"></h2>
+        <button class="modal-close" onclick="closeNotificationModal()">×</button>
+      </div>
+      <div class="modal-body" style="text-align: center;">
+        <div id="notificationIcon" style="font-size: 3rem; margin-bottom: 1rem;"></div>
+        <p id="notificationMessage" style="font-size: 1.1rem;"></p>
+      </div>
+      <div class="modal-footer" style="justify-content: center;">
+        <button class="btn btn-primary" onclick="closeNotificationModal()">OK</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Application Details Modal -->
-  <div id="applicationModal" class="modal" style="display: none;">
+  <div id="applicationModal" class="modal" style="display: none; z-index: 2000;">
     <div class="modal-overlay" onclick="closeApplicationModal()"></div>
     <div class="modal-content">
       <div class="modal-header">
@@ -579,6 +651,41 @@ foreach ($applications as $app) {
       </div>
       <div id="modalBody" class="modal-body">
         <div style="text-align: center; padding: 2rem;">Loading...</div>
+      </div>
+      <!-- Schedule Interview Inline Form -->
+      <div id="scheduleForm" style="display: none; padding: 1.5rem; border-top: 1px solid #eee;">
+        <h3 style="margin-top: 0;">Schedule Interview</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Date</label>
+            <input type="date" id="scheduleDate" class="modal-input" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px;" required>
+          </div>
+          <div>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Time</label>
+            <input type="time" id="scheduleTime" class="modal-input" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px;" required>
+          </div>
+        </div>
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Confirmation Message (optional)</label>
+          <textarea id="scheduleMessage" class="modal-input" rows="3" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; resize: vertical;" placeholder="Please confirm your availability for this interview."></textarea>
+        </div>
+        <div style="display: flex; gap: 1rem;">
+          <button type="button" class="btn btn-outline" onclick="hideScheduleForm()" style="flex: 1;">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="submitScheduleInterview()" style="flex: 1;">Schedule</button>
+        </div>
+      </div>
+      <!-- Send Offer Inline Form -->
+      <div id="offerForm" style="display: none; padding: 1.5rem; border-top: 1px solid #eee;">
+        <h3 style="margin-top: 0;">Send Job Offer</h3>
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Offer Message</label>
+          <textarea id="offerMessage" class="modal-input" rows="4" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; resize: vertical;" placeholder="Congratulations! We are pleased to offer you the position. Please respond to this offer."></textarea>
+        </div>
+        <p style="font-size: 0.85rem; color: #666; margin-bottom: 1rem;">This will notify the candidate about the job offer.</p>
+        <div style="display: flex; gap: 1rem;">
+          <button type="button" class="btn btn-outline" onclick="hideScheduleForm()" style="flex: 1;">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="submitSendOffer()" style="flex: 1;">Send Offer</button>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="closeApplicationModal()">Close</button>
@@ -590,144 +697,279 @@ foreach ($applications as $app) {
     <p>&copy; 2026 TalentScout AI — PESO Nasugbu, Batangas. Streamlined hiring process.</p>
   </footer>
 
-  <script>
-    // Animate table rows on load
-    const rows = document.querySelectorAll('tbody tr');
-    rows.forEach((row, index) => {
-      row.style.opacity = '0';
-      row.style.transform = 'translateY(10px)';
-      row.style.transition = `opacity 0.4s ease ${index * 0.05}s, transform 0.4s ease ${index * 0.05}s`;
-      setTimeout(() => {
-        row.style.opacity = '1';
-        row.style.transform = 'translateY(0)';
-      }, 10);
-    });
-
-    // View details button functionality
-    document.querySelectorAll('.view-details').forEach(btn => {
-      btn.addEventListener('click', function(e) {
-        e.preventDefault();
-        const applicationId = this.getAttribute('data-application-id');
-        openApplicationModal(applicationId);
-      });
-    });
-
-    // Modal functions
+<script>
+    // Open the application details modal
     function openApplicationModal(applicationId) {
-      const modal = document.getElementById('applicationModal');
-      const modalBody = document.getElementById('modalBody');
+      var modal = document.getElementById('applicationModal');
+      var modalBody = document.getElementById('modalBody');
       
       modal.style.display = 'flex';
       modalBody.innerHTML = '<div style="text-align: center; padding: 2rem;">Loading...</div>';
 
-      // Fetch application details
-      fetch(`./get-application.php?application_id=${applicationId}`)
-        .then(response => response.json())
-        .then(data => {
+      // Use relative path to the API
+      var apiPath = 'get-application.php?application_id=' + applicationId;
+
+      // Fetch the application details
+      fetch(apiPath)
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
           if (data.success) {
-            const app = data.application;
-            // Map database status to friendly display
-            const status_map = {
-              'Pending': 'Applied',
-              'Interview Scheduled': 'Interview',
-              'Offer Received': 'Offer Sent',
-              'Rejected': 'Rejected'
-            };
-            const friendly_status = status_map[app.status] || app.status;
-            const statusOptions = ['Applied', 'Interview', 'Offer Sent', 'Rejected'];
+            var app = data.application;
             
-            let html = `
-              <div class="candidate-info">
-                <h3>${app.first_name} ${app.last_name}</h3>
-                <div class="info-row">
-                  <span class="info-label">Position:</span>
-                  <span class="info-value">${app.job_title}</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Email:</span>
-                  <span class="info-value"><a href="mailto:${app.email}" style="color: var(--primary-dark); text-decoration: none;">${app.email}</a></span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Phone:</span>
-                  <span class="info-value">${app.phone || 'N/A'}</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Location:</span>
-                  <span class="info-value">${app.address || 'N/A'}</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Applied Date:</span>
-                  <span class="info-value">${new Date(app.application_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                </div>
-                <div class="info-row">
-                  <span class="info-label">Current Status:</span>
-                  <span class="info-value" style="font-weight: 700;">${friendly_status}</span>
-                </div>
-              </div>
-
-              <div class="status-update-section">
-                <h3>Update Status</h3>
-                <div class="status-buttons">
-                  ${statusOptions.map(status => 
-                    `<button class="status-btn ${status === 'Rejected' ? 'btn-reject' : ''}" data-status="${status}" onclick="updateApplicationStatus(${app.application_id}, '${status}')">
-                      ${status}
-                    </button>`
-                  ).join('')}
-                </div>
-              </div>
-
-              <div style="margin-top: 2rem; padding: 1.5rem; background: #f9f9f9; border-radius: var(--radius);">
-                <h3 style="margin-top: 0; font-size: 1rem;">Job Description</h3>
-                <p style="color: var(--text-light); font-size: 0.9rem; line-height: 1.6; margin: 0;">${app.job_description || 'No description available'}</p>
-              </div>
-            `;
+            // Build status display with mapping
+            var displayStatus = app.status;
+            var isHired = app.hire_status === 'accepted';
+            if (isHired) displayStatus = 'Hired';
+            else if (app.hire_status === 'offered') displayStatus = 'Send Offer';
+            else if (app.hire_status === 'rejected') displayStatus = 'Offer Declined';
+            else if (app.status === 'Pending') displayStatus = 'Applied';
+            else if (app.status === 'Interview Scheduled') displayStatus = 'Schedule Interview';
+            else if (app.status === 'Rejected') displayStatus = 'Rejected';
+            
+            // Status update buttons - hide if hired
+            var statusButtons = '';
+            if (!isHired) {
+              var statusOpts = ['Applied', 'Schedule Interview', 'Send Offer', 'Hired', 'Rejected'];
+              for (var i = 0; i < statusOpts.length; i++) {
+                var isActive = statusOpts[i] === displayStatus;
+                var btnClass = statusOpts[i] === 'Rejected' ? 'status-btn btn-reject' : 'status-btn';
+                if (isActive) btnClass += ' status-btn-active';
+                statusButtons += '<button class="' + btnClass + '" onclick="updateApplicationStatus(' + app.application_id + ', \'' + statusOpts[i] + '\')">' + (isActive ? '✓ ' : '') + statusOpts[i] + '</button>';
+              }
+            }
+            
+            // Message button - hide if hired
+            var messageBtn = '';
+            if (!isHired) {
+              messageBtn = '<div style="margin-top: 1.5rem;"><button class="btn btn-outline" style="width: 100%;" onclick="messageCandidate(' + app.application_id + ', \'' + app.first_name + ' ' + app.last_name + '\')">Message Candidate</button></div>';
+            }
+            
+            // Message history
+            var msgHistory = '';
+            if (app.message_history && app.message_history.length > 0) {
+              msgHistory = '<div style="margin-top: 2rem; padding: 1.5rem; background: #f9f9f9; border-radius: var(--radius);"><h3>Message History</h3>';
+              for (var j = 0; j < app.message_history.length; j++) {
+                var msg = app.message_history[j];
+                var sender = msg.sender_type === 'employer' ? 'You' : 'Candidate';
+                msgHistory += '<div style="margin-bottom: 0.75rem; padding: 0.75rem; background: white; border-radius: 8px;"><div style="font-size: 0.8rem; color: #888;">' + sender + ' • ' + new Date(msg.timestamp).toLocaleDateString() + '</div><div>' + msg.message + '</div></div>';
+              }
+              msgHistory += '</div>';
+            }
+            
+            var html = '<div class="candidate-info">' +
+              '<h3>' + app.first_name + ' ' + app.last_name + '</h3>' +
+              '<div class="info-row"><span class="info-label">Position:</span><span class="info-value">' + app.job_title + '</span></div>' +
+              '<div class="info-row"><span class="info-label">Email:</span><span class="info-value"><a href="mailto:' + app.email + '">' + app.email + '</a></span></div>' +
+              '<div class="info-row"><span class="info-label">Location:</span><span class="info-value">' + (app.address || 'N/A') + '</span></div>' +
+              '<div class="info-row"><span class="info-label">Applied:</span><span class="info-value">' + new Date(app.application_date).toLocaleDateString() + '</span></div>' +
+              '<div class="info-row"><span class="info-label">Status:</span><span class="info-value" style="font-weight: bold;">' + displayStatus + '</span></div>' +
+              '</div>' +
+              (statusButtons ? '<div class="status-update-section"><h3>Update Status</h3><div class="status-buttons">' + statusButtons + '</div></div>' : '') +
+              messageBtn +
+              msgHistory +
+              '<div style="margin-top: 2rem; padding: 1.5rem; background: #f9f9f9; border-radius: var(--radius);"><h3>Job Description</h3><p style="color: #888;">' + (app.job_description || 'No description') + '</p></div>';
+            
             modalBody.innerHTML = html;
           } else {
-            modalBody.innerHTML = `<div style="color: red; text-align: center; padding: 2rem;">Error loading application details</div>`;
+            modalBody.innerHTML = '<div style="color: red; text-align: center;">Error: ' + data.message + '</div>';
           }
         })
-        .catch(error => {
-          console.error('Error:', error);
-          modalBody.innerHTML = `<div style="color: red; text-align: center; padding: 2rem;">Error loading application</div>`;
+        .catch(function(error) {
+          console.error(error);
+          modalBody.innerHTML = '<div style="color: red; text-align: center;">Error loading details</div>';
         });
     }
 
     function closeApplicationModal() {
-      const modal = document.getElementById('applicationModal');
-      modal.style.display = 'none';
+      document.getElementById('applicationModal').style.display = 'none';
     }
 
     function updateApplicationStatus(applicationId, newStatus) {
-      const formData = new FormData();
-      formData.append('application_id', applicationId);
-      formData.append('status', newStatus);
+      // If Schedule Interview, show inline form
+      if (newStatus === 'Schedule Interview') {
+        window.pendingStatusUpdate = { applicationId: applicationId, newStatus: newStatus };
+        closeApplicationModal();
+        showScheduleForm(applicationId);
+        return;
+      }
+      
+      // If Send Offer, use existing chat-sms function via fetch
+      if (newStatus === 'Send Offer') {
+        window.pendingStatusUpdate = { applicationId: applicationId, newStatus: newStatus };
+        closeApplicationModal();
+        showOfferForm(applicationId);
+        return;
+      }
+      
+      // For other statuses (Applied, Hired, Rejected), show confirmation modal
+      document.getElementById('newStatusDisplay').textContent = newStatus;
+      document.getElementById('statusModal').style.display = 'flex';
+      window.pendingStatusUpdate = { applicationId: applicationId, newStatus: newStatus };
+    }
 
-      fetch('./update-application.php', {
+    function showScheduleForm(applicationId) {
+      var modal = document.getElementById('applicationModal');
+      var modalBody = document.getElementById('modalBody');
+      var scheduleForm = document.getElementById('scheduleForm');
+      var offerForm = document.getElementById('offerForm');
+      
+      modal.style.display = 'flex';
+      scheduleForm.style.display = 'block';
+      offerForm.style.display = 'none';
+      modalBody.style.display = 'none';
+      
+      // Set minimum date to today
+      var today = new Date().toISOString().split('T')[0];
+      document.getElementById('scheduleDate').min = today;
+    }
+
+    function showOfferForm(applicationId) {
+      var modal = document.getElementById('applicationModal');
+      var modalBody = document.getElementById('modalBody');
+      var scheduleForm = document.getElementById('scheduleForm');
+      var offerForm = document.getElementById('offerForm');
+      
+      modal.style.display = 'flex';
+      offerForm.style.display = 'block';
+      scheduleForm.style.display = 'none';
+      modalBody.style.display = 'none';
+    }
+
+    function hideScheduleForm() {
+      document.getElementById('applicationModal').style.display = 'none';
+      document.getElementById('scheduleForm').style.display = 'none';
+      document.getElementById('offerForm').style.display = 'none';
+      document.getElementById('modalBody').style.display = 'block';
+      window.pendingStatusUpdate = null;
+    }
+
+    function updateStatusViaAction(action, applicationId, formData, successMessage) {
+      var data = { action: action, application_id: applicationId };
+      if (formData) {
+        for (var key in formData) {
+          data[key] = formData[key];
+        }
+      }
+      
+      var formDataObj = new FormData();
+      for (var key in data) {
+        formDataObj.append(key, data[key]);
+      }
+      
+      fetch('update-application.php', {
+        method: 'POST',
+        body: formDataObj
+      })
+      .then(function(response) { return response.json(); })
+      .then(function(result) {
+        if (result.success) {
+          showNotificationModal('Success', successMessage || 'Action completed');
+          hideScheduleForm();
+          setTimeout(function() { location.reload(); }, 1500);
+        } else {
+          showNotificationModal('Error', result.message || 'Failed');
+        }
+      })
+      .catch(function(error) {
+        showNotificationModal('Error', 'Failed to process request');
+      });
+    }
+
+    function submitScheduleInterview() {
+      var data = window.pendingStatusUpdate;
+      if (!data) return;
+      
+      var scheduleDate = document.getElementById('scheduleDate').value;
+      var scheduleTime = document.getElementById('scheduleTime').value;
+      var scheduleMessage = document.getElementById('scheduleMessage').value;
+      
+      if (!scheduleDate || !scheduleTime) {
+        showNotificationModal('Error', 'Please select date and time');
+        return;
+      }
+      
+      // Use update-application.php to handle scheduling
+      updateStatusViaAction('schedule_interview_action', data.applicationId, {
+        scheduled_date: scheduleDate,
+        scheduled_time: scheduleTime,
+        confirmation_message: scheduleMessage
+      }, 'Interview scheduled successfully');
+    }
+
+    function submitSendOffer() {
+      var data = window.pendingStatusUpdate;
+      if (!data) return;
+      
+      var offerMessage = document.getElementById('offerMessage').value;
+      
+      // Use update-application.php to handle offer
+      updateStatusViaAction('offer_hire_action', data.applicationId, {
+        hire_message: offerMessage
+      }, 'Job offer sent successfully');
+    }
+
+    function closeApplicationModal() {
+      document.getElementById('applicationModal').style.display = 'none';
+      document.getElementById('scheduleForm').style.display = 'none';
+      document.getElementById('offerForm').style.display = 'none';
+      document.getElementById('modalBody').style.display = 'block';
+    }
+
+    function confirmStatusUpdate() {
+      var data = window.pendingStatusUpdate;
+      if (!data) return;
+      
+      closeStatusModal();
+      
+      var formData = new FormData();
+      formData.append('application_id', data.applicationId);
+      formData.append('status', data.newStatus);
+
+      fetch('update-application.php', {
         method: 'POST',
         body: formData
       })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          alert(`Application status updated to "${newStatus}"`);
+      .then(function(response) { return response.json(); })
+      .then(function(result) {
+        if (result.success) {
+          showNotificationModal('Success', 'Application status updated to "' + data.newStatus + '"');
           closeApplicationModal();
-          // Reload the page to see updated status
-          location.reload();
+          setTimeout(function() { location.reload(); }, 1500);
         } else {
-          alert('Error updating status: ' + data.message);
+          showNotificationModal('Error', result.message || 'Failed to update status');
         }
       })
-      .catch(error => {
-        console.error('Error:', error);
-        alert('Error updating application status');
+      .catch(function(error) {
+        showNotificationModal('Error', 'Failed to update status');
       });
+    }
+
+    function closeStatusModal() {
+      document.getElementById('statusModal').style.display = 'none';
+      window.pendingStatusUpdate = null;
+    }
+
+    function showNotificationModal(title, message) {
+      document.getElementById('notificationTitle').textContent = title;
+      document.getElementById('notificationMessage').textContent = message;
+      document.getElementById('notificationModal').style.display = 'flex';
+      var icon = document.getElementById('notificationIcon');
+      icon.textContent = title === 'Success' ? '✓' : '✗';
+      icon.style.color = title === 'Success' ? '#28a745' : '#dc3545';
+    }
+
+    function closeNotificationModal() {
+      document.getElementById('notificationModal').style.display = 'none';
+    }
+
+    function messageCandidate(applicationId, candidateName) {
+      window.location.href = '../chat-sms/?application_id=' + applicationId;
     }
 
     // Close modal when clicking overlay
     document.addEventListener('click', function(e) {
-      const modal = document.getElementById('applicationModal');
-      if (e.target === modal.querySelector('.modal-overlay')) {
-        closeApplicationModal();
+      if (e.target.classList.contains('modal-overlay')) {
+        e.target.parentElement.style.display = 'none';
       }
     });
 
@@ -735,30 +977,13 @@ foreach ($applications as $app) {
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
         closeApplicationModal();
+        closeNotificationModal();
+        closeStatusModal();
       }
     });
 
-    // Enhance button interactions
-    document.querySelectorAll('.btn-small').forEach(btn => {
-      btn.addEventListener('click', function(e) {
-        // Add click feedback
-        this.style.transform = 'scale(0.95)';
-        setTimeout(() => {
-          this.style.transform = '';
-        }, 100);
-      });
-    });
-
-    // Add hover effect to rows
-    document.querySelectorAll('tbody tr').forEach(row => {
-      row.addEventListener('mouseenter', function() {
-        this.style.transform = 'scale(1.01)';
-        this.style.transformOrigin = 'center';
-      });
-      row.addEventListener('mouseleave', function() {
-        this.style.transform = 'scale(1)';
-      });
-    });
+    // Set up confirm button
+    document.getElementById('confirmStatusBtn').addEventListener('click', confirmStatusUpdate);
   </script>
 
 </body>

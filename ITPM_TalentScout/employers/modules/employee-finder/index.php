@@ -62,6 +62,7 @@ $stmt->close();
 
 foreach ($employees as &$emp) {
   if ($emp['resume_id'] > 0) {
+    // Get skills
     $stmt = $conn->prepare("SELECT skill_name FROM resume_skills WHERE resume_id = ?");
     $stmt->bind_param("i", $emp['resume_id']);
     $stmt->execute();
@@ -72,8 +73,38 @@ foreach ($employees as &$emp) {
     }
     $stmt->close();
     $emp['skills'] = $skills;
+    
+    // Get experiences - use correct column names from employee_experience table
+    $stmt = $conn->prepare("SELECT job_title, company_name FROM employee_experience WHERE resume_id = ? ORDER BY start_date DESC LIMIT 3");
+    $stmt->bind_param("i", $emp['resume_id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $experiences = [];
+    while ($row = $result->fetch_assoc()) {
+      if (!empty($row['job_title'])) {
+        $experiences[] = $row;
+      }
+    }
+    $stmt->close();
+    $emp['experiences'] = $experiences;
+    
+    // Get education - use correct column names from employee_education table
+    $stmt = $conn->prepare("SELECT degree, school FROM employee_education WHERE resume_id = ? ORDER BY start_date DESC LIMIT 2");
+    $stmt->bind_param("i", $emp['resume_id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $educations = [];
+    while ($row = $result->fetch_assoc()) {
+      if (!empty($row['degree'])) {
+        $educations[] = $row;
+      }
+    }
+    $stmt->close();
+    $emp['educations'] = $educations;
   } else {
     $emp['skills'] = [];
+    $emp['experiences'] = [];
+    $emp['educations'] = [];
   }
 }
 
@@ -850,7 +881,7 @@ $stmt->close();
           <?php endif; ?>
         </div>
         <div class="action-buttons">
-          <button class="btn-small btn-primary-small" onclick="viewProfile(<?php echo $emp['employee_id']; ?>)">View Anonymous Profile</button>
+          <button class="btn-small btn-primary-small" onclick="viewProfile(<?php echo $emp['employee_id']; ?>, true)">View Anonymous Profile</button>
           <a href="../chat-sms/?employee_id=<?php echo $emp['employee_id']; ?>" class="btn-small btn-outline-small" style="text-decoration: none; display: inline-block;">Message</a>
         </div>
       </div>
@@ -954,12 +985,114 @@ $stmt->close();
     }
   }
 
-  // View Profile Handler
-  function viewProfile(employeeId) {
-    // In a real app, this would fetch candidate data from backend
-    // For now, we'll open the modal with the employee ID
+  // View Profile Handler - use data already in page
+  var employeeData = {};
+
+  // Collect all employee data from the PHP array
+  <?php foreach ($employees as $emp): ?>
+    employeeData[<?php echo $emp['employee_id']; ?>] = {
+      employee_id: <?php echo $emp['employee_id']; ?>,
+      first_name: '<?php echo addslashes($emp['first_name']); ?>',
+      last_name: '<?php echo addslashes($emp['last_name']); ?>',
+      summary: '<?php echo addslashes($emp['summary'] ?? 'No summary available.'); ?>',
+      skills: <?php echo json_encode($emp['skills'] ?? []); ?>,
+      experiences: <?php echo json_encode($emp['experiences'] ?? []); ?>,
+      educations: <?php echo json_encode($emp['educations'] ?? []); ?>
+    };
+  <?php endforeach; ?>
+
+  function viewProfile(employeeId, isAnonymous) {
+    var emp = employeeData[employeeId];
+    var modal = document.getElementById('profileModal');
+    var modalBody = modal.querySelector('.modal-body');
+    var modalFooter = modal.querySelector('.modal-footer');
+    var isAnon = isAnonymous || false;
+    
+    if (!emp) {
+      modalBody.innerHTML = '<div style="text-align: center; padding: 2rem; color: red;">Employee not found</div>';
+      modalFooter.innerHTML = '<button class="btn-small btn-outline-small" onclick="closeModal(\'profileModal\')">Close</button>';
+      openModal('profileModal');
+      return;
+    }
+    
     openModal('profileModal');
-    // You could send AJAX request here to fetch candidate details
+    
+    // Set modal title
+    var modalTitle = document.getElementById('profileModalTitle');
+    modalTitle.textContent = isAnon ? 'Anonymous Candidate' : 'Candidate Profile';
+    
+    // Build skills HTML
+    var skillsHtml = '';
+    if (emp.skills && emp.skills.length > 0) {
+      for (var i = 0; i < emp.skills.length; i++) {
+        skillsHtml += '<span class="skill-tag">' + emp.skills[i] + '</span>';
+      }
+    } else {
+      skillsHtml = '<span style="color: #888;">No skills listed</span>';
+    }
+    
+    // Build experience HTML (always show for both anonymous and regular)
+    var expHtml = '';
+    if (emp.experiences && emp.experiences.length > 0) {
+      for (var j = 0; j < emp.experiences.length; j++) {
+        var exp = emp.experiences[j];
+        expHtml += '<div style="padding-left: 1rem; border-left: 2px solid var(--primary-light); margin-bottom: 1rem;">';
+        expHtml += '<p style="margin: 0.5rem 0; font-weight: 600; color: var(--text-dark);">' + (exp.job_title || 'Position') + '</p>';
+        expHtml += '<p style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: var(--text-light);">' + (exp.company_name || 'Company') + '</p>';
+        expHtml += '</div>';
+      }
+    } else {
+      expHtml = '<p style="color: #888;">No experience listed</p>';
+    }
+    
+    // Build education HTML (always show for both anonymous and regular)
+    var eduHtml = '';
+    if (emp.educations && emp.educations.length > 0) {
+      for (var k = 0; k < emp.educations.length; k++) {
+        var edu = emp.educations[k];
+        eduHtml += '<div style="padding-left: 1rem; border-left: 2px solid var(--sage); margin-bottom: 0.5rem;">';
+        eduHtml += '<p style="margin: 0.5rem 0; font-weight: 600; color: var(--text-dark);">' + (edu.degree || 'Degree') + '</p>';
+        eduHtml += '<p style="margin: 0; font-size: 0.9rem; color: var(--text-light);">' + (edu.school || 'School') + '</p>';
+        eduHtml += '</div>';
+      }
+    } else {
+      eduHtml = '<p style="color: #888;">No education listed</p>';
+    }
+    
+    // Build name display - hide name if anonymous
+    var nameDisplay = isAnon ? 'Anonymous Candidate' : (emp.first_name + ' ' + emp.last_name);
+    
+    var html = '<div style="margin-bottom: 1.5rem;">' +
+      '<h3 style="font-size: 1.2rem; color: var(--text-dark); margin-bottom: 0.5rem;">' + nameDisplay + '</h3>' +
+      '<p style="color: var(--text-light); line-height: 1.6;">' + (isAnon ? 'Candidate details hidden for blind review' : emp.summary) + '</p>' +
+'</div>';
+    
+    // Always show skills, experience, education for both anonymous and regular profiles
+    // Skills section
+    html += '<div style="margin-bottom: 1.5rem;">' +
+      '<h3 style="font-size: 1.2rem; color: var(--text-dark); margin-bottom: 0.75rem;">Key Skills</h3>' +
+      '<div class="skills-list">' + skillsHtml + '</div>' +
+    '</div>';
+
+    // Experience section
+    html += '<div style="margin-bottom: 1.5rem;">' +
+      '<h3 style="font-size: 1.2rem; color: var(--text-dark); margin-bottom: 0.75rem;">Experience</h3>' +
+      expHtml +
+    '</div>';
+
+    // Education section
+    html += '<div style="margin-bottom: 1.5rem;">' +
+      '<h3 style="font-size: 1.2rem; color: var(--text-dark); margin-bottom: 0.75rem;">Education</h3>' +
+      eduHtml +
+    '</div>';
+    
+    modalBody.innerHTML = html;
+    modalFooter.innerHTML = '<button class="btn-small btn-outline-small" onclick="closeModal(\'profileModal\')">Close</button>' +
+      '<button class="btn-small btn-primary-small" onclick="messageEmployee(' + emp.employee_id + ')">Message Candidate</button>';
+  }
+  
+  function messageEmployee(employeeId) {
+    window.location.href = '../chat-sms/?employee_id=' + employeeId;
   }
 
   // Modal Event Listeners
@@ -993,55 +1126,14 @@ $stmt->close();
 <div id="profileModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
-      <h2>Candidate Profile</h2>
+      <h2 id="profileModalTitle">Candidate Profile</h2>
       <button class="modal-close">×</button>
     </div>
     <div class="modal-body">
-      <div style="margin-bottom: 1.5rem;">
-        <h3 style="font-size: 1.2rem; color: var(--text-dark); margin-bottom: 0.5rem;">Experience Summary</h3>
-        <p style="color: var(--text-light); line-height: 1.6;">This candidate brings valuable skills and experience to your team. Strong track record in problem-solving and collaboration.</p>
-      </div>
-
-      <div style="margin-bottom: 1.5rem;">
-        <h3 style="font-size: 1.2rem; color: var(--text-dark); margin-bottom: 0.75rem;">Key Skills</h3>
-        <div class="skills-list">
-          <span class="skill-tag">React</span>
-          <span class="skill-tag">JavaScript</span>
-          <span class="skill-tag">Node.js</span>
-          <span class="skill-tag">Python</span>
-          <span class="skill-tag">AWS</span>
-          <span class="skill-tag">Docker</span>
-        </div>
-      </div>
-
-      <div style="margin-bottom: 1.5rem;">
-        <h3 style="font-size: 1.2rem; color: var(--text-dark); margin-bottom: 0.75rem;">Experience & Education</h3>
-        <div style="padding-left: 1rem; border-left: 2px solid var(--primary-light);">
-          <p style="margin: 0.5rem 0; font-weight: 600; color: var(--text-dark);">Mid-level Full Stack Developer</p>
-          <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: var(--text-light);">3+ years of professional development experience</p>
-          <p style="margin: 0.5rem 0; font-weight: 600; color: var(--text-dark);">Bachelor's Degree in Computer Science</p>
-          <p style="margin: 0; font-size: 0.9rem; color: var(--text-light);">University of Technology</p>
-        </div>
-      </div>
-
-      <div style="margin-bottom: 1.5rem;">
-        <h3 style="font-size: 1.2rem; color: var(--text-dark); margin-bottom: 0.75rem;">Match Details</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius);">
-            <p style="margin: 0 0 0.25rem 0; font-size: 0.85rem; color: var(--text-light);">Overall Match</p>
-            <p style="margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--primary-dark);">85%</p>
-          </div>
-          <div style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius);">
-            <p style="margin: 0 0 0.25rem 0; font-size: 0.85rem; color: var(--text-light);">Skill Alignment</p>
-            <p style="margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--primary-dark);">92%</p>
-          </div>
-        </div>
-      </div>
+      <!-- Content will be loaded dynamically -->
     </div>
     <div class="modal-footer">
-      <button class="btn-small btn-outline-small" onclick="closeModal('profileModal')">Close</button>
-      <button class="btn-small btn-primary-small">Message Candidate</button>
-      <button class="btn-small btn-primary-small">Schedule Interview</button>
+      <!-- Buttons will be loaded dynamically -->
     </div>
   </div>
 </div>

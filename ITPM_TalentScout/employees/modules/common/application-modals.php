@@ -32,7 +32,7 @@
     </div>
     <div class="modal-actions">
       <button type="button" class="btn-modal btn-cancel" id="confirmCancelBtn">Cancel</button>
-      <button type="button" class="btn-modal btn-confirm" id="confirmApplyBtn" onclick="if(window.executeApplication) window.executeApplication(); else alert('Function not loaded')">Submit Application</button>
+      <button type="button" class="btn-modal btn-confirm" id="confirmApplyBtn">Submit Application</button>
     </div>
   </div>
 </div>
@@ -302,7 +302,7 @@
   // Pending job application for confirmation - use window property for reliability
   window.pendingApplication = null;
 
-  // Show confirmation modal - defined immediately
+  // Expose functions to window
   window.showConfirmModal = function(jobData) {
     console.log('showConfirmModal called', jobData);
     try {
@@ -333,10 +333,23 @@
       if (jobTitleEl) jobTitleEl.textContent = jobTitle;
       if (companyEl) companyEl.textContent = companyName;
       if (locationEl) locationEl.textContent = location;
+
+      console.log('Storing pending application:', { jobTitle, companyName, jobPostId, location });
+
+      // Store pending application
+      const isAnonymousEl = document.getElementById('applyAnonymously');
+      const isAnonymous = isAnonymousEl ? isAnonymousEl.checked : false;
       
-// Store pending application
-    const isAnonymous = document.getElementById('applyAnonymously')?.checked || false;
-    window.pendingApplication = { jobTitle, companyName, jobPostId, location, isAnonymous };
+      if (!jobPostId) {
+        console.error('jobPostId is undefined or null');
+        alert('Error: Job ID not found. Please refresh and try again.');
+        return;
+      }
+      
+      window.pendingApplication = { jobTitle, companyName, jobPostId, location, isAnonymous };
+      console.log('pendingApplication set to:', window.pendingApplication);
+
+      modal.classList.add('active');
       modal.setAttribute('aria-hidden', 'false');
       console.log('Modal shown successfully');
     } catch (e) {
@@ -345,7 +358,7 @@
     }
   };
 
-  // Close confirmation modal
+// Close confirmation modal
   window.closeConfirmModal = function() {
     const modal = document.getElementById('confirmModal');
     if (modal) {
@@ -361,8 +374,10 @@
   // Execute the pending application
   window.executeApplication = async function() {
     console.log('executeApplication called', window.pendingApplication);
-    if (!window.pendingApplication) {
-      console.error('No pending application');
+    console.log('jobPostId:', window.pendingApplication?.jobPostId);
+    if (!window.pendingApplication || !window.pendingApplication.jobPostId) {
+      console.error('No pending application or jobPostId is null');
+      console.log('pendingApplication:', window.pendingApplication);
       alert('Error: No application pending');
       return;
     }
@@ -399,9 +414,22 @@
       } else if (response.status === 409) {
         console.log('Handling 409 - already applied');
         // Already applied
+        let message = data.message || 'You have already applied for this job.';
+        
+        // Add details if available
+        if (data.existing_application) {
+          const app = data.existing_application;
+          const appDate = new Date(app.application_date).toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric', 
+            year: 'numeric' 
+          });
+          message += `\n\nApplication Status: ${app.status}\nApplied on: ${appDate}`;
+        }
+        
         showMessageModal(
           'Already Applied',
-          data.message || 'You have already applied for this job.',
+          message,
           'warning',
           '<a href="../applicant-tracking/index.php">View Applications</a> | <a href="../messages/index.php">Go to Messages</a>'
         );

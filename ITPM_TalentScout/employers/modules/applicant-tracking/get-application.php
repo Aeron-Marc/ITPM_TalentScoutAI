@@ -24,18 +24,18 @@ if (!$application_id || !is_numeric($application_id)) {
 try {
     $conn = getConnection();
 
-    // Get application details including candidate info
+    // Get application details including candidate info and message history
     $query = "SELECT 
                 a.application_id,
                 a.job_post_id,
                 a.employee_id,
                 a.status,
+                a.hire_status,
                 a.application_date,
                 e.first_name,
                 e.last_name,
                 e.email,
                 e.address,
-                COALESCE(r.phone, '') as phone,
                 jp.title as job_title,
                 jp.description as job_description,
                 jp.salary,
@@ -45,7 +45,6 @@ try {
               JOIN job_post jp ON a.job_post_id = jp.job_post_id
               JOIN employee e ON a.employee_id = e.employee_id
               JOIN employer c ON jp.employer_id = c.employer_id
-              LEFT JOIN resumes r ON e.employee_id = r.employee_id
               WHERE a.application_id = ? AND jp.employer_id = ?";
     
     $stmt = $conn->prepare($query);
@@ -69,6 +68,27 @@ try {
 
     $application = $result->fetch_assoc();
     $stmt->close();
+
+    // Get message history for this application
+    $msgQuery = "SELECT message, sender_type, timestamp 
+                FROM message 
+                WHERE application_id = ? 
+                ORDER BY timestamp DESC LIMIT 10";
+    $msgStmt = $conn->prepare($msgQuery);
+    if ($msgStmt) {
+        $msgStmt->bind_param("i", $application_id);
+        $msgStmt->execute();
+        $msgResult = $msgStmt->get_result();
+        $messages = [];
+        while ($msgRow = $msgResult->fetch_assoc()) {
+            $messages[] = $msgRow;
+        }
+        $msgStmt->close();
+        $application['message_history'] = $messages;
+    } else {
+        $application['message_history'] = [];
+    }
+    
     closeConnection($conn);
 
     http_response_code(200);
