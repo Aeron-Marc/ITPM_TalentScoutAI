@@ -547,6 +547,88 @@ $stmt->close();
       border-radius: var(--radius-sm);
       overflow: hidden;
       background: #eef5f2;
+      cursor: crosshair;
+    }
+
+    .location-hint {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      margin-top: 0.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .location-hint-icon {
+      font-size: 1rem;
+    }
+
+    .location-confirm-popup {
+      text-align: center;
+      min-width: 200px;
+    }
+
+    .location-confirm-popup h4 {
+      margin: 0 0 0.5rem 0;
+      font-size: 0.95rem;
+      color: var(--text-dark);
+    }
+
+    .location-confirm-popup .popup-address {
+      font-size: 0.8rem;
+      color: var(--text-mid);
+      margin-bottom: 0.75rem;
+      max-height: 60px;
+      overflow-y: auto;
+      line-height: 1.4;
+    }
+
+    .location-confirm-popup .popup-actions {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+
+    .location-confirm-popup .popup-btn {
+      padding: 0.4rem 1rem;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .location-confirm-popup .popup-btn-cancel {
+      background: #e9ecef;
+      color: var(--text-mid);
+    }
+
+    .location-confirm-popup .popup-btn-save {
+      background: var(--primary-dark);
+      color: white;
+    }
+
+    .location-confirm-popup .popup-btn:hover {
+      opacity: 0.85;
+    }
+
+    .leaflet-popup-content-wrapper {
+      border-radius: var(--radius-sm) !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .leaflet-popup-content {
+      margin: 0 !important;
+      line-height: 1.4 !important;
+    }
+
+    .location-popup-wrapper {
+      padding: 0 !important;
+    }
+
+    .location-popup-wrapper .location-confirm-popup {
+      padding: 0.75rem;
     }
 
     .form-row {
@@ -840,6 +922,10 @@ $stmt->close();
                   <input type="hidden" name="location_lat" id="location_lat">
                   <input type="hidden" name="location_lng" id="location_lng">
                   <div id="locationMap" class="location-map"></div>
+                  <div class="location-hint">
+                    <span class="location-hint-icon">📍</span>
+                    <span id="locationHintText">Click anywhere on the map to select a location</span>
+                  </div>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Required Skills *</label>
@@ -1043,6 +1129,8 @@ $stmt->close();
     let jobLocationMarker = null;
     let jobLocationDebounceTimer = null;
     let jobLocationRequestId = 0;
+    let pendingLocationCoords = null;
+    let locationConfirmPopup = null;
 
     function getJobLocationElements() {
       return {
@@ -1050,7 +1138,8 @@ $stmt->close();
         input: document.querySelector('input[name="location"]'),
         lat: document.getElementById('location_lat'),
         lng: document.getElementById('location_lng'),
-        map: document.getElementById('locationMap')
+        map: document.getElementById('locationMap'),
+        hint: document.getElementById('locationHintText')
       };
     }
 
@@ -1078,6 +1167,97 @@ $stmt->close();
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
       }).addTo(jobLocationMap);
+
+      jobLocationMap.on('click', handleJobLocationMapClick);
+    }
+
+    async function handleJobLocationMapClick(e) {
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
+
+      pendingLocationCoords = { lat, lng };
+
+      if (!jobLocationMarker) {
+        jobLocationMarker = L.marker([lat, lng]).addTo(jobLocationMap);
+      } else {
+        jobLocationMarker.setLatLng([lat, lng]);
+      }
+
+      if (locationConfirmPopup) {
+        jobLocationMap.closePopup(locationConfirmPopup);
+      }
+
+      const loadingPopupContent = '<div class="location-confirm-popup"><h4>Fetching address...</h4></div>';
+      const popup = jobLocationMarker.bindPopup(loadingPopupContent, {
+        closeButton: false,
+        closeOnClick: false,
+        autoClose: false,
+        className: 'location-popup-wrapper'
+      }).openPopup();
+
+      try {
+        const response = await fetch('./geocode-location.php?lat=' + encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lng));
+        if (!response.ok) {
+          showLocationConfirmPopup(lat, lng, 'Address not found');
+          return;
+        }
+
+        const data = await response.json();
+        if (data && data.success && data.data && data.data.display_name) {
+          showLocationConfirmPopup(lat, lng, data.data.display_name);
+        } else {
+          showLocationConfirmPopup(lat, lng, 'Address not found');
+        }
+      } catch (error) {
+        console.error('Location reverse geocoding failed:', error);
+        showLocationConfirmPopup(lat, lng, 'Could not retrieve address');
+      }
+    }
+
+    function showLocationConfirmPopup(lat, lng, address) {
+      const popupContent = `
+        <div class="location-confirm-popup">
+          <h4>Save This Location?</h4>
+          <div class="popup-address">${address}</div>
+          <div class="popup-actions">
+            <button class="popup-btn popup-btn-cancel" onclick="cancelLocationSelection()">Cancel</button>
+            <button class="popup-btn popup-btn-save" onclick="confirmLocationSelection()">Save</button>
+          </div>
+        </div>
+      `;
+
+      if (jobLocationMarker) {
+        jobLocationMarker.setPopupContent(popupContent);
+      }
+    }
+
+    function confirmLocationSelection() {
+      if (!pendingLocationCoords) {
+        return;
+      }
+
+      const elements = getJobLocationElements();
+      const addressEl = document.querySelector('.location-confirm-popup .popup-address');
+
+      setJobLocationCoordinates(pendingLocationCoords.lat, pendingLocationCoords.lng);
+
+      if (elements.input && addressEl) {
+        elements.input.value = addressEl.textContent;
+      }
+
+      if (elements.hint) {
+        elements.hint.textContent = 'Location selected ✓';
+        elements.hint.style.color = '#155724';
+      }
+
+      cancelLocationSelection();
+    }
+
+    function cancelLocationSelection() {
+      if (jobLocationMarker) {
+        jobLocationMarker.closePopup();
+      }
+      pendingLocationCoords = null;
     }
 
     function setJobLocationMarker(lat, lng, shouldCenterMap) {
@@ -1088,10 +1268,7 @@ $stmt->close();
       const latLng = [Number(lat), Number(lng)];
 
       if (!jobLocationMarker) {
-        jobLocationMarker = L.marker(latLng, {
-          draggable: true
-        }).addTo(jobLocationMap);
-        jobLocationMarker.on('dragend', handleJobLocationMarkerDragEnd);
+        jobLocationMarker = L.marker(latLng).addTo(jobLocationMap);
       } else {
         jobLocationMarker.setLatLng(latLng);
       }
@@ -1123,7 +1300,6 @@ $stmt->close();
       const requestId = ++jobLocationRequestId;
 
       try {
-        // Use PHP backend endpoint to avoid CORS and rate limiting issues
         const response = await fetch('./geocode-location.php?location=' + encodeURIComponent(query));
 
         if (!response.ok) {
@@ -1147,34 +1323,6 @@ $stmt->close();
         setJobLocationCoordinates(lat, lng);
       } catch (error) {
         console.error('Location geocoding failed:', error);
-      }
-    }
-
-    async function handleJobLocationMarkerDragEnd() {
-      if (!jobLocationMarker) {
-        return;
-      }
-
-      const latLng = jobLocationMarker.getLatLng();
-      setJobLocationCoordinates(latLng.lat, latLng.lng);
-
-      try {
-        // Use PHP backend endpoint to avoid CORS and rate limiting issues
-        const response = await fetch('./geocode-location.php?lat=' + encodeURIComponent(latLng.lat) + '&lon=' + encodeURIComponent(latLng.lng));
-
-        if (!response.ok) {
-          return;
-        }
-
-        const data = await response.json();
-        if (data && data.success && data.data && data.data.display_name) {
-          const elements = getJobLocationElements();
-          if (elements.input) {
-            elements.input.value = data.data.display_name;
-          }
-        }
-      } catch (error) {
-        console.error('Location reverse geocoding failed:', error);
       }
     }
 
