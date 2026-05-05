@@ -37,8 +37,8 @@ $row = $result->fetch_assoc();
 $stats['employers'] = $row['count'];
 $stmt->close();
 
-// Successful hires/offers
-$stmt = $conn->prepare("SELECT COUNT(*) as count FROM application WHERE status = 'Offer Received'");
+// Successful hires
+$stmt = $conn->prepare("SELECT COUNT(*) as count FROM application WHERE status = 'Hired' OR status = 'Accepted'");
 $stmt->execute();
 $result = $stmt->get_result();
 $row = $result->fetch_assoc();
@@ -52,6 +52,27 @@ $stmt->execute();
 $result = $stmt->get_result();
 while ($row = $result->fetch_assoc()) {
   $top_categories[] = $row;
+}
+$stmt->close();
+
+// Fetch recent applications
+$recent_applications = [];
+$stmt = $conn->prepare("SELECT 
+  e.first_name as firstName, 
+  e.last_name as lastName,
+  e.address as location,
+  jp.title as position,
+  a.status,
+  a.application_date
+FROM application a
+JOIN employee e ON a.employee_id = e.employee_id
+JOIN job_post jp ON a.job_post_id = jp.job_post_id
+ORDER BY a.application_date DESC
+LIMIT 15");
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
+  $recent_applications[] = $row;
 }
 $stmt->close();
 
@@ -151,14 +172,25 @@ $stmt->close();
     .card-title { font-size: 1rem; font-weight: 700; color: var(--text-dark); margin-bottom: 1.25rem; }
 
     /* Tables */
-    .table-wrapper { overflow-x: auto; }
+    .table-wrapper { 
+      overflow-x: auto; 
+      max-height: 280px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.87rem;
     }
-    th {
+    thead {
+      position: sticky;
+      top: 0;
       background: #F8FAFB;
+      z-index: 1;
+    }
+    th {
       padding: 0.9rem 1rem;
       text-align: left;
       font-weight: 700;
@@ -197,48 +229,16 @@ $stmt->close();
 </nav>
 
 <!-- ADMIN WRAPPER -->
-<div class="admin-wrapper">
-
-  <!-- SIDEBAR -->
-  <aside class="admin-sidebar">
-    <div class="sidebar-menu-label">Overview</div>
-    <a href="../../index.php" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
-    <a href="./" class="sidebar-link active"><span class="icon">📊</span> Analytics</a>
-
-    <div class="sidebar-menu-label">Management</div>
-    <a href="../employer-management/" class="sidebar-link"><span class="icon">🏢</span> Employer Management</a>
-    <a href="../employee-management/" class="sidebar-link"><span class="icon">👥</span> Employee Management</a>
-    <a href="../application-tracking/" class="sidebar-link"><span class="icon">📋</span> Application Tracking</a>
-  </aside>
+<div class="admin-wrapper" style="display:block;">
 
   <!-- MAIN CONTENT -->
-  <main class="admin-content">
+  <main class="admin-content" style="padding:2rem;">
 
     <!-- PAGE HEADER -->
     <div class="admin-page-header">
       <div>
         <div class="admin-page-title">Analytics & Reports</div>
         <div class="admin-page-sub">Platform insights and statistics • Updated just now</div>
-      </div>
-    </div>
-
-    <!-- STATS GRID -->
-    <div class="stats-grid">
-      <div class="kpi-card">
-        <div class="kpi-value"><?php echo $stats['total_applicants']; ?></div>
-        <div class="kpi-label">Total Applicants</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-value"><?php echo $stats['active_jobs']; ?></div>
-        <div class="kpi-label">Active Jobs</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-value"><?php echo $stats['employers']; ?></div>
-        <div class="kpi-label">Active Employers</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-value"><?php echo $stats['hires']; ?></div>
-        <div class="kpi-label">Offers Received</div>
       </div>
     </div>
 
@@ -265,6 +265,45 @@ $stmt->close();
               <td><?php echo round(($cat['count'] / $total_jobs) * 100, 1); ?>%</td>
             </tr>
             <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RECENT APPLICATIONS TABLE -->
+    <div class="card" style="margin-top: 1.5rem;">
+      <div class="card-title" style="margin-bottom:1rem;">Recent Applications</div>
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Applicant</th>
+              <th>Position</th>
+              <th>Location</th>
+              <th>Status</th>
+              <th>Applied</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php if (count($recent_applications) > 0): ?>
+              <?php foreach ($recent_applications as $app): 
+                $status_class = 'badge-gray';
+                if (strtolower($app['status']) == 'matched') $status_class = 'badge-blue';
+                elseif (strtolower($app['status']) == 'interview scheduled') $status_class = 'badge-yellow';
+                elseif (strtolower($app['status']) == 'offer received') $status_class = 'badge-green';
+                elseif (strtolower($app['status']) == 'rejected') $status_class = 'badge-red';
+              ?>
+              <tr>
+                <td><strong><?php echo htmlspecialchars($app['firstName'] . ' ' . $app['lastName']); ?></strong></td>
+                <td><?php echo htmlspecialchars($app['position']); ?></td>
+                <td><?php echo htmlspecialchars($app['location'] ?? '-'); ?></td>
+                <td><span class="badge <?php echo $status_class; ?>"><?php echo htmlspecialchars(ucfirst($app['status'])); ?></span></td>
+                <td><?php echo date('M d, Y', strtotime($app['application_date'])); ?></td>
+              </tr>
+              <?php endforeach; ?>
+            <?php else: ?>
+              <tr><td colspan="5" style="text-align:center;color:var(--text-light);">No recent applications</td></tr>
+            <?php endif; ?>
           </tbody>
         </table>
       </div>

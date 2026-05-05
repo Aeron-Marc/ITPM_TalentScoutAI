@@ -4,9 +4,15 @@ require_once '../../../database/db.php';
 
 $stats = array(
   'pending' => 0,
-  'interview' => 0,
-  'offer' => 0,
-  'rejected' => 0
+  'applied' => 0,
+  'interview scheduled' => 0,
+  'matched' => 0,
+  'offer received' => 0,
+  'offer sent' => 0,
+  'offer declined' => 0,
+  'accepted' => 0,
+  'rejected' => 0,
+  'hired' => 0
 );
 
 $applications = array();
@@ -22,6 +28,8 @@ try {
     while ($row = $result->fetch_assoc()) {
       $status = strtolower($row['status']);
       if (isset($stats[$status])) {
+        $stats[$status] = $row['count'];
+      } else {
         $stats[$status] = $row['count'];
       }
     }
@@ -176,8 +184,13 @@ try {
     }
     
     .status-pending {
-      background: #FEE2E2;
-      color: #991B1B;
+      background: #E5E7EB;
+      color: #374151;
+    }
+    
+    .status-applied {
+      background: #DBEAFE;
+      color: #1E40AF;
     }
     
     .status-interview {
@@ -185,14 +198,40 @@ try {
       color: #92400E;
     }
     
+    .status-matched {
+      background: #E9D5FF;
+      color: #6B21A8;
+    }
+    
     .status-offer {
-      background: #DBEAFE;
-      color: #1E40AF;
+      background: #D1FAE5;
+      color: #065F46;
+    }
+    
+    .status-sent {
+      background: #C7D2FE;
+      color: #3730A3;
+    }
+    
+    .status-declined {
+      background: #FED7AA;
+      color: #9A3412;
+    }
+    
+    .status-accepted {
+      background: #D1FAE5;
+      color: #047857;
     }
     
     .status-rejected {
       background: #FEE2E2;
       color: #991B1B;
+    }
+    
+    .status-hired {
+      background: #D1FAE5;
+      color: #065F46;
+      font-weight: 700;
     }
   </style>
 </head>
@@ -214,22 +253,10 @@ try {
 </nav>
 
 <!-- ADMIN WRAPPER -->
-<div class="admin-wrapper">
-
-  <!-- SIDEBAR -->
-  <aside class="admin-sidebar">
-    <div class="sidebar-menu-label">Overview</div>
-    <a href="../../index.php" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
-    <a href="../analytics/" class="sidebar-link"><span class="icon">📊</span> Analytics</a>
-
-    <div class="sidebar-menu-label">Management</div>
-    <a href="../employer-management/" class="sidebar-link"><span class="icon">🏢</span> Employer Management</a>
-    <a href="../employee-management/" class="sidebar-link"><span class="icon">👥</span> Employee Management</a>
-    <a href="./" class="sidebar-link active"><span class="icon">📋</span> Application Tracking</a>
-  </aside>
+<div class="admin-wrapper" style="display:block;">
 
   <!-- MAIN CONTENT -->
-  <main class="admin-content">
+  <main class="admin-content" style="padding:2rem;">
 
     <!-- PAGE HEADER -->
     <div class="admin-page-header">
@@ -246,11 +273,11 @@ try {
         <div class="kpi-label">Pending</div>
       </div>
       <div class="kpi-card interview">
-        <div class="kpi-value"><?php echo $stats['interview']; ?></div>
+        <div class="kpi-value"><?php echo $stats['interview scheduled']; ?></div>
         <div class="kpi-label">Interview</div>
       </div>
       <div class="kpi-card offer">
-        <div class="kpi-value"><?php echo $stats['offer']; ?></div>
+        <div class="kpi-value"><?php echo $stats['offer received']; ?></div>
         <div class="kpi-label">Offer</div>
       </div>
       <div class="kpi-card rejected">

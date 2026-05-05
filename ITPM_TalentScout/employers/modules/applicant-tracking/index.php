@@ -658,7 +658,7 @@ foreach ($applications as $app) {
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
           <div>
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Date</label>
-            <input type="date" id="scheduleDate" class="modal-input" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px;" required>
+            <input type="date" id="scheduleDate" class="modal-input" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px;" required min="<?php echo date('Y-m-d'); ?>">
           </div>
           <div>
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Time</label>
