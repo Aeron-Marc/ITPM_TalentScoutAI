@@ -9,7 +9,6 @@ $conn = getConnection();
 $stats = [
   'total_applicants' => 0,
   'active_jobs' => 0,
-  'ai_matches' => 0,
   'successful_hires' => 0,
   'employers' => 0
 ];
@@ -30,16 +29,13 @@ $row = $result->fetch_assoc();
 $stats['active_jobs'] = $row['count'];
 $stmt->close();
 
-// Successful hires (applications with 'hired' or positive status)
-$stmt = $conn->prepare("SELECT COUNT(*) as count FROM application WHERE status IN ('Interview Scheduled', 'Offer Received')");
+// Successful hires (applications with 'Hired' or 'Accepted' status)
+$stmt = $conn->prepare("SELECT COUNT(*) as count FROM application WHERE status = 'Hired' OR status = 'Accepted'");
 $stmt->execute();
 $result = $stmt->get_result();
 $row = $result->fetch_assoc();
 $stats['successful_hires'] = $row['count'];
 $stmt->close();
-
-// AI Matches (approximate as 70% of applications)
-$stats['ai_matches'] = intval($stats['successful_hires'] * 1.5);
 
 // Total employers
 $stmt = $conn->prepare("SELECT COUNT(*) as count FROM employer");
@@ -50,16 +46,39 @@ $stats['employers'] = $row['count'];
 $stmt->close();
 
 // Fetch application status distribution for donut
-$status_dist = ['Pending' => 0, 'Interview Scheduled' => 0, 'Matched' => 0, 'Offer Received' => 0];
+$status_dist = ['Pending' => 0, 'Applied' => 0, 'Interview Scheduled' => 0, 'Matched' => 0, 'Offer Received' => 0, 'Offer Sent' => 0, 'Offer Declined' => 0, 'Accepted' => 0, 'Rejected' => 0, 'Hired' => 0];
 $stmt = $conn->prepare("SELECT status, COUNT(*) as count FROM application GROUP BY status");
 $stmt->execute();
 $result = $stmt->get_result();
 while ($row = $result->fetch_assoc()) {
   if (isset($status_dist[$row['status']])) {
     $status_dist[$row['status']] = $row['count'];
+  } else {
+    $status_dist[$row['status']] = $row['count'];
   }
 }
 $stmt->close();
+
+// Calculate total and percentages for dynamic donut gradient
+$total_status = array_sum($status_dist);
+if ($total_status == 0) $total_status = 1;
+
+$gradient_colors = [
+  'Pending' => '#6c757d', 'Applied' => '#17a2b8', 'Interview Scheduled' => '#ffc107',
+  'Matched' => '#6610f2', 'Offer Received' => '#20c997', 'Offer Sent' => '#007bff',
+  'Offer Declined' => '#fd7e14', 'Accepted' => '#28a745', 'Rejected' => '#dc3545', 'Hired' => '#1E9E86'
+];
+$donut_gradient = '';
+$current = 0;
+foreach ($status_dist as $status => $count) {
+  if ($count > 0) {
+    $next = $current + ($count / $total_status * 100);
+    $color = $gradient_colors[$status] ?? '#999';
+    $donut_gradient .= $color . ' ' . $current . '% ' . $next . '%, ';
+    $current = $next;
+  }
+}
+$donut_gradient = rtrim($donut_gradient, ', ');
 
 // Fetch recent applications
 $applications = [];
@@ -79,6 +98,26 @@ $stmt->execute();
 $result = $stmt->get_result();
 while ($row = $result->fetch_assoc()) {
   $applications[] = $row;
+}
+$stmt->close();
+
+// Fetch top job positions by applications
+$top_positions = [];
+$stmt = $conn->prepare("SELECT jp.title, COUNT(*) as count FROM application a JOIN job_post jp ON a.job_post_id = jp.job_post_id GROUP BY jp.title ORDER BY count DESC LIMIT 5");
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
+  $top_positions[] = $row;
+}
+$stmt->close();
+
+// Fetch top employers by applications
+$top_employers = [];
+$stmt = $conn->prepare("SELECT em.company_name, COUNT(*) as count FROM application a JOIN job_post jp ON a.job_post_id = jp.job_post_id JOIN employer em ON jp.employer_id = em.employer_id GROUP BY em.company_name ORDER BY count DESC LIMIT 5");
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
+  $top_employers[] = $row;
 }
 $stmt->close();
 
@@ -157,7 +196,14 @@ $max_barangay = !empty($barangays) ? $barangays[0]['count'] : 1;
     .admin-actions { display: flex; gap: 0.75rem; }
 
     /* Stats Grid */
-    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-bottom: 1.75rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-bottom: 1.75rem; }
+    @media (max-width: 900px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .mid-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .stats-grid { grid-template-columns: 1fr; }
+    }
     .kpi-card {
       background: white;
       border: 1px solid var(--border);
@@ -192,16 +238,21 @@ $max_barangay = !empty($barangays) ? $barangays[0]['count'] : 1;
     .kpi-sub { font-size: 0.78rem; color: var(--text-light); margin-top: 0.5rem; }
 
     /* Two-column mid section */
-    .mid-grid { display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; margin-bottom: 1.75rem; }
+    .mid-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.75rem; }
 
     /* Chart */
     .chart-card {
       background: white;
       border: 1px solid var(--border);
-      border-radius: var(--radius);
+      border-radius: 12px;
       padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: all 0.2s ease;
     }
-    .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .chart-card:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+    .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
     .chart-title { font-size: 1rem; font-weight: 700; color: var(--text-dark); }
     .chart-area { display: flex; align-items: flex-end; gap: 0.6rem; height: 180px; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border); }
     .bar-group { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; flex: 1; }
@@ -215,37 +266,119 @@ $max_barangay = !empty($barangays) ? $barangays[0]['count'] : 1;
     .bar-a { background: var(--primary-dark); }
     .bar-b { background: #98FBCB; }
     .bar-lbl { font-size: 0.72rem; color: var(--text-light); }
+    
+    /* Vertical Bar Chart */
+    .vbars-area { 
+      display: flex; 
+      align-items: flex-end; 
+      justify-content: space-around; 
+      height: 200px; 
+      padding: 1rem 0.5rem 0.5rem; 
+      border-bottom: 2px solid var(--border);
+      background: linear-gradient(180deg, rgba(30,158,134,0.03) 0%, rgba(30,158,134,0.08) 100%);
+      border-radius: 8px 8px 0 0;
+    }
+    .vbar-group { 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      gap: 0.4rem; 
+      flex: 1;
+    }
+    .vbar-wrap { 
+      display: flex; 
+      align-items: flex-end; 
+      height: 160px; 
+      width: 100%;
+      justify-content: center;
+    }
+    .vbar { 
+      width: 32px; 
+      border-radius: 6px 6px 0 0;
+      background: linear-gradient(180deg, var(--primary-dark) 0%, var(--primary-mid) 100%);
+      transition: all 0.3s ease;
+      box-shadow: 0 -2px 8px rgba(30,158,134,0.25);
+    }
+    .vbar:hover { 
+      background: linear-gradient(180deg, var(--primary-darker) 0%, var(--primary-dark) 100%);
+      transform: scaleY(1.02);
+    }
+    .vbar-label { 
+      font-size: 0.7rem; 
+      color: var(--text-mid); 
+      text-align: center;
+      max-width: 60px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .vbar-count { 
+      font-size: 0.75rem; 
+      font-weight: 700; 
+      color: var(--primary-darker); 
+    }
+
+    /* Employer List */
+    .employer-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .employer-item { 
+      display: flex; 
+      align-items: center; 
+      gap: 1rem; 
+      padding: 0.75rem 1rem; 
+      background: var(--bg-light); 
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+    .employer-item:hover { background: #E8F5E9; transform: translateX(4px); }
+    .employer-rank { 
+      width: 28px; 
+      height: 28px; 
+      border-radius: 50%; 
+      background: var(--primary-dark); 
+      color: white; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-weight: 700; 
+      font-size: 0.8rem;
+      flex-shrink: 0;
+    }
+    .employer-info { flex: 1; }
+    .employer-name { font-weight: 600; color: var(--text-dark); font-size: 0.9rem; }
+    .employer-count { 
+      font-weight: 800; 
+      font-size: 1.1rem; 
+      color: var(--primary-darker); 
+    }
+
     .chart-legend { display: flex; gap: 1rem; margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-light); }
     .legend-dot { width: 10px; height: 10px; border-radius: 2px; margin-right: 0.3rem; }
 
-    /* Donut Chart (CSS only) */
-    .donut-container { display: flex; align-items: center; gap: 1.5rem; }
+    /* Donut Chart */
+    .donut-container { display: flex; align-items: center; gap: 2rem; flex-wrap: wrap; justify-content: center; }
     .donut {
-      width: 120px; height: 120px;
+      width: 140px; height: 140px;
       border-radius: 50%;
-      background: conic-gradient(
-        var(--primary-dark) 0% 35%,
-        #63E6B3 35% 62%,
-        #63E6B3 62% 80%,
-        #1E9E86 80% 100%
-      );
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      border: 4px solid white;
     }
     .donut-inner {
-      width: 80px; height: 80px;
+      width: 90px; height: 90px;
       background: white;
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--text-mid);
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--primary-darker);
       text-align: center;
+      line-height: 1.2;
     }
-    .donut-legend { flex: 1; }
-    .dl-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; margin-bottom: 0.5rem; }
-    .dl-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
-    .dl-label { color: var(--text-mid); flex: 1; }
+    .donut-legend { flex: 1; display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: center; }
+    .dl-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; min-width: 90px; padding: 0.3rem 0.5rem; background: var(--bg-light); border-radius: 4px; }
+    .dl-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+    .dl-label { color: var(--text-mid); }
     .dl-val { font-weight: 700; color: var(--text-dark); }
 
     /* Activity Feed */
@@ -339,27 +472,8 @@ $max_barangay = !empty($barangays) ? $barangays[0]['count'] : 1;
     .brgy-bar-count { font-weight: 700; color: var(--primary-darker); }
     .brgy-fill { height: 8px; background: linear-gradient(90deg, var(--primary-dark), var(--primary-mid)); border-radius: 100px; }
 
-    /* Quick actions */
-    .quick-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
-    .quick-action-btn {
-      background: var(--bg-light);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 1rem;
-      text-align: center;
-      font-size: 0.87rem;
-      font-weight: 600;
-      color: var(--text-dark);
-      cursor: pointer;
-      text-decoration: none;
-      display: block;
-      transition: all 0.2s;
-    }
-    .quick-action-btn:hover { border-color: var(--primary-dark); background: white; }
-    .quick-action-btn .qa-icon { font-size: 1.4rem; margin-bottom: 0.35rem; display: block; }
-
     /* Bottom grid */
-    .bottom-grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; }
+    .bottom-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
   </style>
 </head>
 <body>
@@ -380,31 +494,19 @@ $max_barangay = !empty($barangays) ? $barangays[0]['count'] : 1;
 </nav>
 
 <!-- ADMIN WRAPPER -->
-<div class="admin-wrapper">
-
-  <!-- SIDEBAR -->
-  <aside class="admin-sidebar">
-    <div class="sidebar-menu-label">Overview</div>
-    <a href="#" class="sidebar-link active"><span class="icon">📊</span> Dashboard</a>
-    <a href="./modules/analytics/" class="sidebar-link"><span class="icon">📊</span> Analytics</a>
-
-    <div class="sidebar-menu-label">Management</div>
-    <a href="./modules/employer-management/" class="sidebar-link"><span class="icon">🏢</span> Employer Management</a>
-    <a href="./modules/employee-management/" class="sidebar-link"><span class="icon">👥</span> Employee Management</a>
-    <a href="./modules/application-tracking/" class="sidebar-link"><span class="icon">📋</span> Application Tracking</a>
-  </aside>
+<div class="admin-wrapper" style="display:block;">
 
   <!-- MAIN CONTENT -->
-  <main class="admin-content">
+  <main class="admin-content" style="padding:2rem;">
 
     <!-- PAGE HEADER -->
     <div class="admin-page-header">
       <div>
-        <div class="admin-page-title">PESO Admin Dashboard</div>
+<div class="admin-page-title">PESO Admin Dashboard</div>
         <div class="admin-page-sub">Nasugbu, Batangas • <?php echo date('F j, Y'); ?> • Updated just now</div>
       </div>
       <div class="admin-actions">
-        <a href="#" class="btn btn-outline">🔤 Export Report</a>
+        <a href="./export-report.php" target="_blank" class="btn btn-outline">🔤 Export Report</a>
         <a href="./modules/analytics/" class="btn btn-primary">+ View Analytics</a>
       </div>
     </div>
@@ -429,15 +531,6 @@ $max_barangay = !empty($barangays) ? $barangays[0]['count'] : 1;
         <div class="kpi-label">Active Job Posts</div>
         <div class="kpi-sub">12 new posted today</div>
       </div>
-      <div class="kpi-card kpi-yellow">
-        <div class="kpi-header">
-          <span class="kpi-icon">🤖</span>
-          <span class="kpi-trend trend-pos">87%</span>
-        </div>
-        <div class="kpi-value"><?php echo $stats['ai_matches']; ?></div>
-        <div class="kpi-label">AI Matches Made</div>
-        <div class="kpi-sub">This month</div>
-      </div>
       <div class="kpi-card kpi-purple">
         <div class="kpi-header">
           <span class="kpi-icon">🏆</span>
@@ -453,67 +546,27 @@ $max_barangay = !empty($barangays) ? $barangays[0]['count'] : 1;
     <div class="mid-grid">
       <div class="chart-card">
         <div class="chart-header">
-          <div class="chart-title">Monthly Applications vs. Hires</div>
-          <select class="input select" style="width:140px;font-size:0.82rem;padding:0.4rem 0.8rem;">
-            <option>Last 7 months</option>
-            <option>Last 12 months</option>
-          </select>
+          <div class="chart-title">Top Positions by Applications</div>
         </div>
-        <div class="chart-area">
-          <div class="bar-group">
-            <div class="bar-wrap">
-              <div class="bar bar-a" style="height:80px;"></div>
-              <div class="bar bar-b" style="height:35px;"></div>
+        <?php if (!empty($top_positions)): ?>
+          <div class="vbars-area">
+            <?php 
+            $max_pos = !empty($top_positions) ? $top_positions[0]['count'] : 1;
+            foreach ($top_positions as $pos): 
+              $height = ($pos['count'] / $max_pos) * 100;
+            ?>
+            <div class="vbar-group">
+              <div class="vbar-wrap">
+                <div class="vbar" style="height:<?php echo max($height, 5); ?>%;"></div>
+              </div>
+              <div class="vbar-label"><?php echo htmlspecialchars(substr($pos['title'], 0, 15)); ?></div>
+              <div class="vbar-count"><?php echo $pos['count']; ?></div>
             </div>
-            <span class="bar-lbl">Aug</span>
+            <?php endforeach; ?>
           </div>
-          <div class="bar-group">
-            <div class="bar-wrap">
-              <div class="bar bar-a" style="height:100px;"></div>
-              <div class="bar bar-b" style="height:50px;"></div>
-            </div>
-            <span class="bar-lbl">Sep</span>
-          </div>
-          <div class="bar-group">
-            <div class="bar-wrap">
-              <div class="bar bar-a" style="height:90px;"></div>
-              <div class="bar bar-b" style="height:55px;"></div>
-            </div>
-            <span class="bar-lbl">Oct</span>
-          </div>
-          <div class="bar-group">
-            <div class="bar-wrap">
-              <div class="bar bar-a" style="height:120px;"></div>
-              <div class="bar bar-b" style="height:65px;"></div>
-            </div>
-            <span class="bar-lbl">Nov</span>
-          </div>
-          <div class="bar-group">
-            <div class="bar-wrap">
-              <div class="bar bar-a" style="height:140px;"></div>
-              <div class="bar bar-b" style="height:80px;"></div>
-            </div>
-            <span class="bar-lbl">Dec</span>
-          </div>
-          <div class="bar-group">
-            <div class="bar-wrap">
-              <div class="bar bar-a" style="height:110px;"></div>
-              <div class="bar bar-b" style="height:70px;"></div>
-            </div>
-            <span class="bar-lbl">Jan</span>
-          </div>
-          <div class="bar-group">
-            <div class="bar-wrap">
-              <div class="bar bar-a" style="height:155px;"></div>
-              <div class="bar bar-b" style="height:100px;"></div>
-            </div>
-            <span class="bar-lbl">Mar</span>
-          </div>
-        </div>
-        <div class="chart-legend">
-          <span style="display:flex;align-items:center;"><span class="legend-dot" style="background:var(--primary-dark);"></span> Applications</span>
-          <span style="display:flex;align-items:center;"><span class="legend-dot" style="background:#98FBCB;"></span> Hires</span>
-        </div>
+        <?php else: ?>
+          <div style="color:var(--text-light);text-align:center;padding:2rem;">No position data available</div>
+        <?php endif; ?>
       </div>
 
       <div class="chart-card">
@@ -521,120 +574,69 @@ $max_barangay = !empty($barangays) ? $barangays[0]['count'] : 1;
           <div class="chart-title">Applicants by Status</div>
         </div>
         <div class="donut-container">
-          <div class="donut">
-            <div class="donut-inner"><?php echo $stats['total_applicants']; ?><br>Total</div>
+          <div class="donut"<?php if (!empty($donut_gradient)): ?> style="background: conic-gradient(<?php echo $donut_gradient; ?>);"<?php endif; ?>>
+            <div class="donut-inner"><span><?php echo $stats['total_applicants']; ?></span><span style="font-size:0.65rem;font-weight:400;">total</span></div>
           </div>
           <div class="donut-legend">
-            <div class="dl-item"><span class="dl-dot" style="background:var(--primary-dark);"></span><span class="dl-label">Pending</span><span class="dl-val"><?php echo $status_dist['Pending']; ?></span></div>
-            <div class="dl-item"><span class="dl-dot" style="background:#63E6B3;"></span><span class="dl-label">Interview</span><span class="dl-val"><?php echo $status_dist['Interview Scheduled']; ?></span></div>
-            <div class="dl-item"><span class="dl-dot" style="background:#63E6B3;"></span><span class="dl-label">Matched</span><span class="dl-val"><?php echo $status_dist['Matched']; ?></span></div>
-            <div class="dl-item"><span class="dl-dot" style="background:#1E9E86;"></span><span class="dl-label">Offer</span><span class="dl-val"><?php echo $status_dist['Offer Received']; ?></span></div>
+            <div class="dl-item"><span class="dl-dot" style="background:#6c757d;"></span><span class="dl-label">Pending</span><span class="dl-val"><?php echo $status_dist['Pending']; ?></span></div>
+            <div class="dl-item"><span class="dl-dot" style="background:#17a2b8;"></span><span class="dl-label">Applied</span><span class="dl-val"><?php echo $status_dist['Applied']; ?></span></div>
+            <div class="dl-item"><span class="dl-dot" style="background:#ffc107;"></span><span class="dl-label">Interview</span><span class="dl-val"><?php echo $status_dist['Interview Scheduled']; ?></span></div>
+            <div class="dl-item"><span class="dl-dot" style="background:#6610f2;"></span><span class="dl-label">Matched</span><span class="dl-val"><?php echo $status_dist['Matched']; ?></span></div>
+            <div class="dl-item"><span class="dl-dot" style="background:#20c997;"></span><span class="dl-label">Offer</span><span class="dl-val"><?php echo $status_dist['Offer Received']; ?></span></div>
+            <div class="dl-item"><span class="dl-dot" style="background:#007bff;"></span><span class="dl-label">Sent</span><span class="dl-val"><?php echo $status_dist['Offer Sent']; ?></span></div>
+            <div class="dl-item"><span class="dl-dot" style="background:#fd7e14;"></span><span class="dl-label">Declined</span><span class="dl-val"><?php echo $status_dist['Offer Declined']; ?></span></div>
+            <div class="dl-item"><span class="dl-dot" style="background:#28a745;"></span><span class="dl-label">Accepted</span><span class="dl-val"><?php echo $status_dist['Accepted']; ?></span></div>
+            <div class="dl-item"><span class="dl-dot" style="background:#dc3545;"></span><span class="dl-label">Rejected</span><span class="dl-val"><?php echo $status_dist['Rejected']; ?></span></div>
+            <div class="dl-item"><span class="dl-dot" style="background:#1E9E86;"></span><span class="dl-label">Hired</span><span class="dl-val"><?php echo $status_dist['Hired']; ?></span></div>
           </div>
-        </div>
-
-        <hr class="divider">
-
-        <div style="font-size:0.85rem;font-weight:700;color:var(--text-mid);margin-bottom:0.75rem;">Quick Actions</div>
-        <div class="quick-actions">
-          <a href="../employers/modules/post-jobs/" class="quick-action-btn"><span class="qa-icon">📋</span>Post Job</a>
-          <a href="./modules/application-tracking/" class="quick-action-btn"><span class="qa-icon">📋</span>Track Apps</a>
-          <a href="./modules/analytics/" class="quick-action-btn"><span class="qa-icon">📊</span>Analytics</a>
-          <a href="#" class="quick-action-btn"><span class="qa-icon">👥</span>Users</a>
         </div>
       </div>
     </div>
 
-    <!-- RECENT APPLICATIONS TABLE + ACTIVITY -->
-    <div class="bottom-grid">
-      <div class="table-section">
-        <div class="table-header">
-          <div class="table-title">Recent Applications</div>
-          <div style="display:flex;gap:0.5rem;">
-            <input type="text" id="searchInput" class="input" placeholder="Search applicant or position..." style="width:250px;font-size:0.85rem;padding:0.5rem 0.85rem;">
-            <a href="./modules/application-tracking/" class="btn btn-outline" style="padding:0.5rem 1rem;font-size:0.85rem;">View All →</a>
+    <!-- SECOND CHARTS ROW -->
+    <div class="mid-grid">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Top Employers by Applications</div>
+        </div>
+        <?php if (!empty($top_employers)): ?>
+          <div class="employer-list">
+            <?php foreach ($top_employers as $i => $emp): ?>
+            <div class="employer-item">
+              <div class="employer-rank"><?php echo $i + 1; ?></div>
+              <div class="employer-info">
+                <div class="employer-name"><?php echo htmlspecialchars($emp['company_name']); ?></div>
+              </div>
+              <div class="employer-count"><?php echo $emp['count']; ?></div>
+            </div>
+            <?php endforeach; ?>
           </div>
-        </div>
-        <div class="table-wrap">
-          <table class="table" id="applicationsTable">
-            <thead>
-              <tr>
-                <th>Applicant</th>
-                <th>Position</th>
-                <th>Location</th>
-                <th>Status</th>
-                <th>Applied</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php if (count($applications) > 0): ?>
-                <?php foreach ($applications as $app): 
-                  $initials = strtoupper(substr($app['firstName'], 0, 1) . substr($app['lastName'], 0, 1));
-                  $status_class = 'badge-gray';
-                  if (strtolower($app['status']) == 'matched') $status_class = 'badge-blue';
-                  elseif (strtolower($app['status']) == 'interview scheduled') $status_class = 'badge-yellow';
-                  elseif (strtolower($app['status']) == 'offer received') $status_class = 'badge-green';
-                ?>
-                <tr class="app-row" data-search="<?php echo strtolower($app['firstName'] . ' ' . $app['lastName'] . ' ' . $app['position']); ?>">
-                  <td>
-                    <div class="avatar-name">
-                      <div class="small-avatar" style="background:#E4FBF3;color:#0F6E5E;"><?php echo $initials; ?></div>
-                      <span><?php echo htmlspecialchars($app['firstName'] . ' ' . $app['lastName']); ?></span>
-                    </div>
-                  </td>
-                  <td><?php echo htmlspecialchars($app['position']); ?></td>
-                  <td><?php echo htmlspecialchars($app['location'] ?? '-'); ?></td>
-                  <td><span class="badge <?php echo $status_class; ?>"><?php echo htmlspecialchars(ucfirst($app['status'])); ?></span></td>
-                  <td><?php echo date('M j, Y', strtotime($app['application_date'])); ?></td>
-                </tr>
-                <?php endforeach; ?>
-              <?php else: ?>
-                <tr>
-                  <td colspan="5" style="text-align:center;color:var(--text-light);padding:2rem;">No recent applications</td>
-                </tr>
-              <?php endif; ?>
-            </tbody>
-          </table>
-        </div>
+        <?php else: ?>
+          <div style="color:var(--text-light);text-align:center;padding:2rem;">No employer data available</div>
+        <?php endif; ?>
       </div>
 
       <!-- BARANGAYS -->
-      <div>
-        <div class="chart-card">
-          <div class="chart-title" style="margin-bottom:1rem;">Top Barangays by Applicants</div>
-          <?php foreach ($barangays as $brgy): 
-            $percentage = ($brgy['count'] / $max_barangay) * 100;
-          ?>
-          <div class="brgy-bar">
-            <div class="brgy-bar-header">
-              <span class="brgy-bar-name"><?php echo htmlspecialchars($brgy['address']); ?></span>
-              <span class="brgy-bar-count"><?php echo $brgy['count']; ?></span>
-            </div>
-            <div class="progress-bar"><div class="brgy-fill" style="width:<?php echo $percentage; ?>%;"></div></div>
-          </div>
-          <?php endforeach; ?>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Top Barangays by Applicants</div>
         </div>
+        <?php foreach ($barangays as $brgy): 
+          $percentage = ($brgy['count'] / $max_barangay) * 100;
+        ?>
+        <div class="brgy-bar">
+          <div class="brgy-bar-header">
+            <span class="brgy-bar-name"><?php echo htmlspecialchars($brgy['address']); ?></span>
+            <span class="brgy-bar-count"><?php echo $brgy['count']; ?></span>
+          </div>
+          <div class="progress-bar"><div class="brgy-fill" style="width:<?php echo $percentage; ?>%;"></div></div>
+        </div>
+        <?php endforeach; ?>
       </div>
     </div>
 
-  </main>
+</main>
 </div>
-
-<script>
-  // Search functionality
-  document.getElementById('searchInput').addEventListener('keyup', function(e) {
-    const searchTerm = e.target.value.toLowerCase();
-    const rows = document.querySelectorAll('.app-row');
-    
-    rows.forEach(row => {
-      const searchData = row.getAttribute('data-search');
-      if (searchData.includes(searchTerm)) {
-        row.style.display = '';
-      } else {
-        row.style.display = 'none';
-      }
-    });
-  });
-</script>
 
 </body>
 </html>

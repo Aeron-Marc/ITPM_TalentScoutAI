@@ -208,22 +208,10 @@ try {
 </nav>
 
 <!-- ADMIN WRAPPER -->
-<div class="admin-wrapper">
-
-  <!-- SIDEBAR -->
-  <aside class="admin-sidebar">
-    <div class="sidebar-menu-label">Overview</div>
-    <a href="../../index.php" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
-    <a href="../analytics/" class="sidebar-link"><span class="icon">📊</span> Analytics</a>
-
-    <div class="sidebar-menu-label">Management</div>
-    <a href="../employer-management/" class="sidebar-link"><span class="icon">🏢</span> Employer Management</a>
-    <a href="./" class="sidebar-link active"><span class="icon">👥</span> Employee Management</a>
-    <a href="../application-tracking/" class="sidebar-link"><span class="icon">📋</span> Application Tracking</a>
-  </aside>
+<div class="admin-wrapper" style="display:block;">
 
   <!-- MAIN CONTENT -->
-  <main class="admin-content">
+  <main class="admin-content" style="padding:2rem;">
 
     <!-- PAGE HEADER -->
     <div class="admin-page-header">
@@ -267,7 +255,6 @@ try {
               <th>Name</th>
               <th>Email</th>
               <th>Location</th>
-              <th>Phone</th>
               <th>Applications</th>
               <th>Skills</th>
               <th>Joined</th>
@@ -279,7 +266,6 @@ try {
               <td><strong><?php echo htmlspecialchars($emp['firstName'] . ' ' . $emp['lastName']); ?></strong></td>
               <td><?php echo htmlspecialchars($emp['email']); ?></td>
               <td><?php echo htmlspecialchars($emp['location'] ?? '-'); ?></td>
-              <td><?php echo htmlspecialchars($emp['phone'] ?? '-'); ?></td>
               <td><span class="stat-badge"><?php echo $emp['app_count']; ?> app</span></td>
               <td><span class="stat-badge"><?php echo $emp['skill_count']; ?> skill</span></td>
               <td><?php echo date('M d, Y', strtotime($emp['created_at'])); ?></td>
