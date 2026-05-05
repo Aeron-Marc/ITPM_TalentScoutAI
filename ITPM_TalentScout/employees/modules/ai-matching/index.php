@@ -1650,6 +1650,68 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
           });
         }
       });
+
+      // Handle AI Matching confirmation modal buttons
+      const aiConfirmBtn = document.getElementById('confirmApplyBtn');
+      const aiCancelBtn = document.getElementById('cancelConfirmBtn');
+      const aiCloseBtn = document.getElementById('closeConfirmModal');
+      const aiConfirmModal = document.getElementById('applicationConfirmModal');
+
+      if (aiConfirmBtn) {
+        aiConfirmBtn.addEventListener('click', function() {
+          if (window.pendingApplication && window.pendingApplication.jobPostId) {
+            const formData = new FormData();
+            formData.append('job_post_id', window.pendingApplication.jobPostId);
+            formData.append('is_anonymous', window.pendingApplication.isAnonymous ? '1' : '0');
+
+            fetch('../job-postings/submit-application.php', {
+              method: 'POST',
+              body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                document.getElementById('successJobTitle').textContent = data.application.job_title;
+                document.getElementById('successCompany').textContent = data.application.company_name;
+                document.getElementById('successDate').textContent = new Date(data.application.application_date).toLocaleDateString();
+                aiConfirmModal.classList.remove('active');
+                document.getElementById('successModal').classList.add('active');
+              } else {
+                showNotification('✗ Error: ' + (data.message || 'Failed to submit application'));
+                aiConfirmModal.classList.remove('active');
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              showNotification('✗ An error occurred');
+              aiConfirmModal.classList.remove('active');
+            });
+          }
+        });
+      }
+
+      if (aiCancelBtn) {
+        aiCancelBtn.addEventListener('click', function() {
+          aiConfirmModal.classList.remove('active');
+          window.pendingApplication = null;
+        });
+      }
+
+      if (aiCloseBtn) {
+        aiCloseBtn.addEventListener('click', function() {
+          aiConfirmModal.classList.remove('active');
+          window.pendingApplication = null;
+        });
+      }
+
+      if (aiConfirmModal) {
+        aiConfirmModal.addEventListener('click', function(e) {
+          if (e.target === aiConfirmModal) {
+            aiConfirmModal.classList.remove('active');
+            window.pendingApplication = null;
+          }
+        });
+      }
     </script>
     <style>
       @keyframes slideIn {
@@ -1795,6 +1857,30 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
     </style>
   <?php include_once __DIR__ . '/../common/application-modals.php'; ?>
   <script>
+    // Override showConfirmModal for AI Matching to use its own modal
+    window.showConfirmModal = function(jobData) {
+      try {
+        // Store pending application
+        window.pendingApplication = {
+          jobPostId: jobData.jobPostId,
+          jobTitle: jobData.title,
+          companyName: jobData.company,
+          location: jobData.location,
+          isAnonymous: false
+        };
+
+        // Update modal content
+        document.getElementById('confirmJobTitle').textContent = jobData.title;
+        document.getElementById('confirmCompanyName').textContent = jobData.company;
+        
+        // Show the modal
+        document.getElementById('applicationConfirmModal').classList.add('active');
+      } catch (e) {
+        console.error('Error showing modal:', e);
+        alert('Error: ' + e.message);
+      }
+    };
+
     // Apply to job from AI Matching
     function applyToJob(jobData) {
       <?php if (!isset($_SESSION['employee_id'])) { ?>
