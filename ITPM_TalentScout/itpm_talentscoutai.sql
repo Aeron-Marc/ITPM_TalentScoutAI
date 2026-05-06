@@ -294,7 +294,12 @@ CREATE TABLE `employer` (
   `email` varchar(255) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
   `address` varchar(255) DEFAULT NULL,
-  `status` varchar(50) DEFAULT NULL
+  `status` varchar(50) DEFAULT 'pending',
+  `business_reg_cert` varchar(255) DEFAULT NULL,
+  `mayor_permit` varchar(255) DEFAULT NULL,
+  `bir_registration` varchar(255) DEFAULT NULL,
+  `dole_registration` varchar(255) DEFAULT NULL,
+  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --

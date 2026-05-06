@@ -12,6 +12,43 @@ if ($showSuccessPopup) {
   $successMessage = 'Company account created successfully.';
 }
 
+function uploadDocument($file, $employerId, $docType) {
+  if ($file['error'] === UPLOAD_ERR_NO_FILE) {
+    return null;
+  }
+  
+  if ($file['error'] !== UPLOAD_ERR_OK) {
+    return false;
+  }
+  
+  $allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+  $maxSize = 5 * 1024 * 1024;
+  
+  if (!in_array($file['type'], $allowedTypes)) {
+    return false;
+  }
+  
+  if ($file['size'] > $maxSize) {
+    return false;
+  }
+  
+  $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+  $filename = 'employer_' . $employerId . '_' . $docType . '.' . $extension;
+  $uploadDir = __DIR__ . '/../uploads/employer_documents/';
+  
+  if (!is_dir($uploadDir)) {
+    mkdir($uploadDir, 0755, true);
+  }
+  
+  $targetPath = $uploadDir . $filename;
+  
+  if (move_uploaded_file($file['tmp_name'], $targetPath)) {
+    return 'uploads/employer_documents/' . $filename;
+  }
+  
+  return false;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $companyNameValue = trim($_POST['companyName'] ?? '');
   $emailValue = trim($_POST['email'] ?? '');
@@ -45,28 +82,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errorMessage = 'That email is already registered. Please log in instead.';
       } else {
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        $status = 'active';
+        $status = 'pending';
+        
         $insertStmt = $conn->prepare('INSERT INTO employer (company_name, email, password, address, status) VALUES (?, ?, ?, ?, ?)');
-
+        
         if (!$insertStmt) {
           $errorMessage = 'Unable to create your account right now. Please try again.';
         } else {
           $insertStmt->bind_param('sssss', $companyNameValue, $emailValue, $hashedPassword, $addressValue, $status);
-
+          
           if ($insertStmt->execute()) {
+            $employerId = $conn->insert_id;
+            
+            $businessRegCert = uploadDocument($_FILES['business_reg_cert'] ?? null, $employerId, 'business_reg_cert');
+            $mayorPermit = uploadDocument($_FILES['mayor_permit'] ?? null, $employerId, 'mayor_permit');
+            $birRegistration = uploadDocument($_FILES['bir_registration'] ?? null, $employerId, 'bir_registration');
+            $doleRegistration = uploadDocument($_FILES['dole_registration'] ?? null, $employerId, 'dole_registration');
+            
+            $docColumns = [];
+            $docValues = [];
+            $docTypes = '';
+            
+            if ($businessRegCert !== false && $businessRegCert !== null) {
+              $docColumns[] = 'business_reg_cert = ?';
+              $docValues[] = $businessRegCert;
+              $docTypes .= 's';
+            }
+            if ($mayorPermit !== false && $mayorPermit !== null) {
+              $docColumns[] = 'mayor_permit = ?';
+              $docValues[] = $mayorPermit;
+              $docTypes .= 's';
+            }
+            if ($birRegistration !== false && $birRegistration !== null) {
+              $docColumns[] = 'bir_registration = ?';
+              $docValues[] = $birRegistration;
+              $docTypes .= 's';
+            }
+            if ($doleRegistration !== false && $doleRegistration !== null) {
+              $docColumns[] = 'dole_registration = ?';
+              $docValues[] = $doleRegistration;
+              $docTypes .= 's';
+            }
+            
+            if (count($docColumns) > 0) {
+              $docValues[] = $employerId;
+              $docTypes .= 'i';
+              $updateDocStmt = $conn->prepare('UPDATE employer SET ' . implode(', ', $docColumns) . ' WHERE employer_id = ?');
+              $updateDocStmt->bind_param($docTypes, ...$docValues);
+              $updateDocStmt->execute();
+              $updateDocStmt->close();
+            }
+            
+            $insertStmt->close();
             closeConnection($conn);
             header('Location: ./signup.php?signed_up=1');
             exit;
           }
-
+          
           $errorMessage = 'Unable to create your account right now. Please try again.';
           $insertStmt->close();
         }
       }
-
+      
       $checkStmt->close();
     }
-
+    
     closeConnection($conn);
   }
 }
@@ -484,6 +564,74 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       border: 1px solid var(--mint-mid);
     }
 
+    .document-upload-section {
+      margin-top: 1rem;
+      padding: 1.25rem;
+      background: var(--cream-mid);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--cream-warm);
+    }
+
+    .doc-section-title {
+      font-family: 'Lora', serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--charcoal);
+      margin-bottom: 0.35rem;
+    }
+
+    .doc-section-desc {
+      font-size: 0.82rem;
+      color: var(--text-soft);
+      margin-bottom: 1rem;
+    }
+
+    .doc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .doc-field label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-mid);
+      margin-bottom: 0.35rem;
+      letter-spacing: 0.01em;
+    }
+
+    .file-input {
+      width: 100%;
+      border: 1.5px solid var(--cream-warm);
+      border-radius: var(--radius-lg);
+      padding: 0.5rem 0.7rem;
+      font-size: 0.8rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: var(--charcoal);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .file-input:focus {
+      border-color: var(--sage);
+      box-shadow: 0 0 0 3px var(--mint);
+    }
+
+    .doc-note {
+      font-size: 0.72rem;
+      color: var(--text-pale);
+      margin-top: 0.75rem;
+    }
+
+    @media (max-width: 600px) {
+      .doc-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -649,7 +797,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           </div>
         <?php endif; ?>
         
-        <form class="auth-form" action="" method="post">
+        <form class="auth-form" action="" method="post" enctype="multipart/form-data">
           <div class="field">
             <label for="companyName">Company Name</label>
             <input 
@@ -701,6 +849,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               type="password"
               placeholder="Re-enter your password"
               required />
+          </div>
+
+          <div class="document-upload-section">
+            <h3 class="doc-section-title">Business Documents</h3>
+            <p class="doc-section-desc">Submit your documents for faster verification and access to all features.</p>
+            
+            <div class="doc-grid">
+              <div class="field doc-field">
+                <label for="business_reg_cert">Business Registration Certificate</label>
+                <input
+                  id="business_reg_cert"
+                  name="business_reg_cert"
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  class="file-input"
+                />
+              </div>
+
+              <div class="field doc-field">
+                <label for="mayor_permit">Mayor's Business Permit</label>
+                <input
+                  id="mayor_permit"
+                  name="mayor_permit"
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  class="file-input"
+                />
+              </div>
+
+              <div class="field doc-field">
+                <label for="bir_registration">Bureau of Internal Revenue (BIR) Registration</label>
+                <input
+                  id="bir_registration"
+                  name="bir_registration"
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  class="file-input"
+                />
+              </div>
+
+              <div class="field doc-field">
+                <label for="dole_registration">DOLE Registration</label>
+                <input
+                  id="dole_registration"
+                  name="dole_registration"
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  class="file-input"
+                />
+              </div>
+            </div>
+            <p class="doc-note">Accepted formats: PDF, JPG, PNG (Max 5MB per file)</p>
           </div>
 
           <label class="terms" for="terms">

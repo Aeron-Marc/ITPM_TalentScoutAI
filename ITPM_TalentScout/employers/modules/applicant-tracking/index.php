@@ -8,6 +8,9 @@ if (!isset($_SESSION['employer_id'])) {
   exit;
 }
 
+$employer_status = $_SESSION['employer_status'] ?? 'pending';
+$isVerified = $employer_status === 'active';
+
 // Get database connection
 $conn = getConnection();
 $employer_id = (int)$_SESSION['employer_id'];
@@ -194,6 +197,8 @@ foreach ($applications as $app) {
     .nav-links a:hover { color: #fff; font-weight: 600; }
 
     .nav-links a.active { color: #fff; font-weight: 600; border-bottom: 2.5px solid #fff; }
+
+    .nav-links a.nav-muted { opacity: 0.5; cursor: not-allowed; }
 
     .navbar.scrolled .nav-links a:hover { color: #fff; }
     .navbar.scrolled .nav-links a.active { color: #fff; border-bottom-color: #fff; }
@@ -596,6 +601,29 @@ foreach ($applications as $app) {
 </head>
 <body>
 
+<?php if (!$isVerified): ?>
+<div class="verification-overlay">
+  <div class="verification-block-modal">
+    <div class="verification-block-icon">⚠️</div>
+    <h2 class="verification-block-title">Verification Required</h2>
+    <p class="verification-block-text">Await Verification of Documents. Your account is pending verification. Please submit your business documents for verification to access this feature.</p>
+    <div class="verification-block-actions">
+      <button class="verification-block-btn" onclick="window.location.href='../../index.php'">Go to Home</button>
+    </div>
+  </div>
+</div>
+<style>
+.verification-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 1rem; }
+.verification-block-modal { background: #ffffff; border-radius: 28px; box-shadow: 0 20px 60px rgba(60,80,50,0.2); padding: 2.5rem; text-align: center; max-width: 440px; width: 100%; }
+.verification-block-icon { width: 64px; height: 64px; margin: 0 auto 1.25rem; border-radius: 50%; background: #fef3d0; display: grid; place-items: center; font-size: 1.8rem; }
+.verification-block-title { font-family: 'Lora', serif; font-size: 1.4rem; font-weight: 700; color: #2c3028; margin-bottom: 0.75rem; }
+.verification-block-text { font-size: 0.92rem; color: #7a8270; line-height: 1.7; margin-bottom: 1.75rem; }
+.verification-block-actions { display: flex; justify-content: center; }
+.verification-block-btn { padding: 0.75rem 1.5rem; border-radius: 18px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.88rem; font-weight: 700; border: none; cursor: pointer; background: #5a8a68; color: #fff; }
+.verification-block-btn:hover { background: #3d6b50; }
+</style>
+<?php endif; ?>
+
   <!-- ══ NAVBAR ══ -->
   <nav class="navbar" id="navbar">
     <a href="../../index.php" class="nav-logo">
@@ -604,10 +632,18 @@ foreach ($applications as $app) {
     </a>
     <ul class="nav-links">
       <li><a href="../../index.php">Home</a></li>
-      <li><a href="../post-jobs/">Post Jobs</a></li>
+      <?php if ($isVerified): ?>
+        <li><a href="../post-jobs/">Post Jobs</a></li>
+      <?php else: ?>
+        <li><a href="#" class="nav-muted" onclick="window.location.href='../../index.php'; return false;">Post Jobs</a></li>
+      <?php endif; ?>
       <li><a href="../employee-finder/">Find Talent</a></li>
       <li><a href="./" class="active">Hiring Pipeline</a></li>
-      <li><a href="../chat-sms/">Messages</a></li>
+      <?php if ($isVerified): ?>
+        <li><a href="../chat-sms/">Messages</a></li>
+      <?php else: ?>
+        <li><a href="#" class="nav-muted" onclick="window.location.href='../../index.php'; return false;">Messages</a></li>
+      <?php endif; ?>
     </ul>
     <div class="nav-right">
       <?php if (isset($_SESSION['employer_id'])): ?>

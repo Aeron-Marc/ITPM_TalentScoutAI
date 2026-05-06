@@ -33,16 +33,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       } else {
         $storedPassword = (string)($employer['password'] ?? '');
         $isValidPassword = password_verify($password, $storedPassword) || hash_equals($storedPassword, $password);
-        $isActive = strtolower($employer['status'] ?? 'active') === 'active';
 
         if (!$isValidPassword) {
           $errorMessage = 'Invalid email or password.';
-        } elseif (!$isActive) {
-          $errorMessage = 'Your account is inactive. Please contact support.';
         } else {
           $_SESSION['employer_id'] = (int)$employer['employer_id'];
           $_SESSION['employer_name'] = $employer['company_name'] ?? '';
           $_SESSION['employer_email'] = $employer['email'] ?? '';
+          $_SESSION['employer_status'] = $employer['status'] ?? 'pending';
+          $_SESSION['employer_status'] = $employer['status'] ?? 'pending';
 
           // Prepare data to pass to client after redirect
           $loginData = [

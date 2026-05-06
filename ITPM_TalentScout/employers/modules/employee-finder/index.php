@@ -7,6 +7,9 @@ if (!isset($_SESSION['employer_id'])) {
   exit;
 }
 
+$employer_status = $_SESSION['employer_status'] ?? 'pending';
+$isVerified = $employer_status === 'active';
+
 $conn = getConnection();
 $employer_id = (int)$_SESSION['employer_id'];
 
@@ -505,6 +508,14 @@ $stmt->close();
 
     .btn-message:hover { background: var(--mint); border-color: var(--sage); }
 
+    .btn-disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: #ccc !important;
+      border-color: #ccc !important;
+      color: #666 !important;
+    }
+
     /* ══ RESULTS HEADER ══ */
     .results-header {
       margin-bottom: 1.5rem; display: flex;
@@ -839,7 +850,11 @@ $stmt->close();
           </div>
           <div class="action-buttons">
             <button class="btn-small btn-view" onclick="viewProfile(<?php echo $emp['employee_id']; ?>)">View Profile</button>
-            <a href="../chat-sms/?employee_id=<?php echo $emp['employee_id']; ?>" class="btn-small btn-message">Message</a>
+            <?php if ($isVerified): ?>
+              <a href="../chat-sms/?employee_id=<?php echo $emp['employee_id']; ?>" class="btn-small btn-message">Message</a>
+            <?php else: ?>
+              <button class="btn-small btn-message btn-disabled" onclick="alert('Verify your account to message candidates')">Message</button>
+            <?php endif; ?>
           </div>
         </div>
         <?php } 

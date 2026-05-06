@@ -2,11 +2,13 @@
 session_start();
 require_once('../../../database/db.php');
 
-// Check if employer is logged in
 if (!isset($_SESSION['employer_id'])) {
   header('Location: ../../login.php');
   exit;
 }
+
+$employer_status = $_SESSION['employer_status'] ?? 'pending';
+$isVerified = $employer_status === 'active';
 
 // Get database connection
 $conn = getConnection();
@@ -347,6 +349,8 @@ if ($selected_application_id > 0) {
     .nav-links a:hover { color: #fff; font-weight: 600; }
 
     .nav-links a.active { color: #fff; font-weight: 600; border-bottom: 2.5px solid #fff; }
+
+    .nav-links a.nav-muted { opacity: 0.5; cursor: not-allowed; }
 
     .navbar.scrolled .nav-links a:hover { color: #fff; }
     .navbar.scrolled .nav-links a.active { color: #fff; border-bottom-color: #fff; }
@@ -776,9 +780,17 @@ if ($selected_application_id > 0) {
     </a>
     <ul class="nav-links">
       <li><a href="../../index.php">Home</a></li>
-      <li><a href="../post-jobs/">Post Jobs</a></li>
+      <?php if ($isVerified): ?>
+        <li><a href="../post-jobs/">Post Jobs</a></li>
+      <?php else: ?>
+        <li><a href="#" class="nav-muted" onclick="window.location.href='../../index.php'; return false;">Post Jobs</a></li>
+      <?php endif; ?>
       <li><a href="../employee-finder/">Find Talent</a></li>
-      <li><a href="../applicant-tracking/">Hiring Pipeline</a></li>
+      <?php if ($isVerified): ?>
+        <li><a href="../applicant-tracking/">Hiring Pipeline</a></li>
+      <?php else: ?>
+        <li><a href="#" class="nav-muted" onclick="window.location.href='../../index.php'; return false;">Hiring Pipeline</a></li>
+      <?php endif; ?>
       <li><a href="./" class="active">Messages</a></li>
     </ul>
     <div class="nav-right">

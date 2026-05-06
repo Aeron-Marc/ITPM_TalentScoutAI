@@ -52,7 +52,12 @@ try {
     'Contact' as contact_person,
     'N/A' as phone,
     e.address as location,
-    CURDATE() as created_at,
+    e.status,
+    e.business_reg_cert,
+    e.mayor_permit,
+    e.bir_registration,
+    e.dole_registration,
+    e.created_at,
     COUNT(DISTINCT j.job_post_id) as jobs_count,
     COUNT(DISTINCT a.application_id) as app_count
   FROM employer e
@@ -342,6 +347,176 @@ try {
       box-shadow: 0 0 0 3px rgba(61,107,80,0.1);
     }
 
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .status-active {
+      background: var(--teal-light);
+      color: var(--teal);
+    }
+
+    .status-pending {
+      background: var(--gold-light);
+      color: var(--gold-text);
+    }
+
+    .status-inactive {
+      background: var(--red-light);
+      color: var(--red);
+    }
+
+    .btn-view-docs, .btn-verify {
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-view-docs {
+      background: var(--blue-light);
+      color: var(--blue-text);
+    }
+
+    .btn-view-docs:hover {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    .btn-verify {
+      background: var(--green);
+      color: #fff;
+    }
+
+    .btn-verify:hover {
+      background: var(--green-dark);
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 9999;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(45,80,64,0.25);
+      padding: 2rem;
+      max-width: 600px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-soft);
+    }
+
+    .docs-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+
+    .doc-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .doc-item-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .doc-item-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-mid);
+      margin-bottom: 0.5rem;
+    }
+
+    .doc-item-link {
+      font-size: 12px;
+      color: var(--green);
+      text-decoration: none;
+    }
+
+    .doc-item-link:hover {
+      text-decoration: underline;
+    }
+
+    .confirm-modal-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+    }
+
+    .btn-cancel {
+      padding: 0.6rem 1.25rem;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      color: var(--text-mid);
+    }
+
+    .btn-confirm {
+      padding: 0.6rem 1.25rem;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      background: var(--green);
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .btn-confirm:hover {
+      background: var(--green-dark);
+    }
+
     @media (max-width: 900px) {
       .sidebar { transform: translateX(-100%); }
       .content { margin-left: 0; }
@@ -449,21 +624,48 @@ try {
                   <th>Contact Person</th>
                   <th>Email</th>
                   <th>Location</th>
+                  <th>Status</th>
+                  <th>Documents</th>
                   <th>Jobs Posted</th>
                   <th>Applications</th>
                   <th>Registered</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <?php foreach ($employers as $emp): ?>
+                  <?php 
+                    $hasDocuments = isset($emp['business_reg_cert']) && !empty($emp['business_reg_cert']) || isset($emp['mayor_permit']) && !empty($emp['mayor_permit']) || isset($emp['bir_registration']) && !empty($emp['bir_registration']) || isset($emp['dole_registration']) && !empty($emp['dole_registration']);
+                    $statusClass = ($emp['status'] ?? '') === 'active' ? 'status-active' : (($emp['status'] ?? '') === 'pending' ? 'status-pending' : 'status-inactive');
+                    $statusLabel = ($emp['status'] ?? '') === 'active' ? 'Verified' : (($emp['status'] ?? '') === 'pending' ? 'Pending' : 'Inactive');
+                    $businessReg = isset($emp['business_reg_cert']) ? $emp['business_reg_cert'] : '';
+                    $mayorPermit = isset($emp['mayor_permit']) ? $emp['mayor_permit'] : '';
+                    $birReg = isset($emp['bir_registration']) ? $emp['bir_registration'] : '';
+                    $doleReg = isset($emp['dole_registration']) ? $emp['dole_registration'] : '';
+                  ?>
                   <tr class="empr-row" data-search="<?php echo strtolower($emp['company_name'] . ' ' . ($emp['contact_person'] ?? '') . ' ' . $emp['email'] . ' ' . ($emp['location'] ?? '')); ?>">
                     <td><strong><?php echo htmlspecialchars($emp['company_name']); ?></strong></td>
                     <td><?php echo htmlspecialchars($emp['contact_person'] ?? '-'); ?></td>
                     <td><?php echo htmlspecialchars($emp['email']); ?></td>
                     <td><?php echo htmlspecialchars($emp['location'] ?? '-'); ?></td>
+                    <td><span class="status-badge <?php echo $statusClass; ?>"><?php echo $statusLabel; ?></span></td>
+                    <td>
+                      <?php if ($hasDocuments): ?>
+                        <button type="button" class="btn-view-docs" data-id="<?php echo $emp['employer_id']; ?>" data-name="<?php echo htmlspecialchars($emp['company_name']); ?>" data-brc="<?php echo htmlspecialchars($businessReg); ?>" data-mp="<?php echo htmlspecialchars($mayorPermit); ?>" data-bir="<?php echo htmlspecialchars($birReg); ?>" data-dole="<?php echo htmlspecialchars($doleReg); ?>" onclick="viewDocuments(this)">View</button>
+                      <?php else: ?>
+                        <span style="color:#999;font-size:12px;">No docs</span>
+                      <?php endif; ?>
+                    </td>
                     <td><span class="stat-badge"><?php echo $emp['jobs_count']; ?> job</span></td>
                     <td><span class="stat-badge"><?php echo $emp['app_count']; ?> app</span></td>
-                    <td><?php echo date('M d, Y', strtotime($emp['created_at'])); ?></td>
+                    <td><?php echo isset($emp['created_at']) ? date('M d, Y', strtotime($emp['created_at'])) : date('M d, Y'); ?></td>
+                    <td>
+                      <?php if (($emp['status'] ?? '') !== 'active'): ?>
+                        <button type="button" class="btn-verify" data-id="<?php echo $emp['employer_id']; ?>" data-name="<?php echo htmlspecialchars($emp['company_name']); ?>" onclick="verifyEmployer(this)">Verify</button>
+                      <?php else: ?>
+                        <span style="color:#5a8a68;font-size:12px;">✓ Verified</span>
+                      <?php endif; ?>
+                    </td>
                   </tr>
                 <?php endforeach; ?>
               </tbody>
@@ -491,7 +693,108 @@ try {
         }
       });
     });
+
+    function viewDocuments(btn) {
+      var employerId = btn.getAttribute('data-id');
+      var companyName = btn.getAttribute('data-name');
+      var businessReg = btn.getAttribute('data-brc');
+      var mayorPermit = btn.getAttribute('data-mp');
+      var birReg = btn.getAttribute('data-bir');
+      var doleReg = btn.getAttribute('data-dole');
+      
+      var docsHtml = '';
+      
+      if (businessReg && businessReg !== '') {
+        docsHtml += '<div class="doc-item"><div class="doc-item-icon">📄</div><div class="doc-item-label">Business Registration</div><a href="../../../' + businessReg + '" target="_blank" class="doc-item-link">View Document</a></div>';
+      } else {
+        docsHtml += '<div class="doc-item"><div class="doc-item-icon">❌</div><div class="doc-item-label">Business Registration</div><span style="color:#999;font-size:11px;">Not uploaded</span></div>';
+      }
+      
+      if (mayorPermit && mayorPermit !== '') {
+        docsHtml += '<div class="doc-item"><div class="doc-item-icon">📄</div><div class="doc-item-label">Mayor\'s Permit</div><a href="../../../' + mayorPermit + '" target="_blank" class="doc-item-link">View Document</a></div>';
+      } else {
+        docsHtml += '<div class="doc-item"><div class="doc-item-icon">❌</div><div class="doc-item-label">Mayor\'s Permit</div><span style="color:#999;font-size:11px;">Not uploaded</span></div>';
+      }
+      
+      if (birReg && birReg !== '') {
+        docsHtml += '<div class="doc-item"><div class="doc-item-icon">📄</div><div class="doc-item-label">BIR Registration</div><a href="../../../' + birReg + '" target="_blank" class="doc-item-link">View Document</a></div>';
+      } else {
+        docsHtml += '<div class="doc-item"><div class="doc-item-icon">❌</div><div class="doc-item-label">BIR Registration</div><span style="color:#999;font-size:11px;">Not uploaded</span></div>';
+      }
+      
+      if (doleReg && doleReg !== '') {
+        docsHtml += '<div class="doc-item"><div class="doc-item-icon">📄</div><div class="doc-item-label">DOLE Registration</div><a href="../../../' + doleReg + '" target="_blank" class="doc-item-link">View Document</a></div>';
+      } else {
+        docsHtml += '<div class="doc-item"><div class="doc-item-icon">❌</div><div class="doc-item-label">DOLE Registration</div><span style="color:#999;font-size:11px;">Not uploaded</span></div>';
+      }
+
+      var modal = document.getElementById('docsModal');
+      var modalContent = modal.querySelector('.modal-content');
+      modalContent.innerHTML = '<div class="modal-header"><div class="modal-title">📋 Documents - ' + companyName + '</div><button class="modal-close" onclick="closeDocsModal()">×</button></div><div class="docs-grid">' + docsHtml + '</div>';
+      modal.classList.add('show');
+    }
+
+    function closeDocsModal() {
+      document.getElementById('docsModal').classList.remove('show');
+    }
+
+    function verifyEmployer(btn) {
+      var employerId = btn.getAttribute('data-id');
+      var companyName = btn.getAttribute('data-name');
+      
+      var modal = document.getElementById('confirmModal');
+      var modalContent = modal.querySelector('.modal-content');
+      modalContent.innerHTML = '<div class="modal-header"><div class="modal-title">✓ Verify Employer</div><button class="modal-close" onclick="closeConfirmModal()">×</button></div><p style="color: var(--text-soft); margin-bottom: 1rem;">Are you sure you want to verify <strong>' + companyName + '</strong>? This will allow them to post jobs and access all features.</p><div class="confirm-modal-actions"><button class="btn-cancel" onclick="closeConfirmModal()">Cancel</button><button class="btn-confirm" onclick="confirmVerify(' + employerId + ')">Confirm Verify</button></div>';
+      modal.classList.add('show');
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('confirmModal').classList.remove('show');
+    }
+
+    function confirmVerify(employerId) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', '../../../employers/verify-employer.php', true);
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            try {
+              var data = JSON.parse(xhr.responseText);
+              if (data.success) {
+                closeConfirmModal();
+                location.reload();
+              } else {
+                alert('Error: ' + data.message);
+              }
+            } catch(e) {
+              alert('An error occurred. Please try again.');
+            }
+          } else {
+            alert('An error occurred. Please try again.');
+          }
+        }
+      };
+      xhr.send('employer_id=' + employerId);
+    }
+
+    document.getElementById('docsModal').addEventListener('click', function(e) {
+      if (e.target === this) closeDocsModal();
+    });
+    document.getElementById('confirmModal').addEventListener('click', function(e) {
+      if (e.target === this) closeConfirmModal();
+    });
   </script>
+
+  <!-- View Documents Modal -->
+  <div id="docsModal" class="modal-overlay">
+    <div class="modal-content"></div>
+  </div>
+
+  <!-- Confirm Verification Modal -->
+  <div id="confirmModal" class="modal-overlay">
+    <div class="modal-content"></div>
+  </div>
 
 </body>
 
