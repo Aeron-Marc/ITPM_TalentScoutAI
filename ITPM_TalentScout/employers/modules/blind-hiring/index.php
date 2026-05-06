@@ -1,4 +1,79 @@
-<?php session_start(); ?>
+<?php 
+session_start();
+require_once('../../../database/db.php');
+
+// Check if employer is logged in
+if (!isset($_SESSION['employer_id'])) {
+  header('Location: ../../login.php');
+  exit;
+}
+
+// Handle contact candidate action
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'contact_candidate') {
+  $candidate_id = intval($_POST['candidate_id'] ?? 0);
+  
+  if ($candidate_id > 0) {
+    $conn = getConnection();
+    $employer_id = (int)$_SESSION['employer_id'];
+    
+    // Pre-filled job offer message for blind hiring
+    $job_offer_message = "Hello! We're interested in your profile based on your skills. We'd like to offer you an opportunity to learn more about our open positions. Would you be available for a brief chat?";
+    
+    // Insert the initial message as an anonymous employer
+    // Using a special message to indicate blind hiring - the chat system will display employer as anonymous
+    $stmt = $conn->prepare("INSERT INTO message (sender_id, sender_type, receiver_id, receiver_type, message, timestamp) VALUES (?, 'employer', ?, 'employee', ?, NOW())");
+    $stmt->bind_param("iis", $employer_id, $candidate_id, $job_offer_message);
+    
+    if ($stmt->execute()) {
+      $stmt->close();
+      // Redirect to chat with this candidate
+      header('Location: ../chat-sms/index.php?employee_id=' . $candidate_id);
+      exit;
+    }
+    $stmt->close();
+  }
+}
+
+// Get database connection
+$conn = getConnection();
+$employer_id = (int)$_SESSION['employer_id'];
+
+// Fetch all employees with their resumes and skills (for blind hiring)
+$blind_candidates = [];
+$stmt = $conn->prepare("SELECT DISTINCT
+  e.employee_id,
+  CONCAT('Candidate ', e.employee_id) as candidate_name,
+  r.summary,
+  IFNULL(r.resume_id, 0) as resume_id
+FROM employee e
+LEFT JOIN resumes r ON e.employee_id = r.employee_id
+WHERE e.is_active = 1
+ORDER BY RAND()");
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
+  $blind_candidates[] = $row;
+}
+$stmt->close();
+
+// Fetch skills for each candidate
+foreach ($blind_candidates as &$candidate) {
+  if ($candidate['resume_id'] > 0) {
+    $stmt = $conn->prepare("SELECT skill_name FROM resume_skills WHERE resume_id = ? LIMIT 10");
+    $stmt->bind_param("i", $candidate['resume_id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $skills = [];
+    while ($row = $result->fetch_assoc()) {
+      $skills[] = $row['skill_name'];
+    }
+    $stmt->close();
+    $candidate['skills'] = $skills;
+  } else {
+    $candidate['skills'] = [];
+  }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -101,7 +176,6 @@
       <li><a href="../post-jobs/">Post Jobs</a></li>
       <li><a href="../employee-finder/">Find Talent</a></li>
       <li><a href="../applicant-tracking/">Hiring Pipeline</a></li>
-      <li><a href="./" class="active">Blind Hiring</a></li>
       <li><a href="../chat-sms/">Messages</a></li>
     </ul>
     <div class="nav-actions">
@@ -192,6 +266,46 @@
 
     <div class="highlight">
       <strong>💡 Employer Benefits:</strong> Blind hiring isn't about sacrificing quality — it's about expanding your talent pool. You get access to skilled candidates you might have overlooked due to unconscious bias, resulting in better hires and more diverse teams.
+    </div>
+
+    <div class="info-section">
+      <h2>Available Blind Candidates</h2>
+      <p>Browse anonymized candidate profiles based purely on skills and experience:</p>
+      <div class="candidates-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+        <?php if (empty($blind_candidates)): ?>
+          <p style="grid-column: 1/-1; text-align: center; color: #999; padding: 2rem;">No candidates available yet.</p>
+        <?php else: ?>
+          <?php foreach ($blind_candidates as $candidate): ?>
+            <div style="background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem;">
+              <h3 style="margin: 0 0 0.5rem; font-size: 1.1rem; color: #1a1a1a;"><?php echo htmlspecialchars($candidate['candidate_name']); ?></h3>
+              <p style="margin: 0.5rem 0; font-size: 0.9rem; color: #666; line-height: 1.6;">
+                <?php echo !empty($candidate['summary']) ? htmlspecialchars(substr($candidate['summary'], 0, 120)) . '...' : 'No summary available'; ?>
+              </p>
+              <div style="margin-top: 1rem;">
+                <strong style="font-size: 0.85rem; color: #555; display: block; margin-bottom: 0.5rem;">Key Skills:</strong>
+                <?php if (!empty($candidate['skills'])): ?>
+                  <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    <?php foreach ($candidate['skills'] as $skill): ?>
+                      <span style="background: #eefff9; color: #1e9e86; padding: 0.35rem 0.75rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600;">
+                        <?php echo htmlspecialchars($skill); ?>
+                      </span>
+                    <?php endforeach; ?>
+                  </div>
+                <?php else: ?>
+                  <span style="color: #999; font-size: 0.9rem;">No skills listed</span>
+                <?php endif; ?>
+              </div>
+              <form method="POST" style="display: inline; width: 100%;">
+                <input type="hidden" name="action" value="contact_candidate">
+                <input type="hidden" name="candidate_id" value="<?php echo $candidate['employee_id']; ?>">
+                <button type="submit" onclick="return confirm('This will send an anonymous job offer message to this candidate. Continue?')" style="width: 100%; margin-top: 1rem; padding: 0.75rem; background: #1e9e86; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.9rem;">
+                  💬 Contact Candidate
+                </button>
+              </form>
+            </div>
+          <?php endforeach; ?>
+        <?php endif; ?>
+      </div>
     </div>
   </div>
 

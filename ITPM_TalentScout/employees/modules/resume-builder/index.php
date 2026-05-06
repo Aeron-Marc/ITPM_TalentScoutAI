@@ -170,10 +170,21 @@ if ($apiAction === 'save' || $apiAction === 'load') {
       $resumeRow = $resumeRes->fetch_assoc();
 
       if (!$resumeRow) {
+        // No resume exists yet, load existing skills from employee_skill table
+        $skills = [];
+        $employeeSkillsStmt = $conn->prepare('SELECT skill_name FROM employee_skill WHERE employee_id = ? ORDER BY skill_id ASC');
+        $employeeSkillsStmt->bind_param('i', $employeeId);
+        $employeeSkillsStmt->execute();
+        $employeeSkillsRes = $employeeSkillsStmt->get_result();
+        while ($row = $employeeSkillsRes->fetch_assoc()) {
+          $skills[] = (string)$row['skill_name'];
+        }
+
         rbJsonResponse([
           'success' => true,
           'employee_id' => $employeeId,
           'data' => null,
+          'existing_skills' => $skills, // Pre-populate with existing skills
         ]);
       }
 
@@ -186,6 +197,16 @@ if ($apiAction === 'save' || $apiAction === 'load') {
       $skillsRes = $skillsStmt->get_result();
       while ($row = $skillsRes->fetch_assoc()) {
         $skills[] = (string)$row['skill_name'];
+      }
+
+      $employeeSkillsStmt = $conn->prepare('SELECT skill_name FROM employee_skill WHERE employee_id = ?');
+      $employeeSkillsStmt->bind_param('i', $employeeId);
+      $employeeSkillsStmt->execute();
+      $employeeSkillsRes = $employeeSkillsStmt->get_result();
+      while ($row = $employeeSkillsRes->fetch_assoc()) {
+        if (!in_array($row['skill_name'], $skills)) {
+          $skills[] = (string)$row['skill_name'];
+        }
       }
 
       $additionalLines = [];
@@ -430,90 +451,270 @@ if ($apiAction === 'save' || $apiAction === 'load') {
   <title>Resume Builder | Job Seekers - TalentScout AI</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../../../styles/global.css" />
-  <link rel="stylesheet" href="../../../styles/page-layout.css" />
-  <link rel="stylesheet" href="../../navbar.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    * {
-      font-family: 'Poppins', sans-serif;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sand:        #f5f0e8;
+      --sand-dark:   #ece5d5;
+      --sage:        #6b8f71;
+      --sage-light:  #9ab89f;
+      --sage-pale:   #d4e6d6;
+      --sage-deep:   #4a6b50;
+      --stone:       #8a8070;
+      --stone-light: #c4b9a8;
+      --cream:       #faf8f3;
+      --charcoal:    #2a2a22;
+      --warm-mid:    #5a5448;
+      --warm-light:  #9a9288;
+      --gold:        #c8a96e;
+      --gold-pale:   #f0e4c8;
+      --white-t:     rgba(255,255,255,0.92);
+      --radius-xl:   24px;
+      --radius-lg:   16px;
+      --radius-md:   10px;
+      --radius-pill: 999px;
+      --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
     }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--charcoal);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* ── NAVBAR ── */
+    .navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 3rem;
+      height: 64px;
+      background: rgba(250, 248, 243, 0.88);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(139, 128, 112, 0.12);
+      animation: slideDown 0.6s var(--ease-out) both;
+    }
+
+    @keyframes slideDown {
+      from { transform: translateY(-100%); opacity: 0; }
+      to   { transform: translateY(0); opacity: 1; }
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: var(--charcoal);
+      letter-spacing: -0.01em;
+    }
+
+    .nav-logo-mark {
+      width: 34px; height: 34px;
+      background: var(--sage-deep);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0.04em;
+    }
+
+    .nav-logo em { font-style: italic; color: var(--sage); }
+
+    .nav-links {
+      display: flex;
+      list-style: none;
+      gap: 0.15rem;
+    }
+
+    .nav-links a {
+      padding: 0.38rem 0.85rem;
+      border-radius: var(--radius-pill);
+      font-size: 0.84rem;
+      font-weight: 400;
+      color: var(--warm-mid);
+      transition: background 0.2s, color 0.2s;
+      letter-spacing: 0.01em;
+    }
+
+    .nav-links a:hover, .nav-links a.active {
+      background: var(--sage-pale);
+      color: var(--sage-deep);
+    }
+
+    .nav-right {
+      display: flex; align-items: center; gap: 0.7rem;
+    }
+
+    .nav-user {
+      font-size: 0.83rem;
+      color: var(--warm-mid);
+    }
+
+    .btn-nav-ghost {
+      padding: 0.4rem 1rem;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--stone-light);
+      color: var(--warm-mid);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.83rem;
+      font-weight: 500;
+      background: transparent;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .btn-nav-ghost:hover { background: var(--sand); border-color: var(--stone); }
+
+    .btn-nav-solid {
+      padding: 0.44rem 1.2rem;
+      border-radius: var(--radius-pill);
+      background: var(--sage-deep);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.83rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      display: flex; align-items: center; gap: 0.35rem;
+    }
+
+    .btn-nav-solid:hover { background: var(--sage); transform: translateY(-1px); }
+
+    /* ── PAGE SHELL ── */
     .builder-shell {
       max-width: 1400px;
       margin: 0 auto;
-      padding: 2rem;
+      padding: 6rem 2rem 4rem;
+      animation: fadeUp 0.7s var(--ease-out) both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .builder-header {
+      margin-bottom: 2rem;
     }
 
     .builder-header h1 {
-      font-size: 2rem;
-      color: var(--text-dark);
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      font-weight: 900;
+      color: var(--charcoal);
+      letter-spacing: -0.025em;
+      line-height: 1.2;
+    }
+
+    .builder-header h1 em {
+      font-style: italic;
+      color: var(--sage);
     }
 
     .builder-header p {
-      color: var(--text-light);
-      margin-top: 0.35rem;
-      margin-bottom: 1.25rem;
+      color: var(--warm-mid);
+      margin-top: 0.5rem;
+      font-size: 0.92rem;
+      line-height: 1.6;
     }
 
     .builder-grid {
       display: grid;
       grid-template-columns: minmax(360px, 1fr) minmax(420px, 1fr);
-      gap: 1.2rem;
+      gap: 1.5rem;
       align-items: start;
     }
 
+    /* ── PANELS ── */
     .panel {
-      background: white;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-sm);
+      background: var(--white-t);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(139, 128, 112, 0.12);
+      border-radius: var(--radius-xl);
+      box-shadow: 0 4px 24px rgba(42,42,34,0.07);
+      overflow: hidden;
+      transition: box-shadow 0.3s;
+    }
+
+    .panel:hover {
+      box-shadow: 0 12px 40px rgba(42,42,34,0.12);
     }
 
     .panel-head {
-      padding: 0.9rem 1rem;
-      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.3rem;
+      border-bottom: 1px solid rgba(139, 128, 112, 0.1);
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 0.7rem;
+      background: rgba(245, 240, 232, 0.5);
     }
 
     .panel-title {
-      font-size: 0.88rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
       font-weight: 700;
-      color: var(--text-dark);
+      color: var(--charcoal);
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.06em;
     }
 
     .template-chip {
-      font-size: 0.75rem;
-      color: var(--primary-dark);
-      font-weight: 700;
-      background: var(--bg-lighter);
-      border: 1px solid var(--primary-light);
-      padding: 0.25rem 0.55rem;
-      border-radius: 999px;
+      font-size: 0.72rem;
+      color: var(--sage-deep);
+      font-weight: 600;
+      background: var(--sage-pale);
+      border: 1px solid rgba(107, 143, 113, 0.2);
+      padding: 0.22rem 0.7rem;
+      border-radius: var(--radius-pill);
     }
 
+    /* ── PREVIEW ── */
     .preview-wrap {
-      padding: 1rem;
+      padding: 1.2rem;
       position: sticky;
-      top: calc(var(--nav-height) + 0.9rem);
-      max-height: calc(100vh - var(--nav-height) - 1.8rem);
+      top: calc(64px + 1rem);
+      max-height: calc(100vh - 64px - 2rem);
       overflow: hidden;
       display: flex;
       flex-direction: column;
     }
 
     .resume-preview {
-      border: 1px solid #d3dce0;
-      border-radius: 6px;
-      padding: 1.25rem;
-      color: #2b2b2b;
-      background: #fefefe;
-      font-family: 'Poppins', sans-serif;
-      line-height: 1.32;
+      border: 1px solid rgba(139, 128, 112, 0.15);
+      border-radius: var(--radius-lg);
+      padding: 1.4rem;
+      color: var(--charcoal);
+      background: #fff;
+      font-family: 'DM Sans', sans-serif;
+      line-height: 1.4;
       overflow-y: auto;
       flex: 1;
       min-height: 0;
@@ -522,58 +723,64 @@ if ($apiAction === 'save' || $apiAction === 'load') {
     .rp-head {
       display: grid;
       grid-template-columns: 80px 1fr;
-      gap: 0.95rem;
+      gap: 1rem;
       align-items: start;
     }
 
     .rp-photo {
       width: 80px;
       height: 95px;
-      border: 1px solid #cfd8dc;
-      border-radius: 2px;
+      border: 2px solid var(--sage-pale);
+      border-radius: var(--radius-md);
       object-fit: cover;
-      background: #eef2f3;
+      background: var(--sand);
     }
 
     .rp-name {
       margin: 0;
-      color: #0f3a5e;
-      font-size: 1.65rem;
-      font-weight: 800;
-      line-height: 1.1;
-      text-transform: uppercase;
+      color: var(--charcoal);
+      font-family: 'Playfair Display', serif;
+      font-size: 1.55rem;
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
     }
 
     .rp-contact {
-      margin-top: 0.3rem;
-      font-size: 0.8rem;
+      margin-top: 0.4rem;
+      font-size: 0.78rem;
+      color: var(--warm-mid);
     }
 
     .rp-contact b {
-      color: #18242f;
+      color: var(--charcoal);
       margin-right: 0.25rem;
+      font-weight: 600;
     }
 
     .rp-section {
-      margin-top: 0.9rem;
+      margin-top: 1rem;
     }
 
     .rp-title {
-      color: #0f3a5e;
-      font-size: 0.92rem;
-      font-weight: 800;
+      color: var(--sage-deep);
+      font-size: 0.82rem;
+      font-weight: 700;
       text-transform: uppercase;
-      border-bottom: 1px solid #8da3b3;
-      padding-bottom: 0.14rem;
-      margin-bottom: 0.35rem;
+      letter-spacing: 0.06em;
+      border-bottom: 2px solid var(--sage-pale);
+      padding-bottom: 0.2rem;
+      margin-bottom: 0.45rem;
     }
 
     .rp-text {
       font-size: 0.79rem;
+      color: var(--warm-mid);
+      line-height: 1.6;
     }
 
     .rp-job {
-      margin-bottom: 0.55rem;
+      margin-bottom: 0.65rem;
     }
 
     .rp-job-head {
@@ -585,26 +792,33 @@ if ($apiAction === 'save' || $apiAction === 'load') {
 
     .rp-job-title {
       font-weight: 700;
+      color: var(--charcoal);
     }
 
     .rp-date {
-      font-weight: 700;
+      font-weight: 600;
       white-space: nowrap;
+      color: var(--sage);
+      font-size: 0.76rem;
     }
 
     .rp-company {
       font-size: 0.77rem;
-      color: #555;
+      color: var(--warm-mid);
     }
 
     .rp-list {
-      margin: 0.2rem 0 0.1rem 1rem;
+      margin: 0.25rem 0 0.1rem 1rem;
       font-size: 0.76rem;
+      color: var(--warm-mid);
+      line-height: 1.55;
     }
 
     .rp-additional-list {
       margin: 0.2rem 0 0.1rem 1rem;
       font-size: 0.76rem;
+      color: var(--warm-mid);
+      line-height: 1.55;
     }
 
     .rp-skills-list {
@@ -613,14 +827,15 @@ if ($apiAction === 'save' || $apiAction === 'load') {
       list-style: none;
       display: flex;
       flex-wrap: wrap;
-      gap: 0.2rem 0.9rem;
+      gap: 0.25rem 0.85rem;
       font-size: 0.76rem;
     }
 
     .rp-skills-list li {
       position: relative;
-      padding-left: 0.65rem;
-      line-height: 1.25;
+      padding-left: 0.7rem;
+      line-height: 1.3;
+      color: var(--warm-mid);
     }
 
     .rp-skills-list li::before {
@@ -628,28 +843,38 @@ if ($apiAction === 'save' || $apiAction === 'load') {
       position: absolute;
       left: 0;
       top: 0;
+      color: var(--sage);
+      font-weight: 700;
     }
 
+    /* ── FORM ── */
     .form-wrap {
-      padding: 1rem;
+      padding: 1.2rem;
     }
 
     .resume-form {
       display: grid;
-      gap: 1rem;
+      gap: 1.1rem;
     }
 
     .group {
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 0.85rem;
-      background: #fcfefe;
+      border: 1px solid rgba(139, 128, 112, 0.12);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.1rem;
+      background: var(--sand);
+      transition: border-color 0.2s;
+    }
+
+    .group:hover {
+      border-color: var(--sage-pale);
     }
 
     .group h3 {
-      font-size: 0.9rem;
-      color: var(--text-dark);
-      margin-bottom: 0.55rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--charcoal);
+      margin-bottom: 0.65rem;
     }
 
     .group-head {
@@ -657,7 +882,7 @@ if ($apiAction === 'save' || $apiAction === 'load') {
       justify-content: space-between;
       align-items: center;
       gap: 0.7rem;
-      margin-bottom: 0.55rem;
+      margin-bottom: 0.65rem;
     }
 
     .group-head h3 {
@@ -665,22 +890,34 @@ if ($apiAction === 'save' || $apiAction === 'load') {
     }
 
     .add-btn {
-      border: 1px solid var(--primary-light);
-      color: var(--primary-dark);
-      background: var(--bg-lighter);
-      font-size: 0.76rem;
+      border: 1px solid var(--sage-pale);
+      color: var(--sage-deep);
+      background: rgba(212, 230, 214, 0.4);
+      font-size: 0.74rem;
       font-weight: 700;
-      border-radius: 999px;
-      padding: 0.35rem 0.6rem;
+      border-radius: var(--radius-pill);
+      padding: 0.38rem 0.75rem;
       cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .add-btn:hover {
+      background: var(--sage-pale);
+      border-color: var(--sage-light);
     }
 
     .entry-card {
-      border: 1px dashed var(--border);
-      border-radius: var(--radius-sm);
-      padding: 0.75rem;
-      margin-bottom: 0.7rem;
-      background: white;
+      border: 1px dashed var(--stone-light);
+      border-radius: var(--radius-lg);
+      padding: 0.85rem;
+      margin-bottom: 0.75rem;
+      background: var(--white-t);
+      transition: border-color 0.2s;
+    }
+
+    .entry-card:hover {
+      border-color: var(--sage-light);
     }
 
     .entry-head {
@@ -688,51 +925,67 @@ if ($apiAction === 'save' || $apiAction === 'load') {
       justify-content: space-between;
       align-items: center;
       gap: 0.7rem;
-      margin-bottom: 0.45rem;
+      margin-bottom: 0.55rem;
     }
 
     .entry-title {
-      font-size: 0.78rem;
+      font-size: 0.74rem;
       font-weight: 700;
-      color: var(--text-mid);
+      color: var(--warm-mid);
       text-transform: uppercase;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.04em;
     }
 
     .remove-btn {
-      border: 1px solid #efc2c2;
-      background: #fff6f6;
+      border: 1px solid rgba(170, 79, 79, 0.2);
+      background: rgba(255, 246, 246, 0.8);
       color: #aa4f4f;
-      border-radius: 999px;
+      border-radius: var(--radius-pill);
       font-size: 0.72rem;
       font-weight: 700;
-      padding: 0.2rem 0.5rem;
+      padding: 0.22rem 0.55rem;
       cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .remove-btn:hover {
+      background: rgba(255, 230, 230, 1);
+      border-color: rgba(170, 79, 79, 0.35);
     }
 
     .field-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 0.7rem;
+      gap: 0.75rem;
     }
 
     .resume-form label {
       display: block;
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--text-mid);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--warm-mid);
     }
 
     .resume-form input,
     .resume-form textarea {
       width: 100%;
       margin-top: 0.3rem;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 0.66rem 0.72rem;
-      font-size: 0.88rem;
-      font-family: inherit;
-      background: white;
+      border: 1.5px solid var(--stone-light);
+      border-radius: var(--radius-md);
+      padding: 0.66rem 0.8rem;
+      font-size: 0.86rem;
+      font-family: 'DM Sans', sans-serif;
+      background: #fff;
+      color: var(--charcoal);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .resume-form input:focus,
+    .resume-form textarea:focus {
+      outline: none;
+      border-color: var(--sage);
+      box-shadow: 0 0 0 3px rgba(107, 143, 113, 0.15);
     }
 
     .resume-form textarea {
@@ -743,7 +996,7 @@ if ($apiAction === 'save' || $apiAction === 'load') {
     .helper {
       margin-top: 0.25rem;
       font-size: 0.73rem;
-      color: var(--text-muted);
+      color: var(--warm-light);
     }
 
     .resume-actions {
@@ -752,6 +1005,41 @@ if ($apiAction === 'save' || $apiAction === 'load') {
       flex-wrap: wrap;
     }
 
+    .btn-primary {
+      padding: 0.68rem 1.5rem;
+      background: var(--sage-deep);
+      color: #fff;
+      border-radius: var(--radius-pill);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.86rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      transition: background 0.2s, transform 0.15s;
+      box-shadow: 0 4px 14px rgba(74,107,80,0.28);
+    }
+
+    .btn-primary:hover { background: var(--sage); transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .btn-outline {
+      padding: 0.68rem 1.4rem;
+      background: transparent;
+      color: var(--warm-mid);
+      border-radius: var(--radius-pill);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.86rem;
+      font-weight: 500;
+      border: 1.5px solid var(--stone-light);
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      display: inline-flex; align-items: center; gap: 0.35rem;
+    }
+
+    .btn-outline:hover { background: var(--sand); border-color: var(--stone); }
+
+    /* ── SKILLS ── */
     .skill-input-wrap {
       display: flex;
       gap: 0.6rem;
@@ -769,20 +1057,22 @@ if ($apiAction === 'save' || $apiAction === 'load') {
     }
 
     .skill-add-btn {
-      border: 1px solid var(--primary-light);
-      color: var(--primary-dark);
-      background: var(--bg-lighter);
+      border: 1px solid var(--sage-pale);
+      color: var(--sage-deep);
+      background: rgba(212, 230, 214, 0.4);
       font-size: 0.76rem;
       font-weight: 700;
-      border-radius: 999px;
+      border-radius: var(--radius-pill);
       padding: 0.66rem 0.9rem;
       cursor: pointer;
       white-space: nowrap;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.2s, border-color 0.2s;
     }
 
     .skill-add-btn:hover {
-      background: var(--primary-light);
-      color: white;
+      background: var(--sage-pale);
+      border-color: var(--sage-light);
     }
 
     .skills-pills-wrap {
@@ -796,14 +1086,15 @@ if ($apiAction === 'save' || $apiAction === 'load') {
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
-      background: var(--bg-lighter);
-      color: var(--primary-darker);
-      border: 1px solid var(--primary-light);
-      padding: 0.45rem 0.75rem;
-      border-radius: 999px;
+      background: var(--sage-pale);
+      color: var(--sage-deep);
+      border: 1px solid rgba(107, 143, 113, 0.2);
+      padding: 0.4rem 0.7rem;
+      border-radius: var(--radius-pill);
       font-size: 0.8rem;
       font-weight: 600;
       max-width: 300px;
+      transition: background 0.2s;
     }
 
     .skill-pill-text {
@@ -817,56 +1108,220 @@ if ($apiAction === 'save' || $apiAction === 'load') {
     .skill-pill-remove {
       border: none;
       background: none;
-      color: var(--primary-dark);
+      color: var(--sage-deep);
       cursor: pointer;
-      font-size: 1rem;
+      font-size: 1.1rem;
       padding: 0;
       display: flex;
       align-items: center;
       line-height: 1;
       flex-shrink: 0;
+      transition: color 0.15s;
     }
 
     .skill-pill-remove:hover {
-      color: var(--primary-darker);
+      color: #aa4f4f;
     }
 
     .helper-note {
       font-size: 0.8rem;
-      color: var(--text-light);
+      color: var(--warm-light);
+      line-height: 1.5;
     }
 
+    /* ── SUCCESS MODAL ── */
+    .success-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(42, 42, 34, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .success-modal.show {
+      display: flex;
+    }
+
+    .success-modal-content {
+      background: var(--cream);
+      border-radius: var(--radius-xl);
+      padding: 2.2rem 2rem;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 24px 64px rgba(42, 42, 34, 0.22);
+      border: 1px solid rgba(139, 128, 112, 0.12);
+      animation: modalSlide 0.35s var(--ease-out);
+    }
+
+    @keyframes modalSlide {
+      from { opacity: 0; transform: translateY(24px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .success-modal-icon {
+      width: 64px; height: 64px;
+      background: var(--sage-deep);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.2rem;
+      font-size: 1.8rem;
+      color: #fff;
+    }
+
+    .success-modal-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--charcoal);
+      margin-bottom: 0.5rem;
+    }
+
+    .success-modal-message {
+      color: var(--warm-mid);
+      margin-bottom: 1.5rem;
+      font-size: 0.92rem;
+      line-height: 1.6;
+    }
+
+    .success-modal-btn {
+      background: var(--sage-deep);
+      color: #fff;
+      border: none;
+      padding: 0.75rem 2rem;
+      border-radius: var(--radius-pill);
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-family: 'DM Sans', sans-serif;
+      transition: background 0.2s, transform 0.15s;
+      box-shadow: 0 4px 14px rgba(74,107,80,0.28);
+    }
+
+    .success-modal-btn:hover {
+      background: var(--sage);
+      transform: translateY(-1px);
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      background: #1e1e18;
+      color: rgba(255,255,255,0.5);
+      padding: 4rem 2rem 2rem;
+      margin-top: 3rem;
+    }
+
+    .footer-inner { max-width: 1080px; margin: 0 auto; }
+
+    .footer-top {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 2.5rem;
+      padding-bottom: 2.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      margin-bottom: 1.8rem;
+    }
+
+    .footer-brand h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.7rem;
+    }
+
+    .footer-brand p {
+      font-size: 0.81rem;
+      line-height: 1.68;
+      color: rgba(255,255,255,0.42);
+    }
+
+    .footer-col h4 {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.7);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 1rem;
+    }
+
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .footer-col ul a {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.4);
+      transition: color 0.15s;
+    }
+
+    .footer-col ul a:hover { color: var(--sage-light); }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.77rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    /* ── SCROLL REVEAL ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+
+    /* ── RESPONSIVE ── */
     @media (max-width: 1200px) {
       .builder-grid {
         grid-template-columns: 1fr;
       }
-
       .preview-wrap {
         position: static;
+        max-height: none;
       }
     }
 
     @media (max-width: 700px) {
       .builder-shell {
-        padding: 1rem;
+        padding: 5rem 1rem 3rem;
       }
-
       .field-grid {
         grid-template-columns: 1fr;
       }
-
       .rp-head {
         grid-template-columns: 66px 1fr;
       }
-
       .rp-photo {
         width: 66px;
         height: 78px;
       }
-
       .rp-name {
         font-size: 1.25rem;
       }
+      .navbar { padding: 0 1.2rem; }
+      .nav-links { display: none; }
+      .footer-top { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 480px) {
+      .footer-top { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; text-align: center; }
+      .resume-actions { flex-direction: column; }
+      .resume-actions .btn-primary,
+      .resume-actions .btn-outline { width: 100%; justify-content: center; }
     }
   </style>
 </head>
@@ -874,8 +1329,8 @@ if ($apiAction === 'save' || $apiAction === 'load') {
 <body>
   <nav class="navbar">
     <a href="../../index.php" class="nav-logo">
-      <div class="nav-logo-icon">TS</div>
-      <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
+      <div class="nav-logo-mark">TS</div>
+      <span>Talent<em>Scout</em> AI</span>
     </a>
     <ul class="nav-links">
       <li><a href="../../index.php">Home</a></li>
@@ -884,21 +1339,22 @@ if ($apiAction === 'save' || $apiAction === 'load') {
       <li><a href="./index.php" class="active">Resume Builder</a></li>
       <li><a href="../skill-gap-analysis/index.php">Skills</a></li>
       <li><a href="../applicant-tracking/index.php">Applications</a></li>
+      <li><a href="../messages/index.php">Messages</a></li>
     </ul>
-    <div class="nav-actions">
+    <div class="nav-right">
       <?php if (isset($_SESSION['employee_id'])): ?>
         <span class="nav-user">Welcome, <?php echo htmlspecialchars($_SESSION['employee_name'] ?? 'User'); ?></span>
-        <a href="../../logout.php" class="btn btn-outline">Logout</a>
+        <a href="../../logout.php" class="btn-nav-ghost">Logout</a>
       <?php else: ?>
-        <a href="../../login.php" class="btn btn-outline">Login</a>
-        <a href="../../signup.php" class="btn btn-primary">Get Started</a>
+        <a href="../../login.php" class="btn-nav-ghost">Login</a>
+        <a href="../../signup.php" class="btn-nav-solid">Get Started →</a>
       <?php endif; ?>
     </div>
   </nav>
 
   <main class="builder-shell">
     <div class="builder-header">
-      <h1>Resume Builder</h1>
+      <h1>Resume <em>Builder</em></h1>
       <p>
         Standard template only. Fill the fields and see your resume update in
         real time.
@@ -917,7 +1373,7 @@ if ($apiAction === 'save' || $apiAction === 'load') {
             <img
               class="rp-photo"
               id="previewPhoto"
-              src="https://via.placeholder.com/80x95.png?text=Photo"
+              src="../../../placeholder.png"
               alt="Profile Photo" />
             <div>
               <h2 class="rp-name" id="previewName">YOUR NAME</h2>
@@ -1096,14 +1552,14 @@ if ($apiAction === 'save' || $apiAction === 'load') {
           </div>
 
           <div class="resume-actions">
-            <button type="submit" class="btn btn-primary">Save Resume</button>
-            <button type="button" class="btn btn-primary" id="downloadPdfBtn">
+            <button type="submit" class="btn-primary">Save Resume</button>
+            <button type="button" class="btn-primary" id="downloadPdfBtn">
               &#8595; Download PDF
             </button>
-            <button type="button" class="btn btn-outline" id="fillSampleBtn">
+            <button type="button" class="btn-outline" id="fillSampleBtn">
               Fill Sample Data
             </button>
-            <a href="../job-postings/" class="btn btn-outline">Browse Matching Jobs</a>
+            <a href="../job-postings/" class="btn-outline">Browse Matching Jobs</a>
           </div>
 
           <p class="helper-note">
@@ -1113,13 +1569,68 @@ if ($apiAction === 'save' || $apiAction === 'load') {
         </form>
       </section>
     </div>
+
+    <div class="success-modal" id="successModal">
+      <div class="success-modal-content">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+          <div></div>
+          <button type="button" id="successModalClose" style="background: none; border: none; font-size: 1.8rem; color: var(--warm-light); cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">×</button>
+        </div>
+        <div class="success-modal-icon">✓</div>
+        <div class="success-modal-title">Resume Saved!</div>
+        <div class="success-modal-message">Your resume has been saved successfully to the database.</div>
+        <button class="success-modal-btn" onclick="closeSuccessModal()">Great!</button>
+      </div>
+    </div>
   </main>
 
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <h3>TalentScout AI</h3>
+          <p>Smart AI-powered recruitment platform for PESO Nasugbu, Batangas. Connecting local talent with local opportunities.</p>
+        </div>
+        <div class="footer-col">
+          <h4>For Job Seekers</h4>
+          <ul>
+            <li><a href="../job-postings/index.php">Browse Jobs</a></li>
+            <li><a href="../ai-matching/index.php">AI Matching</a></li>
+            <li><a href="../skill-gap-analysis/index.php">Skill Gap Analysis</a></li>
+            <li><a href="../applicant-tracking/index.php">Track Applications</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>For Employers</h4>
+          <ul>
+            <li><a href="../../employers/index.php">Post Jobs</a></li>
+            <li><a href="../../employers/modules/blind-hiring/index.php">Blind Hiring</a></li>
+            <li><a href="../../employers/index.php">Find Talent</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>PESO Nasugbu</h4>
+          <ul>
+            <li><a href="#">Nasugbu, Batangas</a></li>
+            <li><a href="#">About PESO</a></li>
+            <li><a href="#">Contact Us</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 TalentScout AI — PESO Nasugbu, Batangas</span>
+        <span>Built for Local Employment &amp; Community Growth</span>
+      </div>
+    </div>
+  </footer>
+
   <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
-    integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnQ=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"></script>
+    src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+  ></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.min.js"
+  ></script>
   <script src="../../employee-auth.js"></script>
   <script>
     const STORAGE_KEY = "tsEmployeeResumeData";
@@ -1166,6 +1677,16 @@ if ($apiAction === 'save' || $apiAction === 'load') {
       "skillFieldsContainer",
     );
     const resumeForm = document.getElementById("resumeForm");
+
+    function showSuccessModal() {
+      const modal = document.getElementById("successModal");
+      modal.classList.add("show");
+    }
+
+    function closeSuccessModal() {
+      const modal = document.getElementById("successModal");
+      modal.classList.remove("show");
+    }
 
     function getStoredAccount() {
       try {
@@ -1570,7 +2091,7 @@ if ($apiAction === 'save' || $apiAction === 'load') {
 
       preview.photo.src =
         selectedPhotoDataUrl ||
-        "https://via.placeholder.com/80x95.png?text=Photo";
+        "../../../placeholder.png";
     }
 
     function collectData() {
@@ -1660,7 +2181,7 @@ if ($apiAction === 'save' || $apiAction === 'load') {
         throw new Error(result.message || "Database load failed.");
       }
 
-      return result.data;
+      return result;
     }
 
     function applyData(data) {
@@ -1682,7 +2203,7 @@ if ($apiAction === 'save' || $apiAction === 'load') {
         data.workExperience : [];
       const educationItems = Array.isArray(data.education) ?
         data.education : [];
-      const skillItems = Array.isArray(data.skills) ? data.skills : [];
+      const skillItems = Array.isArray(data.skills) ? data.skills : (Array.isArray(data.existing_skills) ? data.existing_skills : []);
 
       if (workItems.length) {
         workItems.forEach((item) => createWorkEntry(item));
@@ -1771,7 +2292,7 @@ if ($apiAction === 'save' || $apiAction === 'load') {
         email: parsed.email || "",
         website: parsed.website || "",
         summary: parsed.summary || "",
-        skills: Array.isArray(parsed.skills) ? parsed.skills : [],
+        skills: Array.isArray(parsed.skills) ? parsed.skills : (Array.isArray(parsed.existing_skills) ? parsed.existing_skills : []),
         additional: parsed.additional || "",
         workExperience: [],
         education: [],
@@ -1906,9 +2427,13 @@ if ($apiAction === 'save' || $apiAction === 'load') {
       }
 
       try {
-        const dataFromDb = await loadResumeFromDatabase();
-        if (dataFromDb) {
-          const normalized = normalizeLegacyData(dataFromDb);
+        const result = await loadResumeFromDatabase();
+        if (result && result.success) {
+          const dataToUse = result.data || {};
+          if (!dataToUse.skills && result.existing_skills) {
+            dataToUse.existing_skills = result.existing_skills;
+          }
+          const normalized = normalizeLegacyData(dataToUse);
           applyData(normalized);
           localStorage.setItem(getCurrentStorageKey(), JSON.stringify(normalized));
           return;
@@ -1996,6 +2521,16 @@ if ($apiAction === 'save' || $apiAction === 'load') {
 
     resumeForm.addEventListener("input", updatePreview);
 
+    // Close success modal when X button is clicked
+    document.getElementById("successModalClose")?.addEventListener("click", closeSuccessModal);
+
+    // Close success modal when clicking outside of it
+    document.getElementById("successModal")?.addEventListener("click", function(e) {
+      if (e.target === this) {
+        closeSuccessModal();
+      }
+    });
+
     resumeForm.addEventListener("submit", async function(event) {
       event.preventDefault();
 
@@ -2004,7 +2539,7 @@ if ($apiAction === 'save' || $apiAction === 'load') {
 
       try {
         await saveResumeToDatabase(data);
-        alert("Resume saved successfully to database.");
+        showSuccessModal();
       } catch (error) {
         alert(
           "Saved locally, but database save failed. Please check XAMPP MySQL and try again.",
@@ -2056,7 +2591,7 @@ if ($apiAction === 'save' || $apiAction === 'load') {
       });
 
     preview.photo.addEventListener("error", function() {
-      preview.photo.src = "https://via.placeholder.com/80x95.png?text=Photo";
+      preview.photo.src = "../../../placeholder.png";
     });
 
     document
@@ -2072,38 +2607,64 @@ if ($apiAction === 'save' || $apiAction === 'load') {
         btn.disabled = true;
         btn.textContent = "Generating…";
 
-        const opt = {
-          margin: [0.45, 0.45, 0.45, 0.45],
-          filename: safeName + "_resume.pdf",
-          image: {
-            type: "jpeg",
-            quality: 0.98
-          },
-          html2canvas: {
-            scale: 2,
-            useCORS: true,
-            logging: false
-          },
-          jsPDF: {
+        console.log("Starting PDF generation for element:", element);
+        console.log("html2canvas:", typeof html2canvas);
+        console.log("jsPDF:", typeof jsPDF);
+        console.log("Element visible:", element.offsetParent !== null);
+        console.log("Element dimensions:", element.offsetWidth, "x", element.offsetHeight);
+
+        html2canvas(element, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: "#ffffff",
+          logging: false
+        }).then(function(canvas) {
+          console.log("Canvas generated:", canvas.width, "x", canvas.height);
+          
+          const imgData = canvas.toDataURL("image/jpeg", 0.98);
+          console.log("Image data generated, length:", imgData.length);
+          
+          const pdf = new jsPDF({
             unit: "in",
             format: "letter",
             orientation: "portrait"
-          },
-        };
-
-        html2pdf()
-          .set(opt)
-          .from(element)
-          .save()
-          .then(function() {
-            btn.disabled = false;
-            btn.innerHTML = "&#8595; Download PDF";
-          })
-          .catch(function() {
-            btn.disabled = false;
-            btn.innerHTML = "&#8595; Download PDF";
-            alert("Could not generate PDF. Please try again.");
           });
+          
+          const pdfWidth = pdf.internal.pageSize.getWidth();
+          const pdfHeight = pdf.internal.pageSize.getHeight();
+          const margin = 0.45;
+          
+          const availableWidth = pdfWidth - (margin * 2);
+          const availableHeight = pdfHeight - (margin * 2);
+          
+          const canvasWidth = canvas.width;
+          const canvasHeight = canvas.height;
+          const canvasRatio = canvasWidth / canvasHeight;
+          
+          let imgWidth = availableWidth;
+          let imgHeight = availableWidth / canvasRatio;
+          
+          if (imgHeight > availableHeight) {
+            imgHeight = availableHeight;
+            imgWidth = availableHeight * canvasRatio;
+          }
+          
+          const x = (pdfWidth - imgWidth) / 2;
+          const y = margin;
+          
+          pdf.addImage(imgData, "JPEG", x, y, imgWidth, imgHeight);
+          pdf.save(safeName + "_resume.pdf");
+          
+          console.log("PDF saved successfully");
+          btn.disabled = false;
+          btn.innerHTML = "&#8595; Download PDF";
+        }).catch(function(err) {
+          console.error("PDF generation error:", err);
+          btn.disabled = false;
+          btn.innerHTML = "&#8595; Download PDF";
+          alert("Could not generate PDF: " + err.message);
+        });
       });
 
     function shouldResetForNavigation(anchor) {
@@ -2135,6 +2696,20 @@ if ($apiAction === 'save' || $apiAction === 'load') {
     });
 
     loadSavedResume();
+  </script>
+
+  <script>
+    // Scroll reveal for builder page elements
+    const builderReveals = document.querySelectorAll('.reveal');
+    const builderIO = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          builderIO.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    builderReveals.forEach(el => builderIO.observe(el));
   </script>
 </body>
 

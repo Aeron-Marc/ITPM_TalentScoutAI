@@ -1,8 +1,11 @@
-<?php 
+<?php
 session_start();
+require_once __DIR__ . '/../auth.php';
+peso_require_admin('../login.php');
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,31 +13,39 @@ session_start();
   <link rel="stylesheet" href="../../styles/global.css">
   <link rel="stylesheet" href="../../styles/page-layout.css">
   <style>
-    body { background: #EEFFF9; }
+    body {
+      background: #EEFFF9;
+    }
+
     .modules-container {
       max-width: 1200px;
       margin: 3rem auto;
       padding: 0 2rem;
     }
+
     .modules-header {
       margin-bottom: 3rem;
       text-align: center;
     }
+
     .modules-header h1 {
       font-size: 2.5rem;
       color: var(--text-dark);
       margin-bottom: 0.5rem;
     }
+
     .modules-header p {
       font-size: 1.1rem;
       color: var(--text-muted);
     }
+
     .modules-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 2rem;
       margin-bottom: 3rem;
     }
+
     .module-card {
       display: flex;
       flex-direction: column;
@@ -47,22 +58,29 @@ session_start();
       transition: all 0.3s ease;
       box-shadow: var(--shadow-sm);
     }
+
     .module-card:hover {
       transform: translateY(-4px);
       box-shadow: var(--shadow);
       border-color: var(--primary);
     }
-    .module-card:hover .module-link { color: var(--primary); }
+
+    .module-card:hover .module-link {
+      color: var(--primary);
+    }
+
     .module-icon {
       font-size: 2.5rem;
       margin-bottom: 1rem;
     }
+
     .module-title {
       font-size: 1.3rem;
       font-weight: 600;
       color: var(--primary-darker);
       margin-bottom: 0.5rem;
     }
+
     .module-desc {
       font-size: 0.9rem;
       color: var(--text-muted);
@@ -70,6 +88,7 @@ session_start();
       padding-bottom: 1rem;
       flex-grow: 1;
     }
+
     .module-link {
       font-size: 0.85rem;
       font-weight: 600;
@@ -78,18 +97,20 @@ session_start();
     }
   </style>
 </head>
+
 <body>
   <nav class="navbar">
     <a href="../../index.php" class="nav-logo">
       <div class="nav-logo-icon">TS</div>
       <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
     </a>
-    <div class="nav-links">
-      <a href="../../index.php">Home</a>
-      <a href="../../employees/index.php">Job Seekers</a>
-      <a href="../../employers/index.php">Employers</a>
-      <a href="../../peso-dashboard/index.php" class="active">Admin</a>
-    </div>
+    <ul class="nav-links">
+      <li><a href="../../index.php">Home</a></li>
+      <li><a href="../../employees/index.php">Job Seekers</a></li>
+      <li><a href="../../employers/index.php">Employers</a></li>
+      <li><a href="../../peso-dashboard/index.php" class="active">Admin</a></li>
+      <li><a href="../logout.php">Logout</a></li>
+    </ul>
   </nav>
 
   <div class="modules-container">
@@ -167,4 +188,5 @@ session_start();
     </div>
   </footer>
 </body>
+
 </html>

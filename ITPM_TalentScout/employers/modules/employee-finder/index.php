@@ -2,13 +2,42 @@
 session_start();
 require_once('../../../database/db.php');
 
-// Get database connection
-$conn = getConnection();
-$employer_id = isset($_SESSION['employer_id']) ? $_SESSION['employer_id'] : 1; // Default to employer 1 for testing
+if (!isset($_SESSION['employer_id'])) {
+  header('Location: ../../login.php');
+  exit;
+}
 
-// Fetch all employees with their resumes and skills
+$conn = getConnection();
+$employer_id = (int)$_SESSION['employer_id'];
+
+$search_query = trim($_GET['search'] ?? '');
+$filter_skill = $_GET['skill'] ?? '';
+$filter_experience = $_GET['experience'] ?? '';
+
+$where_conditions = ["e.is_active = 1"];
+$params = [];
+$types = "";
+
+if (!empty($search_query)) {
+  $where_conditions[] = "(e.first_name LIKE ? OR e.last_name LIKE ? OR r.summary LIKE ? OR EXISTS (SELECT 1 FROM resume_skills rs JOIN resumes r2 ON rs.resume_id = r2.resume_id WHERE r2.employee_id = e.employee_id AND rs.skill_name LIKE ?))";
+  $search_param = "%{$search_query}%";
+  $params[] = &$search_param;
+  $params[] = &$search_param;
+  $params[] = &$search_param;
+  $params[] = &$search_param;
+  $types .= "ssss";
+}
+
+if (!empty($filter_skill)) {
+  $where_conditions[] = "EXISTS (SELECT 1 FROM resume_skills rs JOIN resumes r2 ON rs.resume_id = r2.resume_id WHERE r2.employee_id = e.employee_id AND rs.skill_name = ?)";
+  $params[] = &$filter_skill;
+  $types .= "s";
+}
+
+$where_clause = implode(" AND ", $where_conditions);
+
 $employees = [];
-$stmt = $conn->prepare("SELECT DISTINCT
+$sql = "SELECT DISTINCT
   e.employee_id,
   e.first_name,
   e.last_name,
@@ -17,8 +46,13 @@ $stmt = $conn->prepare("SELECT DISTINCT
   IFNULL(r.resume_id, 0) as resume_id
 FROM employee e
 LEFT JOIN resumes r ON e.employee_id = r.employee_id
-WHERE e.is_active = 1
-ORDER BY e.first_name ASC");
+WHERE $where_clause
+ORDER BY e.first_name ASC";
+
+$stmt = $conn->prepare($sql);
+if (!empty($params)) {
+  $stmt->bind_param($types, ...$params);
+}
 $stmt->execute();
 $result = $stmt->get_result();
 while ($row = $result->fetch_assoc()) {
@@ -26,10 +60,9 @@ while ($row = $result->fetch_assoc()) {
 }
 $stmt->close();
 
-// Fetch skills for each employee
-$employee_skills = [];
 foreach ($employees as &$emp) {
   if ($emp['resume_id'] > 0) {
+    // Get skills
     $stmt = $conn->prepare("SELECT skill_name FROM resume_skills WHERE resume_id = ?");
     $stmt->bind_param("i", $emp['resume_id']);
     $stmt->execute();
@@ -40,10 +73,54 @@ foreach ($employees as &$emp) {
     }
     $stmt->close();
     $emp['skills'] = $skills;
+    
+    // Get experiences - use correct column names from employee_experience table
+    $stmt = $conn->prepare("SELECT job_title, company_name FROM employee_experience WHERE resume_id = ? ORDER BY start_date DESC LIMIT 3");
+    $stmt->bind_param("i", $emp['resume_id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $experiences = [];
+    while ($row = $result->fetch_assoc()) {
+      if (!empty($row['job_title'])) {
+        $experiences[] = $row;
+      }
+    }
+    $stmt->close();
+    $emp['experiences'] = $experiences;
+    
+    // Get education - use correct column names from employee_education table
+    $stmt = $conn->prepare("SELECT degree, school FROM employee_education WHERE resume_id = ? ORDER BY start_date DESC LIMIT 2");
+    $stmt->bind_param("i", $emp['resume_id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $educations = [];
+    while ($row = $result->fetch_assoc()) {
+      if (!empty($row['degree'])) {
+        $educations[] = $row;
+      }
+    }
+    $stmt->close();
+    $emp['educations'] = $educations;
   } else {
     $emp['skills'] = [];
+    $emp['experiences'] = [];
+    $emp['educations'] = [];
   }
 }
+
+$all_skills = [];
+$stmt = $conn->query("SELECT DISTINCT skill_name FROM resume_skills ORDER BY skill_name LIMIT 50");
+while ($row = $stmt->fetch_assoc()) {
+  $all_skills[] = $row['skill_name'];
+}
+$stmt->close();
+
+$total_count = 0;
+$stmt = $conn->query("SELECT COUNT(*) as cnt FROM employee WHERE is_active = 1");
+if ($row = $stmt->fetch_assoc()) {
+  $total_count = $row['cnt'];
+}
+$stmt->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -604,12 +681,15 @@ foreach ($employees as &$emp) {
 <div id="normal-tab" class="tab-content active">
   <!-- SEARCH BAR -->
   <div class="search-bar-wrap">
-    <div class="search-bar">
+    <form method="GET" class="search-bar">
       <div class="search-input-rel">
-        <input type="text" class="input" placeholder="Search by skills, job title, experience...">
+        <input type="text" name="search" class="input" placeholder="Search by skills, name, or summary..." value="<?php echo htmlspecialchars($search_query); ?>">
       </div>
-      <button class="btn btn-primary">Search</button>
-    </div>
+      <button type="submit" class="btn btn-primary">Search</button>
+      <?php if (!empty($search_query) || !empty($filter_skill)): ?>
+        <a href="?" class="btn btn-outline" style="margin-left: 0.5rem;">Clear</a>
+      <?php endif; ?>
+    </form>
   </div>
 
   <!-- CONTENT -->
@@ -617,84 +697,64 @@ foreach ($employees as &$emp) {
     <!-- SIDEBAR FILTERS -->
     <aside>
       <div class="sidebar-card">
-        <div class="sidebar-title">Experience Level</div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck">-</div>
-            <span>Entry Level</span>
-          </div>
-          <span class="fcount">12</span>
-        </div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck on">✓</div>
-            <span>Mid Level</span>
-          </div>
-          <span class="fcount">24</span>
-        </div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck">-</div>
-            <span>Senior</span>
-          </div>
-          <span class="fcount">18</span>
+        <div class="sidebar-title">Filter by Skill</div>
+        <form method="GET">
+          <?php if (!empty($search_query)): ?>
+            <input type="hidden" name="search" value="<?php echo htmlspecialchars($search_query); ?>">
+          <?php endif; ?>
+          <select name="skill" class="select" style="width: 100%; margin-bottom: 1rem;" onchange="this.form.submit()">
+            <option value="">All Skills</option>
+            <?php foreach ($all_skills as $skill): ?>
+              <option value="<?php echo htmlspecialchars($skill); ?>" <?php echo ($filter_skill === $skill) ? 'selected' : ''; ?>><?php echo htmlspecialchars($skill); ?></option>
+            <?php endforeach; ?>
+          </select>
+        </form>
+        <a href="?" class="filter-item" style="text-decoration: none; color: inherit; display: block; padding: 0.5rem; background: var(--bg-light); border-radius: 4px; text-align: center;">
+          Clear All Filters
+        </a>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-title">Total Candidates</div>
+        <div style="text-align: center; padding: 1rem;">
+          <div style="font-size: 2rem; font-weight: 700; color: var(--primary-dark);"><?php echo $total_count; ?></div>
+          <div style="font-size: 0.85rem; color: var(--text-light);">Available in database</div>
         </div>
       </div>
 
       <div class="sidebar-card">
-        <div class="sidebar-title">Skills</div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck on">✓</div>
-            <span>React</span>
-          </div>
-          <span class="fcount">16</span>
-        </div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck on">✓</div>
-            <span>Python</span>
-          </div>
-          <span class="fcount">12</span>
-        </div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck">-</div>
-            <span>JavaScript</span>
-          </div>
-          <span class="fcount">18</span>
-        </div>
-      </div>
-
-      <div class="sidebar-card">
-        <div class="sidebar-title">Location</div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck on">✓</div>
-            <span>Nasugbu</span>
-          </div>
-          <span class="fcount">42</span>
-        </div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck">-</div>
-            <span>Remote</span>
-          </div>
-          <span class="fcount">8</span>
-        </div>
+        <div class="sidebar-title">Quick Links</div>
+        <a href="?search=JavaScript" class="filter-item" style="text-decoration: none; color: var(--text-mid); display: block; padding: 0.3rem 0;">
+          <span>JavaScript</span>
+        </a>
+        <a href="?search=Python" class="filter-item" style="text-decoration: none; color: var(--text-mid); display: block; padding: 0.3rem 0;">
+          <span>Python</span>
+        </a>
+        <a href="?search=React" class="filter-item" style="text-decoration: none; color: var(--text-mid); display: block; padding: 0.3rem 0;">
+          <span>React</span>
+        </a>
+        <a href="?search=Management" class="filter-item" style="text-decoration: none; color: var(--text-mid); display: block; padding: 0.3rem 0;">
+          <span>Management</span>
+        </a>
       </div>
     </aside>
 
     <!-- RESULTS -->
     <div>
       <div class="results-header">
-        <div class="results-title">Top Talent Matches</div>
-        <div class="results-count">Showing <?php echo count(array_slice($employees, 0, 6)); ?> of <?php echo count($employees); ?> candidates</div>
+        <div class="results-title">Talent Matches</div>
+        <div class="results-count">
+          <?php if (!empty($search_query) || !empty($filter_skill)): ?>
+            Found <?php echo count($employees); ?> candidate(s)
+          <?php else: ?>
+            Showing <?php echo count($employees); ?> of <?php echo $total_count; ?> candidates
+          <?php endif; ?>
+        </div>
       </div>
 
       <?php 
         if (count($employees) > 0) {
-          foreach (array_slice($employees, 0, 6) as $emp) {
+          foreach ($employees as $emp) {
             // Generate match score based on skills count
             $match_score = min(98, 70 + (count($emp['skills']) * 4));
       ?>
@@ -720,7 +780,7 @@ foreach ($employees as &$emp) {
         </div>
         <div class="action-buttons">
           <button class="btn-small btn-primary-small" onclick="viewProfile(<?php echo $emp['employee_id']; ?>)">View Profile</button>
-          <button class="btn-small btn-outline-small">Message</button>
+          <a href="../chat-sms/?employee_id=<?php echo $emp['employee_id']; ?>" class="btn-small btn-outline-small" style="text-decoration: none; display: inline-block;">Message</a>
         </div>
       </div>
       <?php } 
@@ -738,12 +798,15 @@ foreach ($employees as &$emp) {
 <div id="blind-tab" class="tab-content">
   <!-- SEARCH BAR -->
   <div class="search-bar-wrap">
-    <div class="search-bar">
+    <form method="GET" class="search-bar">
       <div class="search-input-rel">
-        <input type="text" class="input" placeholder="Search by skills or experience level...">
+        <input type="text" name="search" class="input" placeholder="Search by skills only (anonymous)..." value="<?php echo htmlspecialchars($search_query); ?>">
       </div>
-      <button class="btn btn-primary">Search</button>
-    </div>
+      <button type="submit" class="btn btn-primary">Search</button>
+      <?php if (!empty($search_query)): ?>
+        <a href="?tab=blind" class="btn btn-outline" style="margin-left: 0.5rem;">Clear</a>
+      <?php endif; ?>
+    </form>
   </div>
 
   <!-- CONTENT -->
@@ -751,53 +814,29 @@ foreach ($employees as &$emp) {
     <!-- SIDEBAR FILTERS -->
     <aside>
       <div class="sidebar-card">
-        <div class="sidebar-title">Experience Level</div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck">-</div>
-            <span>Entry Level</span>
-          </div>
-          <span class="fcount">12</span>
-        </div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck on">✓</div>
-            <span>Mid Level</span>
-          </div>
-          <span class="fcount">24</span>
-        </div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck">-</div>
-            <span>Senior</span>
-          </div>
-          <span class="fcount">18</span>
-        </div>
+        <div class="sidebar-title">Filter by Skill</div>
+        <form method="GET">
+          <input type="hidden" name="tab" value="blind">
+          <?php if (!empty($search_query)): ?>
+            <input type="hidden" name="search" value="<?php echo htmlspecialchars($search_query); ?>">
+          <?php endif; ?>
+          <select name="skill" class="select" style="width: 100%; margin-bottom: 1rem;" onchange="this.form.submit()">
+            <option value="">All Skills</option>
+            <?php foreach ($all_skills as $skill): ?>
+              <option value="<?php echo htmlspecialchars($skill); ?>" <?php echo ($filter_skill === $skill) ? 'selected' : ''; ?>><?php echo htmlspecialchars($skill); ?></option>
+            <?php endforeach; ?>
+          </select>
+        </form>
+        <a href="?tab=blind" class="filter-item" style="text-decoration: none; color: inherit; display: block; padding: 0.5rem; background: var(--bg-light); border-radius: 4px; text-align: center;">
+          Clear All Filters
+        </a>
       </div>
 
       <div class="sidebar-card">
-        <div class="sidebar-title">Skills</div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck on">✓</div>
-            <span>React</span>
-          </div>
-          <span class="fcount">16</span>
-        </div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck on">✓</div>
-            <span>Python</span>
-          </div>
-          <span class="fcount">12</span>
-        </div>
-        <div class="filter-item">
-          <div class="filter-left">
-            <div class="fcheck">-</div>
-            <span>JavaScript</span>
-          </div>
-          <span class="fcount">18</span>
-        </div>
+        <div class="sidebar-title">Blind Hiring Info</div>
+        <p style="font-size: 0.85rem; color: var(--text-light); line-height: 1.5;">
+          Candidates are shown anonymously. Personal details are hidden to reduce bias.
+        </p>
       </div>
     </aside>
 
@@ -805,12 +844,18 @@ foreach ($employees as &$emp) {
     <div>
       <div class="results-header">
         <div class="results-title">Anonymous Candidate Screening</div>
-        <div class="results-count">Showing <?php echo count(array_slice($employees, 0, 6)); ?> of <?php echo count($employees); ?> candidates</div>
+        <div class="results-count">
+          <?php if (!empty($search_query) || !empty($filter_skill)): ?>
+            Found <?php echo count($employees); ?> anonymous candidate(s)
+          <?php else: ?>
+            Showing <?php echo count($employees); ?> of <?php echo $total_count; ?> candidates
+          <?php endif; ?>
+        </div>
       </div>
 
       <?php 
         if (count($employees) > 0) {
-          foreach (array_slice($employees, 0, 6) as $index => $emp) {
+          foreach ($employees as $index => $emp) {
             // Generate match score based on skills count
             $match_score = min(98, 70 + (count($emp['skills']) * 4));
             $candidate_id = chr(65 + ($index % 26)) . rand(10, 99); // Generate ID like A42, B71, etc
@@ -836,8 +881,8 @@ foreach ($employees as &$emp) {
           <?php endif; ?>
         </div>
         <div class="action-buttons">
-          <button class="btn-small btn-primary-small" onclick="viewProfile(<?php echo $emp['employee_id']; ?>)">View Anonymous Profile</button>
-          <button class="btn-small btn-outline-small">Schedule Interview</button>
+          <button class="btn-small btn-primary-small" onclick="viewProfile(<?php echo $emp['employee_id']; ?>, true)">View Anonymous Profile</button>
+          <a href="../chat-sms/?employee_id=<?php echo $emp['employee_id']; ?>" class="btn-small btn-outline-small" style="text-decoration: none; display: inline-block;">Message</a>
         </div>
       </div>
       <?php } 
@@ -854,26 +899,22 @@ foreach ($employees as &$emp) {
 </div>
 
 <script>
-  function switchTab(tabName) {
-    // Hide all tabs
-    document.getElementById('normal-tab').classList.remove('active');
-    document.getElementById('blind-tab').classList.remove('active');
-    
-    // Remove active class from all links
-    document.querySelectorAll('.sub-nav-link').forEach(link => {
-      link.classList.remove('active');
-    });
-    
-    // Show selected tab with smooth animation
-    if (tabName === 'normal') {
-      document.getElementById('normal-tab').classList.add('active');
-      document.querySelectorAll('.sub-nav-link')[0].classList.add('active');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else if (tabName === 'blind') {
+  // Check URL for tab parameter on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    if (tab === 'blind') {
+      document.getElementById('normal-tab').classList.remove('active');
       document.getElementById('blind-tab').classList.add('active');
+      document.querySelectorAll('.sub-nav-link')[0].classList.remove('active');
       document.querySelectorAll('.sub-nav-link')[1].classList.add('active');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+  });
+
+  function switchTab(tabName) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', tabName);
+    window.location.href = url.toString();
   }
 
   // Enhance candidate card interactions
@@ -944,12 +985,114 @@ foreach ($employees as &$emp) {
     }
   }
 
-  // View Profile Handler
-  function viewProfile(employeeId) {
-    // In a real app, this would fetch candidate data from backend
-    // For now, we'll open the modal with the employee ID
+  // View Profile Handler - use data already in page
+  var employeeData = {};
+
+  // Collect all employee data from the PHP array
+  <?php foreach ($employees as $emp): ?>
+    employeeData[<?php echo $emp['employee_id']; ?>] = {
+      employee_id: <?php echo $emp['employee_id']; ?>,
+      first_name: '<?php echo addslashes($emp['first_name']); ?>',
+      last_name: '<?php echo addslashes($emp['last_name']); ?>',
+      summary: '<?php echo addslashes($emp['summary'] ?? 'No summary available.'); ?>',
+      skills: <?php echo json_encode($emp['skills'] ?? []); ?>,
+      experiences: <?php echo json_encode($emp['experiences'] ?? []); ?>,
+      educations: <?php echo json_encode($emp['educations'] ?? []); ?>
+    };
+  <?php endforeach; ?>
+
+  function viewProfile(employeeId, isAnonymous) {
+    var emp = employeeData[employeeId];
+    var modal = document.getElementById('profileModal');
+    var modalBody = modal.querySelector('.modal-body');
+    var modalFooter = modal.querySelector('.modal-footer');
+    var isAnon = isAnonymous || false;
+    
+    if (!emp) {
+      modalBody.innerHTML = '<div style="text-align: center; padding: 2rem; color: red;">Employee not found</div>';
+      modalFooter.innerHTML = '<button class="btn-small btn-outline-small" onclick="closeModal(\'profileModal\')">Close</button>';
+      openModal('profileModal');
+      return;
+    }
+    
     openModal('profileModal');
-    // You could send AJAX request here to fetch candidate details
+    
+    // Set modal title
+    var modalTitle = document.getElementById('profileModalTitle');
+    modalTitle.textContent = isAnon ? 'Anonymous Candidate' : 'Candidate Profile';
+    
+    // Build skills HTML
+    var skillsHtml = '';
+    if (emp.skills && emp.skills.length > 0) {
+      for (var i = 0; i < emp.skills.length; i++) {
+        skillsHtml += '<span class="skill-tag">' + emp.skills[i] + '</span>';
+      }
+    } else {
+      skillsHtml = '<span style="color: #888;">No skills listed</span>';
+    }
+    
+    // Build experience HTML (always show for both anonymous and regular)
+    var expHtml = '';
+    if (emp.experiences && emp.experiences.length > 0) {
+      for (var j = 0; j < emp.experiences.length; j++) {
+        var exp = emp.experiences[j];
+        expHtml += '<div style="padding-left: 1rem; border-left: 2px solid var(--primary-light); margin-bottom: 1rem;">';
+        expHtml += '<p style="margin: 0.5rem 0; font-weight: 600; color: var(--text-dark);">' + (exp.job_title || 'Position') + '</p>';
+        expHtml += '<p style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: var(--text-light);">' + (exp.company_name || 'Company') + '</p>';
+        expHtml += '</div>';
+      }
+    } else {
+      expHtml = '<p style="color: #888;">No experience listed</p>';
+    }
+    
+    // Build education HTML (always show for both anonymous and regular)
+    var eduHtml = '';
+    if (emp.educations && emp.educations.length > 0) {
+      for (var k = 0; k < emp.educations.length; k++) {
+        var edu = emp.educations[k];
+        eduHtml += '<div style="padding-left: 1rem; border-left: 2px solid var(--sage); margin-bottom: 0.5rem;">';
+        eduHtml += '<p style="margin: 0.5rem 0; font-weight: 600; color: var(--text-dark);">' + (edu.degree || 'Degree') + '</p>';
+        eduHtml += '<p style="margin: 0; font-size: 0.9rem; color: var(--text-light);">' + (edu.school || 'School') + '</p>';
+        eduHtml += '</div>';
+      }
+    } else {
+      eduHtml = '<p style="color: #888;">No education listed</p>';
+    }
+    
+    // Build name display - hide name if anonymous
+    var nameDisplay = isAnon ? 'Anonymous Candidate' : (emp.first_name + ' ' + emp.last_name);
+    
+    var html = '<div style="margin-bottom: 1.5rem;">' +
+      '<h3 style="font-size: 1.2rem; color: var(--text-dark); margin-bottom: 0.5rem;">' + nameDisplay + '</h3>' +
+      '<p style="color: var(--text-light); line-height: 1.6;">' + (isAnon ? 'Candidate details hidden for blind review' : emp.summary) + '</p>' +
+'</div>';
+    
+    // Always show skills, experience, education for both anonymous and regular profiles
+    // Skills section
+    html += '<div style="margin-bottom: 1.5rem;">' +
+      '<h3 style="font-size: 1.2rem; color: var(--text-dark); margin-bottom: 0.75rem;">Key Skills</h3>' +
+      '<div class="skills-list">' + skillsHtml + '</div>' +
+    '</div>';
+
+    // Experience section
+    html += '<div style="margin-bottom: 1.5rem;">' +
+      '<h3 style="font-size: 1.2rem; color: var(--text-dark); margin-bottom: 0.75rem;">Experience</h3>' +
+      expHtml +
+    '</div>';
+
+    // Education section
+    html += '<div style="margin-bottom: 1.5rem;">' +
+      '<h3 style="font-size: 1.2rem; color: var(--text-dark); margin-bottom: 0.75rem;">Education</h3>' +
+      eduHtml +
+    '</div>';
+    
+    modalBody.innerHTML = html;
+    modalFooter.innerHTML = '<button class="btn-small btn-outline-small" onclick="closeModal(\'profileModal\')">Close</button>' +
+      '<button class="btn-small btn-primary-small" onclick="messageEmployee(' + emp.employee_id + ')">Message Candidate</button>';
+  }
+  
+  function messageEmployee(employeeId) {
+    window.location.href = '../chat-sms/?employee_id=' + employeeId;
   }
 
   // Modal Event Listeners
@@ -983,58 +1126,34 @@ foreach ($employees as &$emp) {
 <div id="profileModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
-      <h2>Candidate Profile</h2>
+      <h2 id="profileModalTitle">Candidate Profile</h2>
       <button class="modal-close">×</button>
     </div>
     <div class="modal-body">
-      <div style="margin-bottom: 1.5rem;">
-        <h3 style="font-size: 1.2rem; color: var(--text-dark); margin-bottom: 0.5rem;">Experience Summary</h3>
-        <p style="color: var(--text-light); line-height: 1.6;">This candidate brings valuable skills and experience to your team. Strong track record in problem-solving and collaboration.</p>
-      </div>
-
-      <div style="margin-bottom: 1.5rem;">
-        <h3 style="font-size: 1.2rem; color: var(--text-dark); margin-bottom: 0.75rem;">Key Skills</h3>
-        <div class="skills-list">
-          <span class="skill-tag">React</span>
-          <span class="skill-tag">JavaScript</span>
-          <span class="skill-tag">Node.js</span>
-          <span class="skill-tag">Python</span>
-          <span class="skill-tag">AWS</span>
-          <span class="skill-tag">Docker</span>
-        </div>
-      </div>
-
-      <div style="margin-bottom: 1.5rem;">
-        <h3 style="font-size: 1.2rem; color: var(--text-dark); margin-bottom: 0.75rem;">Experience & Education</h3>
-        <div style="padding-left: 1rem; border-left: 2px solid var(--primary-light);">
-          <p style="margin: 0.5rem 0; font-weight: 600; color: var(--text-dark);">Mid-level Full Stack Developer</p>
-          <p style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: var(--text-light);">3+ years of professional development experience</p>
-          <p style="margin: 0.5rem 0; font-weight: 600; color: var(--text-dark);">Bachelor's Degree in Computer Science</p>
-          <p style="margin: 0; font-size: 0.9rem; color: var(--text-light);">University of Technology</p>
-        </div>
-      </div>
-
-      <div style="margin-bottom: 1.5rem;">
-        <h3 style="font-size: 1.2rem; color: var(--text-dark); margin-bottom: 0.75rem;">Match Details</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius);">
-            <p style="margin: 0 0 0.25rem 0; font-size: 0.85rem; color: var(--text-light);">Overall Match</p>
-            <p style="margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--primary-dark);">85%</p>
-          </div>
-          <div style="background: var(--bg-light); padding: 1rem; border-radius: var(--radius);">
-            <p style="margin: 0 0 0.25rem 0; font-size: 0.85rem; color: var(--text-light);">Skill Alignment</p>
-            <p style="margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--primary-dark);">92%</p>
-          </div>
-        </div>
-      </div>
+      <!-- Content will be loaded dynamically -->
     </div>
     <div class="modal-footer">
-      <button class="btn-small btn-outline-small" onclick="closeModal('profileModal')">Close</button>
-      <button class="btn-small btn-primary-small">Message Candidate</button>
-      <button class="btn-small btn-primary-small">Schedule Interview</button>
+      <!-- Buttons will be loaded dynamically -->
     </div>
   </div>
 </div>
+
+<script>
+  // Attach event listener to the X button in profile modal
+  document.addEventListener('DOMContentLoaded', () => {
+    const profileModal = document.getElementById('profileModal');
+    if (profileModal) {
+      const closeBtn = profileModal.querySelector('.modal-close');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          closeModal('profileModal');
+        });
+      }
+    }
+  });
+</script>
 
 <!-- FOOTER -->
 <footer class="footer">

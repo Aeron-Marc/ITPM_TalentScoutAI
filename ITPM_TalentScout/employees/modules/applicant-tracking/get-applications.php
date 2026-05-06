@@ -30,8 +30,10 @@ try {
       a.employee_id,
       a.application_date,
       a.status,
+      a.hire_status,
       j.title as job_title,
-      e.company_name
+      e.company_name,
+      e.employer_id
     FROM application a
     JOIN job_post j ON a.job_post_id = j.job_post_id
     JOIN employer e ON j.employer_id = e.employer_id
@@ -52,6 +54,20 @@ try {
     $applications = [];
 
     while ($row = $result->fetch_assoc()) {
+        // Calculate display status based on hire_status priority
+        $displayStatus = $row['status'];
+        $hireStatus = $row['hire_status'] ?? 'none';
+        
+        // Override display status based on hire_status
+        if ($hireStatus === 'accepted') {
+            $displayStatus = 'Hired';
+        } elseif ($hireStatus === 'rejected') {
+            $displayStatus = 'Offer Declined';
+        } elseif ($hireStatus === 'offered') {
+            $displayStatus = 'Offer Received';
+        }
+        
+        $row['display_status'] = $displayStatus;
         $applications[] = $row;
     }
 
@@ -60,16 +76,25 @@ try {
 
     // Calculate statistics
     $totalApplications = count($applications);
-    $interviewsScheduled = count(array_filter($applications, function($app) {
-        return stripos($app['status'], 'interview') !== false;
+    $hiredCount = count(array_filter($applications, function($app) {
+        return ($app['hire_status'] ?? 'none') === 'accepted';
     }));
     $jobOffers = count(array_filter($applications, function($app) {
-        return stripos($app['status'], 'offer') !== false;
+        return ($app['hire_status'] ?? 'none') === 'offered';
+    }));
+    $interviewsScheduled = count(array_filter($applications, function($app) {
+        // Count interview only if not hired or offered
+        $hireStatus = $app['hire_status'] ?? 'none';
+        return stripos($app['status'], 'interview') !== false && !in_array($hireStatus, ['offered', 'accepted']);
     }));
     $underReview = count(array_filter($applications, function($app) {
         $status = strtolower($app['status']);
-        return $status === 'under review' || $status === 'pending' || 
-               (!in_array($status, ['interview scheduled', 'offer received', 'rejected', 'not selected']));
+        $hireStatus = $app['hire_status'] ?? 'none';
+        // Under review if: not hired, not offered, not interview, not rejected
+        return !in_array($hireStatus, ['offered', 'accepted', 'rejected']) && 
+               $status !== 'rejected' && 
+               stripos($status, 'interview') === false &&
+               stripos($status, 'offer') === false;
     }));
 
     http_response_code(200);
@@ -78,8 +103,9 @@ try {
         'applications' => $applications,
         'stats' => [
             'totalApplications' => $totalApplications,
-            'interviewsScheduled' => $interviewsScheduled,
+            'hired' => $hiredCount,
             'jobOffers' => $jobOffers,
+            'interviewsScheduled' => $interviewsScheduled,
             'underReview' => $underReview
         ]
     ]);

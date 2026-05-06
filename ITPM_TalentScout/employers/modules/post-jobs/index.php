@@ -2,11 +2,14 @@
 session_start();
 require_once('../../../database/db.php');
 
-// Get database connection
-$conn = getConnection();
-$employer_id = isset($_SESSION['employer_id']) ? $_SESSION['employer_id'] : 1; // Default to employer 1 for testing
+if (!isset($_SESSION['employer_id'])) {
+  header('Location: ../../login.php');
+  exit;
+}
 
-// Handle form submission (POST new job)
+$conn = getConnection();
+$employer_id = (int)$_SESSION['employer_id'];
+
 $success_message = '';
 $error_message = '';
 
@@ -14,42 +17,153 @@ if (isset($_GET['job_created']) && $_GET['job_created'] === '1') {
   $success_message = "Job posting created successfully!";
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'create_job') {
-  $title = trim($_POST['job_title'] ?? '');
-  $category = trim($_POST['job_category'] ?? '');
-  $description = trim($_POST['job_description'] ?? '');
-  $salary = trim($_POST['salary_range'] ?? '');
-  $location = trim($_POST['location'] ?? '');
-  $location_lat = trim($_POST['location_lat'] ?? '');
-  $location_lng = trim($_POST['location_lng'] ?? '');
-  $work_type = trim($_POST['job_type'] ?? '');
-  $skills = trim($_POST['required_skills'] ?? '');
-  $deadline = trim($_POST['application_deadline'] ?? '');
+if (isset($_GET['job_updated']) && $_GET['job_updated'] === '1') {
+  $success_message = "Job posting updated successfully!";
+}
 
-  if ($title && $category && $description && $salary && $location && $work_type && $skills && $location_lat !== '' && $location_lng !== '') {
-    $stmt = $conn->prepare("INSERT INTO job_post (employer_id, title, description, salary, location, work_type, application_deadline, skills, experience_level, job_category, job_post_created) VALUES (?, ?, ?, ?, ?, ?, ?, ?, '', ?, NOW())");
-    $stmt->bind_param("issssssss", $employer_id, $title, $description, $salary, $location, $work_type, $deadline, $skills, $category);
+if (isset($_GET['job_closed']) && $_GET['job_closed'] === '1') {
+  $success_message = "Job posting has been closed.";
+}
 
-    if ($stmt->execute()) {
+if (isset($_GET['job_deleted']) && $_GET['job_deleted'] === '1') {
+  $success_message = "Job posting has been deleted.";
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+  if ($_POST['action'] === 'create_job') {
+    $title = trim($_POST['job_title'] ?? '');
+    $category = trim($_POST['job_category'] ?? '');
+    $description = trim($_POST['job_description'] ?? '');
+    $salary = trim($_POST['salary_range'] ?? '');
+    $location = trim($_POST['location'] ?? '');
+    $location_lat = trim($_POST['location_lat'] ?? '');
+    $location_lng = trim($_POST['location_lng'] ?? '');
+    $work_type = trim($_POST['job_type'] ?? '');
+    $skills = trim($_POST['required_skills'] ?? '');
+    $deadline = trim($_POST['application_deadline'] ?? '');
+
+    if ($title && $category && $description && $salary && $location && $work_type && $skills && $location_lat !== '' && $location_lng !== '') {
+      $stmt = $conn->prepare("INSERT INTO job_post (employer_id, title, description, salary, location, work_type, application_deadline, skills, experience_level, job_category, job_post_created) VALUES (?, ?, ?, ?, ?, ?, ?, ?, '', ?, NOW())");
+      $stmt->bind_param("issssssss", $employer_id, $title, $description, $salary, $location, $work_type, $deadline, $skills, $category);
+
+      if ($stmt->execute()) {
+        $stmt->close();
+        header("Location: " . strtok($_SERVER['REQUEST_URI'], '?') . "?job_created=1");
+        exit;
+      } else {
+        $error_message = ($location_lat === '' || $location_lng === '') ? "Please pin a location on the map before submitting." : "Please fill in all required fields.";
+      }
+    }
+  }
+
+  if ($_POST['action'] === 'close_job') {
+    $job_id = intval($_POST['job_id'] ?? 0);
+    if ($job_id > 0) {
+      $stmt = $conn->prepare("UPDATE job_post SET job_status = 'closed' WHERE job_post_id = ? AND employer_id = ?");
+      $stmt->bind_param("ii", $job_id, $employer_id);
+      $stmt->execute();
       $stmt->close();
-      header("Location: " . strtok($_SERVER['REQUEST_URI'], '?') . "?job_created=1");
+      header("Location: " . strtok($_SERVER['REQUEST_URI'], '?') . "?job_closed=1");
+      exit;
+    }
+  }
+
+  if ($_POST['action'] === 'delete_job') {
+    $job_id = intval($_POST['job_id'] ?? 0);
+    if ($job_id > 0) {
+      $stmt = $conn->prepare("DELETE FROM job_post WHERE job_post_id = ? AND employer_id = ?");
+      $stmt->bind_param("ii", $job_id, $employer_id);
+      $stmt->execute();
+      $stmt->close();
+      header("Location: " . strtok($_SERVER['REQUEST_URI'], '?') . "?job_deleted=1");
+      exit;
+    }
+  }
+
+  if ($_POST['action'] === 'update_job') {
+    $job_id = intval($_POST['job_id'] ?? 0);
+    $title = trim($_POST['edit_job_title'] ?? '');
+    $category = trim($_POST['edit_job_category'] ?? '');
+    $description = trim($_POST['edit_job_description'] ?? '');
+    $salary = trim($_POST['edit_salary_range'] ?? '');
+    $location = trim($_POST['edit_location'] ?? '');
+    $work_type = trim($_POST['edit_job_type'] ?? '');
+    $skills = trim($_POST['edit_required_skills'] ?? '');
+    $deadline = trim($_POST['edit_application_deadline'] ?? '');
+
+    if ($job_id > 0 && $title && $description) {
+      $stmt = $conn->prepare("UPDATE job_post SET title = ?, description = ?, salary = ?, location = ?, work_type = ?, application_deadline = ?, skills = ?, job_category = ? WHERE job_post_id = ? AND employer_id = ?");
+      $stmt->bind_param("ssssssssii", $title, $description, $salary, $location, $work_type, $deadline, $skills, $category, $job_id, $employer_id);
+      $stmt->execute();
+      $stmt->close();
+      header("Location: " . strtok($_SERVER['REQUEST_URI'], '?') . "?job_updated=1");
       exit;
     } else {
-      $error_message = "Error creating job posting: " . $conn->error;
+      $error_message = "Please fill in all required fields.";
     }
-  } else {
-    $error_message = ($location_lat === '' || $location_lng === '') ? "Please pin a location on the map before submitting." : "Please fill in all required fields.";
   }
 }
 
-// Fetch jobs for current employer
+$filter_status = $_GET['status'] ?? 'all';
+
 $jobs = [];
-$stmt = $conn->prepare("SELECT job_post_id, title, salary, location, work_type, job_post_created FROM job_post WHERE employer_id = ? ORDER BY job_post_created DESC");
+if ($filter_status === 'all' || $filter_status === 'active') {
+  $stmt = $conn->prepare("SELECT job_post_id, title, salary, location, work_type, job_post_created, job_status, job_category, description, skills, application_deadline FROM job_post WHERE employer_id = ? AND (job_status IS NULL OR job_status = 'active' OR job_status = '') ORDER BY job_post_created DESC");
+  $stmt->bind_param("i", $employer_id);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  while ($row = $result->fetch_assoc()) {
+    $jobs[] = $row;
+  }
+  $stmt->close();
+}
+
+if ($filter_status === 'closed') {
+  $stmt = $conn->prepare("SELECT job_post_id, title, salary, location, work_type, job_post_created, job_status, job_category, description, skills, application_deadline FROM job_post WHERE employer_id = ? AND job_status = 'closed' ORDER BY job_post_created DESC");
+  $stmt->bind_param("i", $employer_id);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  while ($row = $result->fetch_assoc()) {
+    $jobs[] = $row;
+  }
+  $stmt->close();
+}
+
+if ($filter_status === 'drafts') {
+  $stmt = $conn->prepare("SELECT job_post_id, title, salary, location, work_type, job_post_created, job_status, job_category, description, skills, application_deadline FROM job_post WHERE employer_id = ? AND job_status = 'draft' ORDER BY job_post_created DESC");
+  $stmt->bind_param("i", $employer_id);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  while ($row = $result->fetch_assoc()) {
+    $jobs[] = $row;
+  }
+  $stmt->close();
+}
+
+$job_counts = [];
+$stmt = $conn->prepare("SELECT job_post_id, COUNT(*) as count FROM application WHERE job_post_id IN (SELECT job_post_id FROM job_post WHERE employer_id = ?) GROUP BY job_post_id");
 $stmt->bind_param("i", $employer_id);
 $stmt->execute();
 $result = $stmt->get_result();
 while ($row = $result->fetch_assoc()) {
-  $jobs[] = $row;
+  $job_counts[$row['job_post_id']] = $row['count'];
+}
+$stmt->close();
+
+$stats = ['active' => 0, 'closed' => 0, 'drafts' => 0];
+$stmt = $conn->prepare("SELECT job_status, COUNT(*) as count FROM job_post WHERE employer_id = ? GROUP BY job_status");
+$stmt->bind_param("i", $employer_id);
+$stmt->execute();
+$result = $stmt->get_result();
+while ($row = $result->fetch_assoc()) {
+  $status = $row['job_status'] ?? 'active';
+  if ($status === 'closed') {
+    $stats['closed'] = (int)$row['count'];
+  } elseif ($status === 'draft') {
+    $stats['drafts'] = (int)$row['count'];
+  } else {
+    $stats['active'] += (int)$row['count'];
+  }
 }
 $stmt->close();
 
@@ -101,7 +215,6 @@ $stmt->close();
 
     /* Modal Styles */
     .modal {
-      display: none;
       position: fixed;
       z-index: 1000;
       left: 0;
@@ -110,10 +223,13 @@ $stmt->close();
       height: 100%;
       background-color: rgba(0, 0, 0, 0.5);
       animation: fadeIn 0.2s ease;
+      display: none !important;
+      align-items: center;
+      justify-content: center;
     }
 
     .modal.active {
-      display: flex;
+      display: flex !important;
       align-items: center;
       justify-content: center;
     }
@@ -431,6 +547,88 @@ $stmt->close();
       border-radius: var(--radius-sm);
       overflow: hidden;
       background: #eef5f2;
+      cursor: crosshair;
+    }
+
+    .location-hint {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      margin-top: 0.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .location-hint-icon {
+      font-size: 1rem;
+    }
+
+    .location-confirm-popup {
+      text-align: center;
+      min-width: 200px;
+    }
+
+    .location-confirm-popup h4 {
+      margin: 0 0 0.5rem 0;
+      font-size: 0.95rem;
+      color: var(--text-dark);
+    }
+
+    .location-confirm-popup .popup-address {
+      font-size: 0.8rem;
+      color: var(--text-mid);
+      margin-bottom: 0.75rem;
+      max-height: 60px;
+      overflow-y: auto;
+      line-height: 1.4;
+    }
+
+    .location-confirm-popup .popup-actions {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+
+    .location-confirm-popup .popup-btn {
+      padding: 0.4rem 1rem;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .location-confirm-popup .popup-btn-cancel {
+      background: #e9ecef;
+      color: var(--text-mid);
+    }
+
+    .location-confirm-popup .popup-btn-save {
+      background: var(--primary-dark);
+      color: white;
+    }
+
+    .location-confirm-popup .popup-btn:hover {
+      opacity: 0.85;
+    }
+
+    .leaflet-popup-content-wrapper {
+      border-radius: var(--radius-sm) !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .leaflet-popup-content {
+      margin: 0 !important;
+      line-height: 1.4 !important;
+    }
+
+    .location-popup-wrapper {
+      padding: 0 !important;
+    }
+
+    .location-popup-wrapper .location-confirm-popup {
+      padding: 0.75rem;
     }
 
     .form-row {
@@ -457,6 +655,10 @@ $stmt->close();
 
     .submit-btn:hover {
       background: var(--primary-darker);
+    }
+
+    .active-filter {
+      background: var(--bg-light);
     }
 
     .jobs-list {
@@ -586,27 +788,34 @@ $stmt->close();
       <aside>
         <div class="sidebar-card">
           <div class="sidebar-title">Status</div>
-          <div class="filter-item">
+          <a href="?status=all" class="filter-item <?php echo ($filter_status === 'all' || $filter_status === '') ? 'active-filter' : ''; ?>" style="text-decoration: none; color: inherit;">
             <div class="filter-left">
-              <div class="fcheck on">✓</div>
+              <div class="fcheck <?php echo ($filter_status === 'all' || $filter_status === '') ? 'on' : ''; ?>"><?php echo ($filter_status === 'all' || $filter_status === '') ? '✓' : '-'; ?></div>
+              <span>All Jobs</span>
+            </div>
+            <span class="fcount"><?php echo $stats['active'] + $stats['closed'] + $stats['drafts']; ?></span>
+          </a>
+          <a href="?status=active" class="filter-item <?php echo ($filter_status === 'active') ? 'active-filter' : ''; ?>" style="text-decoration: none; color: inherit;">
+            <div class="filter-left">
+              <div class="fcheck <?php echo ($filter_status === 'active') ? 'on' : ''; ?>"><?php echo ($filter_status === 'active') ? '✓' : '-'; ?></div>
               <span>Active</span>
             </div>
-            <span class="fcount">8</span>
-          </div>
-          <div class="filter-item">
+            <span class="fcount"><?php echo $stats['active']; ?></span>
+          </a>
+          <a href="?status=closed" class="filter-item <?php echo ($filter_status === 'closed') ? 'active-filter' : ''; ?>" style="text-decoration: none; color: inherit;">
             <div class="filter-left">
-              <div class="fcheck">-</div>
+              <div class="fcheck <?php echo ($filter_status === 'closed') ? 'on' : ''; ?>"><?php echo ($filter_status === 'closed') ? '✓' : '-'; ?></div>
               <span>Closed</span>
             </div>
-            <span class="fcount">2</span>
-          </div>
-          <div class="filter-item">
+            <span class="fcount"><?php echo $stats['closed']; ?></span>
+          </a>
+          <a href="?status=drafts" class="filter-item <?php echo ($filter_status === 'drafts') ? 'active-filter' : ''; ?>" style="text-decoration: none; color: inherit;">
             <div class="filter-left">
-              <div class="fcheck">-</div>
+              <div class="fcheck <?php echo ($filter_status === 'drafts') ? 'on' : ''; ?>"><?php echo ($filter_status === 'drafts') ? '✓' : '-'; ?></div>
               <span>Drafts</span>
             </div>
-            <span class="fcount">1</span>
-          </div>
+            <span class="fcount"><?php echo $stats['drafts']; ?></span>
+          </a>
         </div>
 
         <div class="sidebar-card">
@@ -616,21 +825,21 @@ $stmt->close();
               <div class="fcheck">-</div>
               <span>Last 7 Days</span>
             </div>
-            <span class="fcount">3</span>
+            <span class="fcount"><?php echo $stats['active']; ?></span>
           </div>
           <div class="filter-item">
             <div class="filter-left">
               <div class="fcheck">-</div>
               <span>Last 30 Days</span>
             </div>
-            <span class="fcount">5</span>
+            <span class="fcount"><?php echo $stats['closed']; ?></span>
           </div>
           <div class="filter-item">
             <div class="filter-left">
               <div class="fcheck">-</div>
               <span>Earlier</span>
             </div>
-            <span class="fcount">3</span>
+            <span class="fcount">0</span>
           </div>
         </div>
       </aside>
@@ -647,6 +856,199 @@ $stmt->close();
           <button class="btn-modal-trigger" onclick="openModal('jobModal')">
             + Create New Job Posting
           </button>
+        </div>
+
+        <!-- NEW JOB MODAL -->
+        <div id="jobModal" class="modal">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2>Create New Job Posting</h2>
+              <button class="modal-close" onclick="closeModal('jobModal')">&times;</button>
+            </div>
+            <form method="POST" action="">
+              <input type="hidden" name="action" value="create_job">
+              <div class="modal-body">
+                <div class="form-group">
+                  <label class="form-label">Job Title *</label>
+                  <input type="text" name="job_title" class="input" required placeholder="e.g. Senior Software Engineer">
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Category *</label>
+                    <select name="job_category" class="select" required>
+                      <option value="">Select Category</option>
+                      <option value="IT">Information Technology</option>
+                      <option value="Healthcare">Healthcare</option>
+                      <option value="Education">Education</option>
+                      <option value="Finance">Finance & Banking</option>
+                      <option value="Retail">Retail & Sales</option>
+                      <option value="Manufacturing">Manufacturing</option>
+                      <option value="Construction">Construction</option>
+                      <option value="Food">Food & Hospitality</option>
+                      <option value="Transport">Transportation</option>
+                      <option value="Admin">Administration</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Work Type *</label>
+                    <select name="job_type" class="select" required>
+                      <option value="">Select Type</option>
+                      <option value="Full-time">Full-time</option>
+                      <option value="Part-time">Part-time</option>
+                      <option value="Contract">Contract</option>
+                      <option value="Internship">Internship</option>
+                      <option value="Freelance">Freelance</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Job Description *</label>
+                  <textarea name="job_description" class="textarea" required placeholder="Describe the job responsibilities, requirements, and benefits..."></textarea>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Salary Range *</label>
+                    <input type="text" name="salary_range" class="input" required placeholder="e.g. ₱25,000 - ₱35,000">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Application Deadline</label>
+                    <input type="date" name="application_deadline" class="input" min="<?php echo date('Y-m-d'); ?>">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Location * (Click on map to pin location)</label>
+                  <input type="text" name="location" class="input" id="jobLocationInput" required placeholder="Enter address (e.g. Nasugbu, Batangas)">
+                  <input type="hidden" name="location_lat" id="location_lat">
+                  <input type="hidden" name="location_lng" id="location_lng">
+                  <div id="locationMap" class="location-map"></div>
+                  <div class="location-hint">
+                    <span class="location-hint-icon">📍</span>
+                    <span id="locationHintText">Click anywhere on the map to select a location</span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Required Skills *</label>
+                  <input type="text" name="required_skills" class="input" required placeholder="e.g. HTML, CSS, JavaScript, PHP">
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn" style="background: #6c757d; color: white; border: none; padding: 0.7rem 1.5rem; border-radius: var(--radius-sm); cursor: pointer;" onclick="closeModal('jobModal')">Cancel</button>
+                <button type="submit" class="submit-btn">Post Job</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- EDIT JOB MODAL -->
+        <div id="editJobModal" class="modal">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2>Edit Job Posting</h2>
+              <button class="modal-close" onclick="closeModal('editJobModal')">&times;</button>
+            </div>
+            <form method="POST" action="">
+              <input type="hidden" name="action" value="update_job">
+              <input type="hidden" name="job_id" id="edit_job_id">
+              <div class="modal-body">
+                <div class="form-group">
+                  <label class="form-label">Job Title *</label>
+                  <input type="text" name="edit_job_title" id="edit_job_title" class="input" required>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Category *</label>
+                    <select name="edit_job_category" id="edit_job_category" class="select" required>
+                      <option value="">Select Category</option>
+                      <option value="IT">Information Technology</option>
+                      <option value="Healthcare">Healthcare</option>
+                      <option value="Education">Education</option>
+                      <option value="Finance">Finance & Banking</option>
+                      <option value="Retail">Retail & Sales</option>
+                      <option value="Manufacturing">Manufacturing</option>
+                      <option value="Construction">Construction</option>
+                      <option value="Food">Food & Hospitality</option>
+                      <option value="Transport">Transportation</option>
+                      <option value="Admin">Administration</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Work Type *</label>
+                    <select name="edit_job_type" id="edit_job_type" class="select" required>
+                      <option value="">Select Type</option>
+                      <option value="Full-time">Full-time</option>
+                      <option value="Part-time">Part-time</option>
+                      <option value="Contract">Contract</option>
+                      <option value="Internship">Internship</option>
+                      <option value="Freelance">Freelance</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Job Description *</label>
+                  <textarea name="edit_job_description" id="edit_job_description" class="textarea" required></textarea>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Salary Range *</label>
+                    <input type="text" name="edit_salary_range" id="edit_salary_range" class="input" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Application Deadline</label>
+                    <input type="date" name="edit_application_deadline" id="edit_application_deadline" class="input" min="<?php echo date('Y-m-d'); ?>">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Location *</label>
+                  <input type="text" name="edit_location" id="edit_location" class="input" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Required Skills *</label>
+                  <input type="text" name="edit_required_skills" id="edit_required_skills" class="input" required>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn" style="background: #6c757d; color: white; border: none; padding: 0.7rem 1.5rem; border-radius: var(--radius-sm); cursor: pointer;" onclick="closeModal('editJobModal')">Cancel</button>
+                <button type="submit" class="submit-btn">Update Job</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- CONFIRM CLOSE JOB MODAL -->
+        <div id="confirmCloseModal" class="modal">
+          <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+              <h2>Close Job Posting?</h2>
+              <button class="modal-close" onclick="closeModal('confirmCloseModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+              <p>Are you sure you want to close this job posting? You can reopen it later if needed.</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn" style="background: #6c757d; color: white; border: none; padding: 0.7rem 1.5rem; border-radius: var(--radius-sm); cursor: pointer;" onclick="closeModal('confirmCloseModal')">Cancel</button>
+              <button type="button" class="submit-btn" onclick="confirmCloseJob()">Close Job</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONFIRM DELETE JOB MODAL -->
+        <div id="confirmDeleteModal" class="modal">
+          <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+              <h2>Delete Job Posting?</h2>
+              <button class="modal-close" onclick="closeModal('confirmDeleteModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+              <p style="color: #721c24; font-weight: 600;">⚠️ This action cannot be undone.</p>
+              <p>Are you sure you want to permanently delete this job posting?</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn" style="background: #6c757d; color: white; border: none; padding: 0.7rem 1.5rem; border-radius: var(--radius-sm); cursor: pointer;" onclick="closeModal('confirmDeleteModal')">Cancel</button>
+              <button type="button" class="submit-btn" style="background: #dc3545; border-color: #dc3545;" onclick="confirmDeleteJob()">Delete Job</button>
+            </div>
+          </div>
         </div>
 
         <!-- Success/Error Messages -->
@@ -667,14 +1069,17 @@ $stmt->close();
             <div class="jobs-list-header">Your Active Job Postings (<?php echo count($jobs); ?> total)</div>
 
             <?php if (count($jobs) > 0): ?>
-              <?php foreach ($jobs as $job): ?>
+              <?php foreach ($jobs as $job): 
+                $job_status = $job['job_status'] ?? 'active';
+                $is_closed = ($job_status === 'closed');
+              ?>
                 <div class="job-card">
                   <div>
                     <div class="job-title"><?php echo htmlspecialchars($job['title']); ?></div>
                     <div class="job-meta">
                       📍 <?php echo htmlspecialchars($job['location']); ?> •
                       💼 <?php echo htmlspecialchars($job['work_type']); ?> •
-                      💰 <?php echo htmlspecialchars($job['salary']); ?>
+                      ₱ <?php echo htmlspecialchars($job['salary']); ?>
                     </div>
                   </div>
                   <div style="text-align: center;">
@@ -684,11 +1089,27 @@ $stmt->close();
                     <div style="font-size: 0.75rem; color: var(--text-light);">Applications</div>
                   </div>
                   <div style="text-align: center;">
-                    <div style="background: #d4edda; color: #155724; padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">ACTIVE</div>
+                    <?php if ($is_closed): ?>
+                      <div style="background: #f8d7da; color: #721c24; padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">CLOSED</div>
+                    <?php else: ?>
+                      <div style="background: #d4edda; color: #155724; padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">ACTIVE</div>
+                    <?php endif; ?>
                   </div>
                   <div class="job-card-actions">
-                    <button class="btn-small" style="background: white; border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;">Edit</button>
-                    <button class="btn-small" style="background: white; border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;">Close</button>
+                    <button class="btn-small" style="background: white; border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;" onclick="openEditModal(<?php echo $job['job_post_id']; ?>, '<?php echo htmlspecialchars(addslashes($job['title'])); ?>', '<?php echo htmlspecialchars(addslashes($job['job_category'] ?? '')); ?>', '<?php echo htmlspecialchars(addslashes($job['description'])); ?>', '<?php echo htmlspecialchars(addslashes($job['salary'])); ?>', '<?php echo htmlspecialchars(addslashes($job['location'])); ?>', '<?php echo htmlspecialchars(addslashes($job['work_type'])); ?>', '<?php echo htmlspecialchars(addslashes($job['skills'])); ?>', '<?php echo $job['application_deadline'] ?? ''; ?>')">Edit</button>
+                    <?php if (!$is_closed): ?>
+                      <form id="closeForm_<?php echo $job['job_post_id']; ?>" method="POST" style="display:none;">
+                        <input type="hidden" name="action" value="close_job">
+                        <input type="hidden" name="job_id" value="<?php echo $job['job_post_id']; ?>">
+                      </form>
+                      <button type="button" class="btn-small" style="background: white; border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;" onclick="openCloseConfirm(<?php echo $job['job_post_id']; ?>)">Close</button>
+                    <?php else: ?>
+                      <form id="deleteForm_<?php echo $job['job_post_id']; ?>" method="POST" style="display:none;">
+                        <input type="hidden" name="action" value="delete_job">
+                        <input type="hidden" name="job_id" value="<?php echo $job['job_post_id']; ?>">
+                      </form>
+                      <button type="button" class="btn-small" style="background: #f8d7da; border: 1px solid #f5c6cb; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600; color: #721c24;" onclick="openDeleteConfirm(<?php echo $job['job_post_id']; ?>)">Delete</button>
+                    <?php endif; ?>
                   </div>
                 </div>
               <?php endforeach; ?>
@@ -708,6 +1129,8 @@ $stmt->close();
     let jobLocationMarker = null;
     let jobLocationDebounceTimer = null;
     let jobLocationRequestId = 0;
+    let pendingLocationCoords = null;
+    let locationConfirmPopup = null;
 
     function getJobLocationElements() {
       return {
@@ -715,7 +1138,8 @@ $stmt->close();
         input: document.querySelector('input[name="location"]'),
         lat: document.getElementById('location_lat'),
         lng: document.getElementById('location_lng'),
-        map: document.getElementById('locationMap')
+        map: document.getElementById('locationMap'),
+        hint: document.getElementById('locationHintText')
       };
     }
 
@@ -743,6 +1167,97 @@ $stmt->close();
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
       }).addTo(jobLocationMap);
+
+      jobLocationMap.on('click', handleJobLocationMapClick);
+    }
+
+    async function handleJobLocationMapClick(e) {
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
+
+      pendingLocationCoords = { lat, lng };
+
+      if (!jobLocationMarker) {
+        jobLocationMarker = L.marker([lat, lng]).addTo(jobLocationMap);
+      } else {
+        jobLocationMarker.setLatLng([lat, lng]);
+      }
+
+      if (locationConfirmPopup) {
+        jobLocationMap.closePopup(locationConfirmPopup);
+      }
+
+      const loadingPopupContent = '<div class="location-confirm-popup"><h4>Fetching address...</h4></div>';
+      const popup = jobLocationMarker.bindPopup(loadingPopupContent, {
+        closeButton: false,
+        closeOnClick: false,
+        autoClose: false,
+        className: 'location-popup-wrapper'
+      }).openPopup();
+
+      try {
+        const response = await fetch('./geocode-location.php?lat=' + encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lng));
+        if (!response.ok) {
+          showLocationConfirmPopup(lat, lng, 'Address not found');
+          return;
+        }
+
+        const data = await response.json();
+        if (data && data.success && data.data && data.data.display_name) {
+          showLocationConfirmPopup(lat, lng, data.data.display_name);
+        } else {
+          showLocationConfirmPopup(lat, lng, 'Address not found');
+        }
+      } catch (error) {
+        console.error('Location reverse geocoding failed:', error);
+        showLocationConfirmPopup(lat, lng, 'Could not retrieve address');
+      }
+    }
+
+    function showLocationConfirmPopup(lat, lng, address) {
+      const popupContent = `
+        <div class="location-confirm-popup">
+          <h4>Save This Location?</h4>
+          <div class="popup-address">${address}</div>
+          <div class="popup-actions">
+            <button class="popup-btn popup-btn-cancel" onclick="cancelLocationSelection()">Cancel</button>
+            <button class="popup-btn popup-btn-save" onclick="confirmLocationSelection()">Save</button>
+          </div>
+        </div>
+      `;
+
+      if (jobLocationMarker) {
+        jobLocationMarker.setPopupContent(popupContent);
+      }
+    }
+
+    function confirmLocationSelection() {
+      if (!pendingLocationCoords) {
+        return;
+      }
+
+      const elements = getJobLocationElements();
+      const addressEl = document.querySelector('.location-confirm-popup .popup-address');
+
+      setJobLocationCoordinates(pendingLocationCoords.lat, pendingLocationCoords.lng);
+
+      if (elements.input && addressEl) {
+        elements.input.value = addressEl.textContent;
+      }
+
+      if (elements.hint) {
+        elements.hint.textContent = 'Location selected ✓';
+        elements.hint.style.color = '#155724';
+      }
+
+      cancelLocationSelection();
+    }
+
+    function cancelLocationSelection() {
+      if (jobLocationMarker) {
+        jobLocationMarker.closePopup();
+      }
+      pendingLocationCoords = null;
     }
 
     function setJobLocationMarker(lat, lng, shouldCenterMap) {
@@ -753,10 +1268,7 @@ $stmt->close();
       const latLng = [Number(lat), Number(lng)];
 
       if (!jobLocationMarker) {
-        jobLocationMarker = L.marker(latLng, {
-          draggable: true
-        }).addTo(jobLocationMap);
-        jobLocationMarker.on('dragend', handleJobLocationMarkerDragEnd);
+        jobLocationMarker = L.marker(latLng).addTo(jobLocationMap);
       } else {
         jobLocationMarker.setLatLng(latLng);
       }
@@ -788,25 +1300,19 @@ $stmt->close();
       const requestId = ++jobLocationRequestId;
 
       try {
-        const response = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=' + encodeURIComponent(query), {
-          headers: {
-            'Accept': 'application/json',
-            'User-Agent': 'TalentScoutAI/1.0'
-          }
-        });
+        const response = await fetch('./geocode-location.php?location=' + encodeURIComponent(query));
 
         if (!response.ok) {
           return;
         }
 
-        const results = await response.json();
-        if (requestId !== jobLocationRequestId || !Array.isArray(results) || !results.length) {
+        const data = await response.json();
+        if (requestId !== jobLocationRequestId || !data.success || !data.data) {
           return;
         }
 
-        const result = results[0];
-        const lat = parseFloat(result.lat);
-        const lng = parseFloat(result.lon);
+        const lat = data.data.lat;
+        const lng = data.data.lng;
 
         if (Number.isNaN(lat) || Number.isNaN(lng)) {
           return;
@@ -817,38 +1323,6 @@ $stmt->close();
         setJobLocationCoordinates(lat, lng);
       } catch (error) {
         console.error('Location geocoding failed:', error);
-      }
-    }
-
-    async function handleJobLocationMarkerDragEnd() {
-      if (!jobLocationMarker) {
-        return;
-      }
-
-      const latLng = jobLocationMarker.getLatLng();
-      setJobLocationCoordinates(latLng.lat, latLng.lng);
-
-      try {
-        const response = await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + encodeURIComponent(latLng.lat) + '&lon=' + encodeURIComponent(latLng.lng), {
-          headers: {
-            'Accept': 'application/json',
-            'User-Agent': 'TalentScoutAI/1.0'
-          }
-        });
-
-        if (!response.ok) {
-          return;
-        }
-
-        const result = await response.json();
-        if (result && result.display_name) {
-          const elements = getJobLocationElements();
-          if (elements.input) {
-            elements.input.value = result.display_name;
-          }
-        }
-      } catch (error) {
-        console.error('Location reverse geocoding failed:', error);
       }
     }
 
@@ -873,6 +1347,19 @@ $stmt->close();
           refreshJobLocationMap();
         }
       }
+    }
+
+    function openEditModal(jobId, title, category, description, salary, location, workType, skills, deadline) {
+      document.getElementById('edit_job_id').value = jobId;
+      document.getElementById('edit_job_title').value = title;
+      document.getElementById('edit_job_category').value = category;
+      document.getElementById('edit_job_description').value = description;
+      document.getElementById('edit_salary_range').value = salary;
+      document.getElementById('edit_location').value = location;
+      document.getElementById('edit_job_type').value = workType;
+      document.getElementById('edit_required_skills').value = skills;
+      document.getElementById('edit_application_deadline').value = deadline;
+      openModal('editJobModal');
     }
 
     function closeModal(modalId) {
@@ -932,12 +1419,7 @@ $stmt->close();
         });
       });
 
-      document.querySelectorAll('.fcheck').forEach(checkbox => {
-        checkbox.addEventListener('click', function(e) {
-          e.preventDefault();
-          this.classList.toggle('on');
-        });
-      });
+
 
       document.querySelectorAll('button').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -966,86 +1448,38 @@ $stmt->close();
         }, 3000);
       }
     });
-  </script>
 
-  <!-- CREATE JOB MODAL -->
-  <div id="jobModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Create New Job Posting</h2>
-        <button class="modal-close" onclick="closeModal('jobModal')">&times;</button>
-      </div>
-      <form method="POST">
-        <input type="hidden" name="action" value="create_job">
-        <div class="modal-body">
-          <div class="form-group">
-            <label class="form-label">Job Title *</label>
-            <input type="text" name="job_title" class="input" placeholder="e.g., Senior React Developer" required>
-          </div>
+    // Confirmation modal functions
+    let pendingJobId = null;
 
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Job Category *</label>
-              <select name="job_category" class="select" required>
-                <option value="">Select category</option>
-                <option>Technology</option>
-                <option>Finance</option>
-                <option>Sales</option>
-                <option>Marketing</option>
-                <option>Healthcare</option>
-                <option>Other</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Job Type *</label>
-              <select name="job_type" class="select" required>
-                <option value="">Select type</option>
-                <option>Full-time</option>
-                <option>Part-time</option>
-                <option>Contract</option>
-                <option>Remote</option>
-                <option>Hybrid</option>
-                <option>On-site</option>
-              </select>
-            </div>
-          </div>
+    function openCloseConfirm(jobId) {
+      pendingJobId = jobId;
+      openModal('confirmCloseModal');
+    }
 
-          <div class="form-group">
-            <label class="form-label">Job Description *</label>
-            <textarea name="job_description" class="textarea" placeholder="Describe the role, responsibilities, and requirements" required></textarea>
-          </div>
+    function confirmCloseJob() {
+      if (pendingJobId) {
+        const form = document.getElementById('closeForm_' + pendingJobId);
+        if (form) {
+          form.submit();
+        }
+      }
+    }
 
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Salary Range *</label>
-              <input type="text" name="salary_range" class="input" placeholder="e.g., 40,000 - 60,000" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Location *</label>
-              <input type="text" name="location" class="input" placeholder="Barangay or area" id="locationInput" required>
-              <div id="locationMap" class="location-map"></div>
-              <input type="hidden" name="location_lat" id="location_lat">
-              <input type="hidden" name="location_lng" id="location_lng">
-            </div>
-          </div>
+    function openDeleteConfirm(jobId) {
+      pendingJobId = jobId;
+      openModal('confirmDeleteModal');
+    }
 
-          <div class="form-group">
-            <label class="form-label">Required Skills *</label>
-            <input type="text" name="required_skills" class="input" placeholder="e.g., React, Node.js, PostgreSQL" required>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Application Deadline</label>
-            <input type="date" name="application_deadline" class="input">
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="submit-btn" style="background: white; border: 1px solid var(--border); color: var(--text-dark);" onclick="closeModal('jobModal')">Cancel</button>
-          <button type="submit" class="submit-btn">Post Job Listing</button>
-        </div>
-      </form>
-    </div>
-  </div>
+    function confirmDeleteJob() {
+      if (pendingJobId) {
+        const form = document.getElementById('deleteForm_' + pendingJobId);
+        if (form) {
+          form.submit();
+        }
+      }
+    }
+</script>
 
   <!-- FOOTER -->
   <footer class="footer">
