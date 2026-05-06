@@ -13,6 +13,24 @@ $employer_id = (int)$_SESSION['employer_id'];
 $success_message = '';
 $error_message = '';
 
+function isNasugbuLocationText($location)
+{
+  $normalized = strtolower($location);
+  return strpos($normalized, 'nasugbu') !== false && strpos($normalized, 'batangas') !== false;
+}
+
+function isNasugbuLocationCoordinates($lat, $lng)
+{
+  return is_numeric($lat) && is_numeric($lng)
+    && (float)$lat >= 13.90 && (float)$lat <= 14.30
+    && (float)$lng >= 120.40 && (float)$lng <= 120.95;
+}
+
+function nasugbuLocationErrorMessage()
+{
+  return 'Location must be within Nasugbu, Batangas only.';
+}
+
 if (isset($_GET['job_created']) && $_GET['job_created'] === '1') {
   $success_message = "Job posting created successfully!";
 }
@@ -44,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $is_draft   = isset($_POST['save_as_draft']) && $_POST['save_as_draft'] === '1';
     $title      = trim($_POST['job_title']              ?? '');
     $category   = trim($_POST['job_category']           ?? '');
-    $description= trim($_POST['job_description']        ?? '');
+    $description = trim($_POST['job_description']        ?? '');
     $salary     = trim($_POST['salary_range']           ?? '');
     $location   = trim($_POST['location']               ?? '');
     $location_lat = trim($_POST['location_lat']         ?? '');
@@ -60,28 +78,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
       : ($title && $category && $description && $salary && $location && $work_type && $skills && $location_lat !== '' && $location_lng !== '');
 
     if ($valid) {
-      $stmt = $conn->prepare(
-        "INSERT INTO job_post (employer_id, title, description, salary, location, work_type, application_deadline, skills, experience_level, job_category, job_status, job_post_created)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, '', ?, ?, NOW())"
-      );
-      $stmt->bind_param("isssssssss",
-        $employer_id, $title, $description, $salary, $location,
-        $work_type, $deadline, $skills, $category, $job_status
-      );
-      if ($stmt->execute()) {
-        $stmt->close();
-        $redirect_param = $is_draft ? 'job_drafted=1' : 'job_created=1';
-        header("Location: " . strtok($_SERVER['REQUEST_URI'], '?') . "?{$redirect_param}");
-        exit;
+      if (!$is_draft && (!isNasugbuLocationText($location) || !isNasugbuLocationCoordinates($location_lat, $location_lng))) {
+        $error_message = nasugbuLocationErrorMessage();
       } else {
-        $error_message = "Database error. Please try again.";
+        $stmt = $conn->prepare(
+          "INSERT INTO job_post (employer_id, title, description, salary, location, work_type, application_deadline, skills, experience_level, job_category, job_status, job_post_created)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, '', ?, ?, NOW())"
+        );
+        $stmt->bind_param(
+          "isssssssss",
+          $employer_id,
+          $title,
+          $description,
+          $salary,
+          $location,
+          $work_type,
+          $deadline,
+          $skills,
+          $category,
+          $job_status
+        );
+        if ($stmt->execute()) {
+          $stmt->close();
+          $redirect_param = $is_draft ? 'job_drafted=1' : 'job_created=1';
+          header("Location: " . strtok($_SERVER['REQUEST_URI'], '?') . "?{$redirect_param}");
+          exit;
+        } else {
+          $error_message = "Database error. Please try again.";
+        }
       }
     } else {
       $error_message = $is_draft
         ? "Please enter at least a job title to save as draft."
         : (($location_lat === '' || $location_lng === '')
-            ? "Please pin a location on the map before submitting."
-            : "Please fill in all required fields.");
+          ? "Please pin a location on the map before submitting."
+          : "Please fill in all required fields.");
     }
   }
 
@@ -140,6 +171,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
   if ($_POST['action'] === 'delete_job') {
     $job_id = intval($_POST['job_id'] ?? 0);
     if ($job_id > 0) {
+      // First delete all related applications to satisfy foreign key constraint
+      $stmt = $conn->prepare("DELETE FROM application WHERE job_post_id = ?");
+      $stmt->bind_param("i", $job_id);
+      $stmt->execute();
+      $stmt->close();
+
+      // Then delete the job post
       $stmt = $conn->prepare("DELETE FROM job_post WHERE job_post_id = ? AND employer_id = ?");
       $stmt->bind_param("ii", $job_id, $employer_id);
       $stmt->execute();
@@ -279,65 +317,126 @@ $stmt->close();
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; padding: 0; }
-    body { display: flex; flex-direction: column; background: #f7f9f8; font-family: 'Plus Jakarta Sans', sans-serif; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      background: #f7f9f8;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
 
     /* ══ NAVBAR ══ */
     .navbar {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 2.5rem; height: 66px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2.5rem;
+      height: 66px;
       background: var(--sage);
-      border-bottom: 1px solid rgba(0,0,0,0.1);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
       transition: all 0.4s;
       animation: navSlide 0.7s var(--ease) both;
     }
 
     .navbar.scrolled {
       background: var(--sage);
-      border-bottom-color: rgba(0,0,0,0.15);
+      border-bottom-color: rgba(0, 0, 0, 0.15);
     }
 
     @keyframes navSlide {
-      from { transform: translateY(-100%); opacity: 0; }
-      to   { transform: translateY(0);     opacity: 1; }
+      from {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
     }
 
     .nav-logo {
-      display: flex; align-items: center; gap: 0.6rem;
-      font-family: 'Lora', serif; font-weight: 700; font-size: 1.12rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: 'Lora', serif;
+      font-weight: 700;
+      font-size: 1.12rem;
       color: #fff;
       transition: color 0.4s;
     }
 
-    .navbar.scrolled .nav-logo { color: var(--charcoal); }
-
-    .nav-logo-mark {
-      width: 36px; height: 36px;
-      background: linear-gradient(135deg, var(--sage), var(--sage-dark));
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 0.7rem; font-weight: 700; color: #fff; letter-spacing: 0.05em;
-      box-shadow: 0 4px 12px rgba(90,138,104,0.35);
+    .navbar.scrolled .nav-logo {
+      color: var(--charcoal);
     }
 
-    .nav-logo-text { display: inline; }
-    .nav-logo-text span { color: var(--mint-deep); transition: color 0.4s; }
-    .navbar.scrolled .nav-logo-text span { color: var(--sage); }
+    .nav-logo-mark {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--sage), var(--sage-dark));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.05em;
+      box-shadow: 0 4px 12px rgba(90, 138, 104, 0.35);
+    }
 
-    .nav-links { display: flex; list-style: none; gap: 0.2rem; margin: 0; padding: 0; }
+    .nav-logo-text {
+      display: inline;
+    }
+
+    .nav-logo-text span {
+      color: var(--mint-deep);
+      transition: color 0.4s;
+    }
+
+    .navbar.scrolled .nav-logo-text span {
+      color: var(--sage);
+    }
+
+    .nav-links {
+      display: flex;
+      list-style: none;
+      gap: 0.2rem;
+      margin: 0;
+      padding: 0;
+    }
 
     .nav-links a {
       padding: 0.2rem 0.75rem;
-      font-size: 0.84rem; font-weight: 500; color: rgba(255,255,255,0.8);
+      font-size: 0.84rem;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.8);
       transition: color 0.2s, border-bottom 0.2s;
       position: relative;
       padding-bottom: 0.4rem;
     }
 
-    .navbar.scrolled .nav-links a { color: rgba(255,255,255,0.8); }
+    .navbar.scrolled .nav-links a {
+      color: rgba(255, 255, 255, 0.8);
+    }
 
     .nav-links a:hover {
       color: #fff;
@@ -359,26 +458,43 @@ $stmt->close();
       border-bottom-color: #fff;
     }
 
-    .nav-right { display: flex; align-items: center; gap: 0.65rem; }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
 
-    .nav-user { font-size: 0.82rem; color: rgba(255,255,255,0.75); transition: color 0.4s; }
-    .navbar.scrolled .nav-user { color: var(--text-soft); }
+    .nav-user {
+      font-size: 0.82rem;
+      color: rgba(255, 255, 255, 0.75);
+      transition: color 0.4s;
+    }
+
+    .navbar.scrolled .nav-user {
+      color: var(--text-soft);
+    }
 
     .btn-ghost {
-      padding: 0.42rem 1.1rem; border-radius: var(--radius-pill);
-      border: 1.5px solid rgba(255,255,255,0.4); color: #fff;
+      padding: 0.42rem 1.1rem;
+      border-radius: var(--radius-pill);
+      border: 1.5px solid rgba(255, 255, 255, 0.4);
+      color: #fff;
       font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 0.83rem; font-weight: 500; background: transparent;
-      cursor: pointer; transition: all 0.2s; text-decoration: none;
+      font-size: 0.83rem;
+      font-weight: 500;
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
     }
 
     .btn-ghost:hover {
-      background: rgba(255,255,255,0.15);
+      background: rgba(255, 255, 255, 0.15);
       border-color: #fff;
     }
 
     .navbar.scrolled .btn-ghost {
-      border-color: rgba(90,138,104,0.3);
+      border-color: rgba(90, 138, 104, 0.3);
       color: var(--text-mid);
     }
 
@@ -389,164 +505,995 @@ $stmt->close();
     }
 
     .btn-solid {
-      padding: 0.42rem 1.3rem; border-radius: var(--radius-pill);
+      padding: 0.42rem 1.3rem;
+      border-radius: var(--radius-pill);
       background: linear-gradient(135deg, var(--mint-deep), var(--mint));
-      color: var(--charcoal); font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 0.83rem; font-weight: 700; border: none;
-      cursor: pointer; transition: all 0.2s; text-decoration: none;
-      box-shadow: 0 4px 14px rgba(90,138,104,0.32);
+      color: var(--charcoal);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.83rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      box-shadow: 0 4px 14px rgba(90, 138, 104, 0.32);
     }
 
     .btn-solid:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 22px rgba(90,138,104,0.4);
+      box-shadow: 0 8px 22px rgba(90, 138, 104, 0.4);
+    }
+
+    .location-warning-popup {
+      min-width: 240px;
+      max-width: 280px;
+      text-align: center;
+      padding: 0.2rem 0;
+    }
+
+    .location-warning-popup .warning-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.6rem;
+      padding: 0.28rem 0.7rem;
+      border-radius: 999px;
+      background: #f8d7da;
+      color: #721c24;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .location-warning-popup h4 {
+      margin: 0 0 0.4rem 0;
+      font-size: 0.95rem;
+      color: #721c24;
+      line-height: 1.3;
+    }
+
+    .location-warning-popup p {
+      margin: 0 0 0.75rem 0;
+      font-size: 0.82rem;
+      color: var(--text-mid);
+      line-height: 1.45;
+    }
+
+    .popup-btn-warning {
+      background: #dc3545 !important;
+      color: white !important;
+      min-width: 88px;
+    }
+
+    .location-warning-popup-wrapper .leaflet-popup-content-wrapper {
+      border-top: 4px solid #dc3545 !important;
+      box-shadow: 0 12px 28px rgba(220, 53, 69, 0.18) !important;
+    }
+
+    .location-warning-popup-wrapper .leaflet-popup-tip {
+      background: #fff !important;
+    }
+
+    .leaflet-popup-content-wrapper {
+      border-radius: var(--radius-sm) !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .leaflet-popup-content {
+      margin: 0 !important;
+      line-height: 1.4 !important;
+    }
+
+    .location-popup-wrapper {
+      padding: 0 !important;
+    }
+
+    .location-popup-wrapper .location-confirm-popup {
+      padding: 0.75rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .form-row .form-group {
+      margin-bottom: 0;
+    }
+
+    .submit-btn {
+      background: var(--primary-dark);
+      color: white;
+      padding: 0.7rem 1.75rem;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .submit-btn:hover {
+      background: var(--primary-darker);
+    }
+
+    .active-filter {
+      background: var(--bg-light);
+    }
+
+    .jobs-list {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .jobs-list-header {
+      padding: 1.5rem 1.75rem;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      color: var(--text-dark);
+      background: linear-gradient(135deg, #f8fffc 0%, #f0fffb 100%);
+    }
+
+    .job-card {
+      padding: 1.5rem 1.75rem;
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 1rem;
+      align-items: center;
+      transition: all 0.25s ease;
+      background: white;
+    }
+
+    .job-card:hover {
+      background: #f9fffd;
+      box-shadow: inset 0 0 8px rgba(30, 158, 134, 0.05);
+    }
+
+    .job-card:last-child {
+      border-bottom: none;
+    }
+
+    .job-title {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 0.3rem;
+      transition: color 0.2s;
+    }
+
+    .job-card:hover .job-title {
+      color: var(--primary-dark);
+    }
+
+    .job-meta {
+      font-size: 0.82rem;
+      color: var(--text-light);
+      line-height: 1.4;
+    }
+
+    .job-card-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .job-card .btn-small {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+      border-radius: 3px;
+      transition: all 0.2s;
+    }
+
+    .job-card .btn-small:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(90, 138, 104, 0.4);
     }
 
     /* ══ PAGE WRAPPER ══ */
-    .page-wrapper { flex: 1 0 auto; padding-top: 66px; }
+    .page-wrapper {
+      flex: 1 0 auto;
+      padding-top: 66px;
+    }
 
     /* ══ PAGE HERO ══ */
     .page-hero {
       background: linear-gradient(135deg, #f0fff8 0%, #e8f8f0 60%, #f5fdf8 100%);
-      border-bottom: 1px solid rgba(90,138,104,0.12);
+      border-bottom: 1px solid rgba(90, 138, 104, 0.12);
       padding: 2.5rem 2.5rem 2rem;
     }
-    .page-hero-inner { max-width: 1200px; margin: 0 auto; }
-    .page-hero h1 { font-family: 'Lora', serif; font-size: 1.9rem; font-weight: 700; color: var(--text-dark); margin: 0 0 0.3rem 0; }
-    .page-hero p { font-size: 0.92rem; color: var(--text-light); margin: 0; }
+
+    .page-hero-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .page-hero h1 {
+      font-family: 'Lora', serif;
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin: 0 0 0.3rem 0;
+    }
+
+    .page-hero p {
+      font-size: 0.92rem;
+      color: var(--text-light);
+      margin: 0;
+    }
 
     /* ══ MAIN LAYOUT ══ */
-    .main-layout { max-width: 1200px; margin: 0 auto; padding: 2rem 2.5rem 3rem; display: grid; grid-template-columns: 220px 1fr; gap: 2rem; align-items: start; }
+    .main-layout {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 2.5rem 3rem;
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
 
     /* ══ SIDEBAR ══ */
-    .sidebar { position: sticky; top: 82px; }
-    .sidebar-card { background: white; border: 1px solid rgba(90,138,104,0.13); border-radius: 14px; overflow: hidden; margin-bottom: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
-    .sidebar-title { font-weight: 700; font-size: 0.72rem; color: var(--text-light); padding: 0.85rem 1rem 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid rgba(90,138,104,0.1); background: #fafcfb; }
-    .filter-item { display: flex; align-items: center; justify-content: space-between; padding: 0.62rem 1rem; font-size: 0.85rem; color: var(--text-mid); text-decoration: none; transition: background 0.15s; border-bottom: 1px solid rgba(0,0,0,0.03); }
-    .filter-item:last-child { border-bottom: none; }
-    .filter-item:hover { background: rgba(90,138,104,0.05); }
-    .filter-item.active-filter { background: rgba(90,138,104,0.08); color: var(--sage-dark, #3d7a55); font-weight: 600; }
-    .filter-left { display: flex; align-items: center; gap: 0.55rem; }
-    .fcheck { width: 17px; height: 17px; border: 1.5px solid rgba(90,138,104,0.3); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; flex-shrink: 0; color: transparent; }
-    .fcheck.on { background: var(--sage-dark, #3d7a55); border-color: var(--sage-dark, #3d7a55); color: white; }
-    .fcount { background: rgba(90,138,104,0.1); color: var(--sage-dark, #3d7a55); padding: 0.08rem 0.5rem; border-radius: 100px; font-size: 0.72rem; font-weight: 600; }
+    .sidebar {
+      position: sticky;
+      top: 82px;
+    }
+
+    .sidebar-card {
+      background: white;
+      border: 1px solid rgba(90, 138, 104, 0.13);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    }
+
+    .sidebar-title {
+      font-weight: 700;
+      font-size: 0.72rem;
+      color: var(--text-light);
+      padding: 0.85rem 1rem 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border-bottom: 1px solid rgba(90, 138, 104, 0.1);
+      background: #fafcfb;
+    }
+
+    .filter-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.62rem 1rem;
+      font-size: 0.85rem;
+      color: var(--text-mid);
+      text-decoration: none;
+      transition: background 0.15s;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+    }
+
+    .filter-item:last-child {
+      border-bottom: none;
+    }
+
+    .filter-item:hover {
+      background: rgba(90, 138, 104, 0.05);
+    }
+
+    .filter-item.active-filter {
+      background: rgba(90, 138, 104, 0.08);
+      color: var(--sage-dark, #3d7a55);
+      font-weight: 600;
+    }
+
+    .filter-left {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .fcheck {
+      width: 17px;
+      height: 17px;
+      border: 1.5px solid rgba(90, 138, 104, 0.3);
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.6rem;
+      flex-shrink: 0;
+      color: transparent;
+    }
+
+    .fcheck.on {
+      background: var(--sage-dark, #3d7a55);
+      border-color: var(--sage-dark, #3d7a55);
+      color: white;
+    }
+
+    .fcount {
+      background: rgba(90, 138, 104, 0.1);
+      color: var(--sage-dark, #3d7a55);
+      padding: 0.08rem 0.5rem;
+      border-radius: 100px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
 
     /* Draft count chip — amber */
-    .fcount.draft-count { background: rgba(210,140,30,0.12); color: #a07010; }
+    .fcount.draft-count {
+      background: rgba(210, 140, 30, 0.12);
+      color: #a07010;
+    }
 
     /* ══ CONTENT COL ══ */
-    .content-col { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
-    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-    .toolbar-label { font-size: 0.9rem; color: var(--text-light); }
-    .toolbar-label strong { color: var(--text-dark); }
-    .btn-create { display: inline-flex; align-items: center; gap: 0.5rem; background: linear-gradient(135deg, var(--sage, #5a8a68), var(--sage-dark, #3d7a55)); color: #fff; padding: 0.6rem 1.3rem; border: none; border-radius: 10px; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 14px rgba(90,138,104,0.3); font-family: 'Plus Jakarta Sans', sans-serif; }
-    .btn-create:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(90,138,104,0.38); }
-    .btn-create svg { flex-shrink: 0; }
+    .content-col {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      min-width: 0;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-label {
+      font-size: 0.9rem;
+      color: var(--text-light);
+    }
+
+    .toolbar-label strong {
+      color: var(--text-dark);
+    }
+
+    .btn-create {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: linear-gradient(135deg, var(--sage, #5a8a68), var(--sage-dark, #3d7a55));
+      color: #fff;
+      padding: 0.6rem 1.3rem;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(90, 138, 104, 0.3);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .btn-create:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(90, 138, 104, 0.38);
+    }
+
+    .btn-create svg {
+      flex-shrink: 0;
+    }
 
     /* ══ JOB CARDS ══ */
-    .jobs-list { display: flex; flex-direction: column; gap: 0.85rem; }
-    .job-card { background: white; border: 1px solid rgba(90,138,104,0.13); border-radius: 14px; padding: 1.3rem 1.5rem; display: flex; align-items: center; gap: 1.25rem; transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-    .job-card:hover { box-shadow: 0 6px 24px rgba(90,138,104,0.12); transform: translateY(-2px); border-color: rgba(90,138,104,0.25); }
+    .jobs-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .job-card {
+      background: white;
+      border: 1px solid rgba(90, 138, 104, 0.13);
+      border-radius: 14px;
+      padding: 1.3rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .job-card:hover {
+      box-shadow: 0 6px 24px rgba(90, 138, 104, 0.12);
+      transform: translateY(-2px);
+      border-color: rgba(90, 138, 104, 0.25);
+    }
 
     /* Draft card — amber left border */
-    .job-card.draft-card { border-left: 3px solid #d4a017; background: #fffdf5; }
+    .job-card.draft-card {
+      border-left: 3px solid #d4a017;
+      background: #fffdf5;
+    }
 
-    .job-icon { width: 46px; height: 46px; border-radius: 12px; background: linear-gradient(135deg, rgba(90,138,104,0.12), rgba(90,138,104,0.2)); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
-    .job-info { flex: 1; min-width: 0; }
-    .job-title { font-size: 0.97rem; font-weight: 700; color: var(--text-dark); margin-bottom: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .job-meta { display: flex; flex-wrap: wrap; gap: 0.6rem; font-size: 0.78rem; color: var(--text-light); }
-    .job-meta-item { display: flex; align-items: center; gap: 0.28rem; }
+    .job-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(90, 138, 104, 0.12), rgba(90, 138, 104, 0.2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
 
-    .app-count { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 56px; padding: 0.5rem 0.75rem; background: rgba(90,138,104,0.06); border-radius: 10px; flex-shrink: 0; }
-    .app-count-num { font-size: 1.25rem; font-weight: 700; color: var(--sage-dark, #3d7a55); line-height: 1; font-family: 'Lora', serif; }
-    .app-count-label { font-size: 0.65rem; color: var(--text-light); font-weight: 500; text-align: center; }
+    .job-info {
+      flex: 1;
+      min-width: 0;
+    }
 
-    .status-badge { padding: 0.3rem 0.7rem; border-radius: 6px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; flex-shrink: 0; }
-    .status-badge.active { background: #dcf5e9; color: #1a7a46; }
-    .status-badge.closed { background: #fde8e8; color: #9b2335; }
-    .status-badge.draft  { background: #fff3cd; color: #856404; }
+    .job-title {
+      font-size: 0.97rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 0.3rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-    .job-actions { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; }
-    .icon-btn { width: 34px; height: 34px; border-radius: 8px; border: 1px solid rgba(90,138,104,0.2); background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.18s; color: var(--text-mid); }
-    .icon-btn:hover { background: rgba(90,138,104,0.08); border-color: rgba(90,138,104,0.35); color: var(--sage-dark, #3d7a55); transform: translateY(-1px); }
-    .icon-btn.danger:hover { background: #fde8e8; border-color: #f5c6cb; color: #9b2335; }
-    .icon-btn.amber:hover { background: #fff3cd; border-color: #ffc107; color: #856404; }
-    .icon-btn svg { pointer-events: none; }
-    .icon-btn-wrap { position: relative; }
-    .icon-btn-wrap:hover .icon-tooltip { opacity: 1; transform: translateY(0); }
-    .icon-tooltip { position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%) translateY(4px); background: rgba(30,30,30,0.88); color: white; font-size: 0.7rem; font-weight: 600; padding: 0.25rem 0.55rem; border-radius: 5px; white-space: nowrap; opacity: 0; transition: opacity 0.15s, transform 0.15s; pointer-events: none; z-index: 10; }
+    .job-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      font-size: 0.78rem;
+      color: var(--text-light);
+    }
+
+    .job-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.28rem;
+    }
+
+    .app-count {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 56px;
+      padding: 0.5rem 0.75rem;
+      background: rgba(90, 138, 104, 0.06);
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+
+    .app-count-num {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--sage-dark, #3d7a55);
+      line-height: 1;
+      font-family: 'Lora', serif;
+    }
+
+    .app-count-label {
+      font-size: 0.65rem;
+      color: var(--text-light);
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .status-badge {
+      padding: 0.3rem 0.7rem;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    .status-badge.active {
+      background: #dcf5e9;
+      color: #1a7a46;
+    }
+
+    .status-badge.closed {
+      background: #fde8e8;
+      color: #9b2335;
+    }
+
+    .status-badge.draft {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .job-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-shrink: 0;
+    }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1px solid rgba(90, 138, 104, 0.2);
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.18s;
+      color: var(--text-mid);
+    }
+
+    .icon-btn:hover {
+      background: rgba(90, 138, 104, 0.08);
+      border-color: rgba(90, 138, 104, 0.35);
+      color: var(--sage-dark, #3d7a55);
+      transform: translateY(-1px);
+    }
+
+    .icon-btn.danger:hover {
+      background: #fde8e8;
+      border-color: #f5c6cb;
+      color: #9b2335;
+    }
+
+    .icon-btn.amber:hover {
+      background: #fff3cd;
+      border-color: #ffc107;
+      color: #856404;
+    }
+
+    .icon-btn svg {
+      pointer-events: none;
+    }
+
+    .icon-btn-wrap {
+      position: relative;
+    }
+
+    .icon-btn-wrap:hover .icon-tooltip {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .icon-tooltip {
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%) translateY(4px);
+      background: rgba(30, 30, 30, 0.88);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.25rem 0.55rem;
+      border-radius: 5px;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.15s, transform 0.15s;
+      pointer-events: none;
+      z-index: 10;
+    }
 
     /* Empty state */
-    .empty-state { background: white; border: 1.5px dashed rgba(90,138,104,0.25); border-radius: 14px; padding: 3rem 2rem; text-align: center; }
-    .empty-state-icon { font-size: 2.5rem; margin-bottom: 1rem; }
-    .empty-state h3 { font-size: 1rem; font-weight: 700; color: var(--text-dark); margin: 0 0 0.4rem 0; }
-    .empty-state p { font-size: 0.85rem; color: var(--text-light); margin: 0; }
+    .empty-state {
+      background: white;
+      border: 1.5px dashed rgba(90, 138, 104, 0.25);
+      border-radius: 14px;
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+
+    .empty-state-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin: 0 0 0.4rem 0;
+    }
+
+    .empty-state p {
+      font-size: 0.85rem;
+      color: var(--text-light);
+      margin: 0;
+    }
 
     /* ══ MODALS ══ */
-    .modal { position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.45); backdrop-filter: blur(4px); animation: fadeIn 0.2s ease; display: none !important; align-items: center; justify-content: center; }
-    .modal.active { display: flex !important; }
-    .modal-content { background: white; border-radius: 18px; box-shadow: 0 20px 60px rgba(0,0,0,0.18); width: 90%; max-width: 660px; max-height: 90vh; overflow-y: auto; position: relative; animation: slideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
-    .modal-content.narrow { max-width: 460px; }
-    .modal-header { padding: 1.5rem 1.75rem 1.25rem; border-bottom: 1px solid rgba(90,138,104,0.12); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #f8fffc, #f0fff8); border-radius: 18px 18px 0 0; }
-    .modal-header h2 { font-family: 'Lora', serif; font-size: 1.2rem; font-weight: 700; color: var(--text-dark); margin: 0; }
-    .modal-close { background: none; border: none; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; color: var(--text-light); transition: all 0.15s; font-size: 1.4rem; padding: 0; }
-    .modal-close:hover { background: rgba(0,0,0,0.06); color: var(--text-dark); }
-    .modal-body { padding: 1.5rem 1.75rem; }
-    .modal-footer { padding: 1.25rem 1.75rem; border-top: 1px solid rgba(90,138,104,0.1); display: flex; gap: 0.75rem; justify-content: flex-end; align-items: center; flex-wrap: wrap; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes slideUp { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .modal {
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(4px);
+      animation: fadeIn 0.2s ease;
+      display: none !important;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex !important;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+      width: 90%;
+      max-width: 660px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      animation: slideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .modal-content.narrow {
+      max-width: 460px;
+    }
+
+    .modal-header {
+      padding: 1.5rem 1.75rem 1.25rem;
+      border-bottom: 1px solid rgba(90, 138, 104, 0.12);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(135deg, #f8fffc, #f0fff8);
+      border-radius: 18px 18px 0 0;
+    }
+
+    .modal-header h2 {
+      font-family: 'Lora', serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin: 0;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text-light);
+      transition: all 0.15s;
+      font-size: 1.4rem;
+      padding: 0;
+    }
+
+    .modal-close:hover {
+      background: rgba(0, 0, 0, 0.06);
+      color: var(--text-dark);
+    }
+
+    .modal-body {
+      padding: 1.5rem 1.75rem;
+    }
+
+    .modal-footer {
+      padding: 1.25rem 1.75rem;
+      border-top: 1px solid rgba(90, 138, 104, 0.1);
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(24px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
 
     /* ══ FORMS ══ */
-    .form-group { margin-bottom: 1.1rem; }
-    .form-label { display: block; font-size: 0.83rem; font-weight: 600; color: var(--text-dark); margin-bottom: 0.4rem; }
-    .input, .select, .textarea { width: 100%; padding: 0.6rem 0.85rem; border: 1.5px solid rgba(90,138,104,0.2); border-radius: 9px; font-size: 0.875rem; font-family: inherit; color: var(--text-dark); background: white; transition: border-color 0.2s, box-shadow 0.2s; }
-    .input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--sage, #5a8a68); box-shadow: 0 0 0 3px rgba(90,138,104,0.1); }
-    .textarea { resize: vertical; min-height: 90px; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; }
-    .form-row .form-group { margin-bottom: 0; }
+    .form-group {
+      margin-bottom: 1.1rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.83rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 0.4rem;
+    }
+
+    .input,
+    .select,
+    .textarea {
+      width: 100%;
+      padding: 0.6rem 0.85rem;
+      border: 1.5px solid rgba(90, 138, 104, 0.2);
+      border-radius: 9px;
+      font-size: 0.875rem;
+      font-family: inherit;
+      color: var(--text-dark);
+      background: white;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .input:focus,
+    .select:focus,
+    .textarea:focus {
+      outline: none;
+      border-color: var(--sage, #5a8a68);
+      box-shadow: 0 0 0 3px rgba(90, 138, 104, 0.1);
+    }
+
+    .textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.85rem;
+    }
+
+    .form-row .form-group {
+      margin-bottom: 0;
+    }
 
     /* Draft helper note */
-    .draft-note { background: #fffbea; border: 1px solid rgba(210,148,0,0.2); border-radius: 8px; padding: 0.65rem 0.9rem; font-size: 0.8rem; color: #7a5a00; margin-bottom: 1.1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .draft-note {
+      background: #fffbea;
+      border: 1px solid rgba(210, 148, 0, 0.2);
+      border-radius: 8px;
+      padding: 0.65rem 0.9rem;
+      font-size: 0.8rem;
+      color: #7a5a00;
+      margin-bottom: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
 
     /* Map */
-    .location-map { width: 100%; height: 220px; margin-top: 0.6rem; border: 1.5px solid rgba(90,138,104,0.2); border-radius: 9px; overflow: hidden; background: #eef5f2; cursor: crosshair; }
-    .location-hint { font-size: 0.78rem; color: var(--text-light); margin-top: 0.35rem; display: flex; align-items: center; gap: 0.4rem; }
-    .location-confirm-popup { text-align: center; min-width: 190px; }
-    .location-confirm-popup h4 { margin: 0 0 0.4rem 0; font-size: 0.9rem; color: var(--text-dark); }
-    .location-confirm-popup .popup-address { font-size: 0.76rem; color: var(--text-mid); margin-bottom: 0.65rem; max-height: 55px; overflow-y: auto; line-height: 1.4; }
-    .location-confirm-popup .popup-actions { display: flex; gap: 0.45rem; justify-content: center; }
-    .location-confirm-popup .popup-btn { padding: 0.35rem 0.9rem; border: none; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
-    .popup-btn-cancel { background: #e9ecef; color: var(--text-mid); }
-    .popup-btn-save   { background: var(--sage, #5a8a68); color: white; }
-    .popup-btn:hover  { opacity: 0.82; }
+    .location-map {
+      width: 100%;
+      height: 220px;
+      margin-top: 0.6rem;
+      border: 1.5px solid rgba(90, 138, 104, 0.2);
+      border-radius: 9px;
+      overflow: hidden;
+      background: #eef5f2;
+      cursor: crosshair;
+    }
+
+    .location-hint {
+      font-size: 0.78rem;
+      color: var(--text-light);
+      margin-top: 0.35rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .location-confirm-popup {
+      text-align: center;
+      min-width: 190px;
+    }
+
+    .location-confirm-popup h4 {
+      margin: 0 0 0.4rem 0;
+      font-size: 0.9rem;
+      color: var(--text-dark);
+    }
+
+    .location-confirm-popup .popup-address {
+      font-size: 0.76rem;
+      color: var(--text-mid);
+      margin-bottom: 0.65rem;
+      max-height: 55px;
+      overflow-y: auto;
+      line-height: 1.4;
+    }
+
+    .location-confirm-popup .popup-actions {
+      display: flex;
+      gap: 0.45rem;
+      justify-content: center;
+    }
+
+    .location-confirm-popup .popup-btn {
+      padding: 0.35rem 0.9rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .popup-btn-cancel {
+      background: #e9ecef;
+      color: var(--text-mid);
+    }
+
+    .popup-btn-save {
+      background: var(--sage, #5a8a68);
+      color: white;
+    }
+
+    .popup-btn:hover {
+      opacity: 0.82;
+    }
 
     /* Modal footer buttons */
-    .btn-modal-cancel { background: #f0f0f0; color: var(--text-mid); border: none; padding: 0.6rem 1.3rem; border-radius: 9px; font-size: 0.875rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.15s; }
-    .btn-modal-cancel:hover { background: #e2e2e2; }
-    .btn-modal-submit { background: linear-gradient(135deg, var(--sage, #5a8a68), var(--sage-dark, #3d7a55)); color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 9px; font-size: 0.875rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s; box-shadow: 0 3px 10px rgba(90,138,104,0.3); }
-    .btn-modal-submit:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(90,138,104,0.38); }
-    .btn-modal-draft { background: #fff3cd; color: #856404; border: 1.5px solid #ffc107; padding: 0.6rem 1.2rem; border-radius: 9px; font-size: 0.875rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s; }
-    .btn-modal-draft:hover { background: #ffeaa0; transform: translateY(-1px); }
-    .btn-modal-danger { background: #dc3545; color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 9px; font-size: 0.875rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s; }
-    .btn-modal-danger:hover { background: #c82333; transform: translateY(-1px); }
+    .btn-modal-cancel {
+      background: #f0f0f0;
+      color: var(--text-mid);
+      border: none;
+      padding: 0.6rem 1.3rem;
+      border-radius: 9px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+
+    .btn-modal-cancel:hover {
+      background: #e2e2e2;
+    }
+
+    .btn-modal-submit {
+      background: linear-gradient(135deg, var(--sage, #5a8a68), var(--sage-dark, #3d7a55));
+      color: white;
+      border: none;
+      padding: 0.6rem 1.5rem;
+      border-radius: 9px;
+      font-size: 0.875rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+      box-shadow: 0 3px 10px rgba(90, 138, 104, 0.3);
+    }
+
+    .btn-modal-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(90, 138, 104, 0.38);
+    }
+
+    .btn-modal-draft {
+      background: #fff3cd;
+      color: #856404;
+      border: 1.5px solid #ffc107;
+      padding: 0.6rem 1.2rem;
+      border-radius: 9px;
+      font-size: 0.875rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .btn-modal-draft:hover {
+      background: #ffeaa0;
+      transform: translateY(-1px);
+    }
+
+    .btn-modal-danger {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 0.6rem 1.5rem;
+      border-radius: 9px;
+      font-size: 0.875rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .btn-modal-danger:hover {
+      background: #c82333;
+      transform: translateY(-1px);
+    }
 
     /* Publish button (green outlined) */
-    .btn-modal-publish { background: white; color: var(--sage-dark, #3d7a55); border: 1.5px solid var(--sage, #5a8a68); padding: 0.6rem 1.2rem; border-radius: 9px; font-size: 0.875rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s; }
-    .btn-modal-publish:hover { background: rgba(90,138,104,0.08); transform: translateY(-1px); }
+    .btn-modal-publish {
+      background: white;
+      color: var(--sage-dark, #3d7a55);
+      border: 1.5px solid var(--sage, #5a8a68);
+      padding: 0.6rem 1.2rem;
+      border-radius: 9px;
+      font-size: 0.875rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .btn-modal-publish:hover {
+      background: rgba(90, 138, 104, 0.08);
+      transform: translateY(-1px);
+    }
 
     /* ══ ALERTS ══ */
-    .alert { padding: 0.85rem 1.1rem; border-radius: 10px; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; gap: 0.6rem; transition: opacity 0.4s, transform 0.4s; }
-    .alert-success { background: #dcf5e9; color: #1a7a46; border: 1px solid rgba(26,122,70,0.2); }
-    .alert-error   { background: #fde8e8; color: #9b2335; border: 1px solid rgba(155,35,53,0.2); }
-    .warning-text  { background: #fff8e8; border: 1px solid rgba(210,148,0,0.2); border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.83rem; color: #7a5a00; margin-bottom: 0.75rem; font-weight: 600; }
+    .alert {
+      padding: 0.85rem 1.1rem;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      transition: opacity 0.4s, transform 0.4s;
+    }
+
+    .alert-success {
+      background: #dcf5e9;
+      color: #1a7a46;
+      border: 1px solid rgba(26, 122, 70, 0.2);
+    }
+
+    .alert-error {
+      background: #fde8e8;
+      color: #9b2335;
+      border: 1px solid rgba(155, 35, 53, 0.2);
+    }
+
+    .warning-text {
+      background: #fff8e8;
+      border: 1px solid rgba(210, 148, 0, 0.2);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.83rem;
+      color: #7a5a00;
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+    }
 
     /* ══ FOOTER ══ */
-    .footer { flex-shrink: 0; }
+    .footer {
+      flex-shrink: 0;
+    }
 
     /* Leaflet popup tweaks */
-    .leaflet-popup-content-wrapper { border-radius: 10px !important; box-shadow: 0 6px 24px rgba(0,0,0,0.14) !important; padding: 0 !important; }
-    .leaflet-popup-content { margin: 0 !important; line-height: 1.4 !important; }
-    .location-popup-wrapper .location-confirm-popup { padding: 0.7rem; }
+    .leaflet-popup-content-wrapper {
+      border-radius: 10px !important;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14) !important;
+      padding: 0 !important;
+    }
+
+    .leaflet-popup-content {
+      margin: 0 !important;
+      line-height: 1.4 !important;
+    }
+
+    .location-popup-wrapper .location-confirm-popup {
+      padding: 0.7rem;
+    }
   </style>
 </head>
 
@@ -594,37 +1541,43 @@ $stmt->close();
         <div class="sidebar-card">
           <div class="sidebar-title">Filter by Status</div>
           <?php
-            $filters = [
-              ['label' => 'All Jobs', 'key' => 'all',    'count' => $stats['active'] + $stats['closed'] + $stats['drafts'], 'draft' => false],
-              ['label' => 'Active',   'key' => 'active',  'count' => $stats['active'],  'draft' => false],
-              ['label' => 'Closed',   'key' => 'closed',  'count' => $stats['closed'],  'draft' => false],
-              ['label' => 'Drafts',   'key' => 'drafts',  'count' => $stats['drafts'],  'draft' => true],
-            ];
-            foreach ($filters as $f):
-              $isActive = ($filter_status === $f['key']) || ($f['key'] === 'all' && ($filter_status === '' || $filter_status === 'all'));
+          $filters = [
+            ['label' => 'All Jobs', 'key' => 'all',    'count' => $stats['active'] + $stats['closed'] + $stats['drafts'], 'draft' => false],
+            ['label' => 'Active',   'key' => 'active',  'count' => $stats['active'],  'draft' => false],
+            ['label' => 'Closed',   'key' => 'closed',  'count' => $stats['closed'],  'draft' => false],
+            ['label' => 'Drafts',   'key' => 'drafts',  'count' => $stats['drafts'],  'draft' => true],
+          ];
+          foreach ($filters as $f):
+            $isActive = ($filter_status === $f['key']) || ($f['key'] === 'all' && ($filter_status === '' || $filter_status === 'all'));
           ?>
-          <a href="?status=<?php echo $f['key']; ?>" class="filter-item <?php echo $isActive ? 'active-filter' : ''; ?>">
-            <div class="filter-left">
-              <div class="fcheck <?php echo $isActive ? 'on' : ''; ?>"><?php echo $isActive ? '✓' : ''; ?></div>
-              <span><?php echo $f['label']; ?></span>
-            </div>
-            <span class="fcount <?php echo $f['draft'] ? 'draft-count' : ''; ?>"><?php echo $f['count']; ?></span>
-          </a>
+            <a href="?status=<?php echo $f['key']; ?>" class="filter-item <?php echo $isActive ? 'active-filter' : ''; ?>">
+              <div class="filter-left">
+                <div class="fcheck <?php echo $isActive ? 'on' : ''; ?>"><?php echo $isActive ? '✓' : ''; ?></div>
+                <span><?php echo $f['label']; ?></span>
+              </div>
+              <span class="fcount <?php echo $f['draft'] ? 'draft-count' : ''; ?>"><?php echo $f['count']; ?></span>
+            </a>
           <?php endforeach; ?>
         </div>
 
         <div class="sidebar-card">
           <div class="sidebar-title">Posted Date</div>
           <div class="filter-item">
-            <div class="filter-left"><div class="fcheck">-</div><span>Last 7 Days</span></div>
+            <div class="filter-left">
+              <div class="fcheck">-</div><span>Last 7 Days</span>
+            </div>
             <span class="fcount">—</span>
           </div>
           <div class="filter-item">
-            <div class="filter-left"><div class="fcheck">-</div><span>Last 30 Days</span></div>
+            <div class="filter-left">
+              <div class="fcheck">-</div><span>Last 30 Days</span>
+            </div>
             <span class="fcount">—</span>
           </div>
           <div class="filter-item">
-            <div class="filter-left"><div class="fcheck">-</div><span>Earlier</span></div>
+            <div class="filter-left">
+              <div class="fcheck">-</div><span>Earlier</span>
+            </div>
             <span class="fcount">—</span>
           </div>
         </div>
@@ -633,103 +1586,368 @@ $stmt->close();
       <!-- CONTENT -->
       <div class="content-col">
 
-        <!-- Alerts -->
+        <!-- NEW JOB BUTTON -->
+        <div style="margin-bottom: 1.5rem;">
+          <button class="btn-modal-trigger" onclick="openModal('jobModal')">
+            + Create New Job Posting
+          </button>
+        </div>
+
+        <!-- NEW JOB MODAL -->
+        <div id="jobModal" class="modal">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2>Create New Job Posting</h2>
+              <button class="modal-close" onclick="closeModal('jobModal')">&times;</button>
+            </div>
+            <form method="POST" action="">
+              <input type="hidden" name="action" value="create_job">
+              <div class="modal-body">
+                <div class="form-group">
+                  <label class="form-label">Job Title *</label>
+                  <input type="text" name="job_title" class="input" required placeholder="e.g. Senior Software Engineer">
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Category *</label>
+                    <select name="job_category" class="select" required>
+                      <option value="">Select Category</option>
+                      <option value="IT">Information Technology</option>
+                      <option value="Healthcare">Healthcare</option>
+                      <option value="Education">Education</option>
+                      <option value="Finance">Finance & Banking</option>
+                      <option value="Retail">Retail & Sales</option>
+                      <option value="Manufacturing">Manufacturing</option>
+                      <option value="Construction">Construction</option>
+                      <option value="Food">Food & Hospitality</option>
+                      <option value="Transport">Transportation</option>
+                      <option value="Admin">Administration</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Work Type *</label>
+                    <select name="job_type" class="select" required>
+                      <option value="">Select Type</option>
+                      <option value="Full-time">Full-time</option>
+                      <option value="Part-time">Part-time</option>
+                      <option value="Contract">Contract</option>
+                      <option value="Internship">Internship</option>
+                      <option value="Freelance">Freelance</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Job Description *</label>
+                  <textarea name="job_description" class="textarea" required placeholder="Describe the job responsibilities, requirements, and benefits..."></textarea>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Salary Range *</label>
+                    <input type="text" name="salary_range" class="input" required placeholder="e.g. ₱25,000 - ₱35,000">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Application Deadline</label>
+                    <input type="date" name="application_deadline" class="input" min="<?php echo date('Y-m-d'); ?>">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Location * (Click on map to pin location)</label>
+                  <input type="text" name="location" class="input" id="jobLocationInput" required placeholder="Enter address (e.g. Nasugbu, Batangas)">
+                  <input type="hidden" name="location_lat" id="location_lat">
+                  <input type="hidden" name="location_lng" id="location_lng">
+                  <div id="locationMap" class="location-map"></div>
+                  <div class="location-hint">
+                    <span class="location-hint-icon">📍</span>
+                    <span id="locationHintText">Click anywhere within Nasugbu, Batangas to select a location</span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Required Skills *</label>
+                  <input type="text" name="required_skills" class="input" required placeholder="e.g. HTML, CSS, JavaScript, PHP">
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn" style="background: #6c757d; color: white; border: none; padding: 0.7rem 1.5rem; border-radius: var(--radius-sm); cursor: pointer;" onclick="closeModal('jobModal')">Cancel</button>
+                <button type="submit" class="submit-btn">Post Job</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- EDIT JOB MODAL -->
+        <div id="editJobModal" class="modal">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2>Edit Job Posting</h2>
+              <button class="modal-close" onclick="closeModal('editJobModal')">&times;</button>
+            </div>
+            <form method="POST" action="">
+              <input type="hidden" name="action" value="update_job">
+              <input type="hidden" name="job_id" id="edit_job_id">
+              <div class="modal-body">
+                <div class="form-group">
+                  <label class="form-label">Job Title *</label>
+                  <input type="text" name="edit_job_title" id="edit_job_title" class="input" required>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Category *</label>
+                    <select name="edit_job_category" id="edit_job_category" class="select" required>
+                      <option value="">Select Category</option>
+                      <option value="IT">Information Technology</option>
+                      <option value="Healthcare">Healthcare</option>
+                      <option value="Education">Education</option>
+                      <option value="Finance">Finance & Banking</option>
+                      <option value="Retail">Retail & Sales</option>
+                      <option value="Manufacturing">Manufacturing</option>
+                      <option value="Construction">Construction</option>
+                      <option value="Food">Food & Hospitality</option>
+                      <option value="Transport">Transportation</option>
+                      <option value="Admin">Administration</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Work Type *</label>
+                    <select name="edit_job_type" id="edit_job_type" class="select" required>
+                      <option value="">Select Type</option>
+                      <option value="Full-time">Full-time</option>
+                      <option value="Part-time">Part-time</option>
+                      <option value="Contract">Contract</option>
+                      <option value="Internship">Internship</option>
+                      <option value="Freelance">Freelance</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Job Description *</label>
+                  <textarea name="edit_job_description" id="edit_job_description" class="textarea" required></textarea>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Salary Range *</label>
+                    <input type="text" name="edit_salary_range" id="edit_salary_range" class="input" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Application Deadline</label>
+                    <input type="date" name="edit_application_deadline" id="edit_application_deadline" class="input" min="<?php echo date('Y-m-d'); ?>">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Location *</label>
+                  <input type="text" name="edit_location" id="edit_location" class="input" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Required Skills *</label>
+                  <input type="text" name="edit_required_skills" id="edit_required_skills" class="input" required>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn" style="background: #6c757d; color: white; border: none; padding: 0.7rem 1.5rem; border-radius: var(--radius-sm); cursor: pointer;" onclick="closeModal('editJobModal')">Cancel</button>
+                <button type="submit" class="submit-btn">Update Job</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- CONFIRM CLOSE JOB MODAL -->
+        <div id="confirmCloseModal" class="modal">
+          <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+              <h2>Close Job Posting?</h2>
+              <button class="modal-close" onclick="closeModal('confirmCloseModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+              <p>Are you sure you want to close this job posting? You can reopen it later if needed.</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn" style="background: #6c757d; color: white; border: none; padding: 0.7rem 1.5rem; border-radius: var(--radius-sm); cursor: pointer;" onclick="closeModal('confirmCloseModal')">Cancel</button>
+              <button type="button" class="submit-btn" onclick="confirmCloseJob()">Close Job</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONFIRM DELETE JOB MODAL -->
+        <div id="confirmDeleteModal" class="modal">
+          <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+              <h2>Delete Job Posting?</h2>
+              <button class="modal-close" onclick="closeModal('confirmDeleteModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+              <p style="color: #721c24; font-weight: 600;">⚠️ This action cannot be undone.</p>
+              <p>Are you sure you want to permanently delete this job posting?</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn" style="background: #6c757d; color: white; border: none; padding: 0.7rem 1.5rem; border-radius: var(--radius-sm); cursor: pointer;" onclick="closeModal('confirmDeleteModal')">Cancel</button>
+              <button type="button" class="submit-btn" style="background: #dc3545; border-color: #dc3545;" onclick="confirmDeleteJob()">Delete Job</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Success/Error Messages -->
         <?php if (!empty($success_message)): ?>
           <div id="success-alert" class="alert alert-success">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7.5" stroke="currentColor"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="8" r="7.5" stroke="currentColor" />
+              <path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
             <?php echo htmlspecialchars($success_message); ?>
           </div>
         <?php endif; ?>
         <?php if (!empty($error_message)): ?>
           <div class="alert alert-error">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7.5" stroke="currentColor"/><path d="M8 5v3M8 10.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="8" r="7.5" stroke="currentColor" />
+              <path d="M8 5v3M8 10.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            </svg>
             <?php echo htmlspecialchars($error_message); ?>
           </div>
         <?php endif; ?>
 
-        <!-- Toolbar -->
-        <div class="toolbar">
-          <span class="toolbar-label">
-            Showing <strong><?php echo count($jobs); ?></strong> job<?php echo count($jobs) !== 1 ? 's' : ''; ?>
-            <?php if ($filter_status !== 'all'): ?>
-              — <strong><?php echo ucfirst($filter_status); ?></strong>
-            <?php endif; ?>
-          </span>
-          <button class="btn-create" onclick="openModal('jobModal')">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            Create New Posting
-          </button>
-        </div>
+        <!-- POSTED JOBS TABLE -->
+        <div>
+          <div class="jobs-list">
+            <div class="jobs-list-header">Your Active Job Postings (<?php echo count($jobs); ?> total)</div>
 
-        <!-- Job Cards -->
-        <div class="jobs-list">
-          <?php if (count($jobs) > 0): ?>
-            <?php
-              $category_icons = [
-                'IT' => '💻', 'Healthcare' => '🏥', 'Education' => '📚',
-                'Finance' => '💰', 'Retail' => '🛒', 'Manufacturing' => '🏭',
-                'Construction' => '🏗️', 'Food' => '🍽️', 'Transport' => '🚚',
-                'Admin' => '📋', 'Other' => '💼',
-              ];
-            ?>
-            <?php foreach ($jobs as $job):
-              $job_status = $job['job_status'] ?? 'active';
-              $is_closed  = ($job_status === 'closed');
-              $is_draft   = ($job_status === 'draft');
-              $icon       = $category_icons[$job['job_category'] ?? ''] ?? '💼';
-              $apps       = $job_counts[$job['job_post_id']] ?? 0;
-            ?>
-            <div class="job-card <?php echo $is_draft ? 'draft-card' : ''; ?>">
-
-              <div class="job-icon"><?php echo $icon; ?></div>
-
-              <div class="job-info">
-                <div class="job-title"><?php echo htmlspecialchars($job['title']); ?></div>
-                <div class="job-meta">
-                  <?php if ($job['location']): ?>
-                  <span class="job-meta-item">
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1C4.067 1 2.5 2.567 2.5 4.5c0 2.625 3.5 6.5 3.5 6.5s3.5-3.875 3.5-6.5C9.5 2.567 7.933 1 6 1zm0 4.75a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5z" fill="currentColor" opacity=".6"/></svg>
-                    <?php echo htmlspecialchars($job['location']); ?>
-                  </span>
-                  <?php endif; ?>
-                  <?php if ($job['work_type']): ?>
-                  <span class="job-meta-item">
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1.5" y="2.5" width="9" height="7" rx="1" stroke="currentColor" opacity=".6"/><path d="M1.5 5h9" stroke="currentColor" opacity=".6"/><path d="M4 2.5V1.5M8 2.5V1.5" stroke="currentColor" opacity=".6" stroke-linecap="round"/></svg>
-                    <?php echo htmlspecialchars($job['work_type']); ?>
-                  </span>
-                  <?php endif; ?>
-                  <span class="job-meta-item">
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="currentColor" opacity=".6"/><path d="M6 3.5v2.75l1.5 1.5" stroke="currentColor" opacity=".6" stroke-linecap="round"/></svg>
-                    <?php echo date('M j, Y', strtotime($job['job_post_created'])); ?>
-                  </span>
-                  <?php if ($job['salary']): ?>
-                  <span class="job-meta-item">₱ <?php echo htmlspecialchars($job['salary']); ?></span>
-                  <?php endif; ?>
-                  <?php if ($is_draft): ?>
-                  <span class="job-meta-item" style="color:#a07010;font-weight:600;">✏️ Incomplete draft</span>
-                  <?php endif; ?>
+            <?php if (count($jobs) > 0): ?>
+              <?php foreach ($jobs as $job):
+                $job_status = $job['job_status'] ?? 'active';
+                $is_closed = ($job_status === 'closed');
+              ?>
+                <div class="job-card">
+                  <div>
+                    <div class="job-title"><?php echo htmlspecialchars($job['title']); ?></div>
+                    <div class="job-meta">
+                      📍 <?php echo htmlspecialchars($job['location']); ?> •
+                      💼 <?php echo htmlspecialchars($job['work_type']); ?> •
+                      ₱ <?php echo htmlspecialchars($job['salary']); ?>
+                    </div>
+                  </div>
+                  <div style="text-align: center;">
+                    <div style="font-size: 1.25rem; font-weight: 700; color: var(--primary-dark);">
+                      <?php echo isset($job_counts[$job['job_post_id']]) ? $job_counts[$job['job_post_id']] : 0; ?>
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-light);">Applications</div>
+                  </div>
+                  <div style="text-align: center;">
+                    <?php if ($is_closed): ?>
+                      <div style="background: #f8d7da; color: #721c24; padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">CLOSED</div>
+                    <?php else: ?>
+                      <div style="background: #d4edda; color: #155724; padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">ACTIVE</div>
+                    <?php endif; ?>
+                  </div>
+                  <div class="job-card-actions">
+                    <button class="btn-small" style="background: white; border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;" onclick="openEditModal(<?php echo $job['job_post_id']; ?>, '<?php echo htmlspecialchars(addslashes($job['title'])); ?>', '<?php echo htmlspecialchars(addslashes($job['job_category'] ?? '')); ?>', '<?php echo htmlspecialchars(addslashes($job['description'])); ?>', '<?php echo htmlspecialchars(addslashes($job['salary'])); ?>', '<?php echo htmlspecialchars(addslashes($job['location'])); ?>', '<?php echo htmlspecialchars(addslashes($job['work_type'])); ?>', '<?php echo htmlspecialchars(addslashes($job['skills'])); ?>', '<?php echo $job['application_deadline'] ?? ''; ?>')">Edit</button>
+                    <?php if (!$is_closed): ?>
+                      <form id="closeForm_<?php echo $job['job_post_id']; ?>" method="POST" style="display:none;">
+                        <input type="hidden" name="action" value="close_job">
+                        <input type="hidden" name="job_id" value="<?php echo $job['job_post_id']; ?>">
+                      </form>
+                      <button type="button" class="btn-small" style="background: white; border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;" onclick="openCloseConfirm(<?php echo $job['job_post_id']; ?>)">Close</button>
+                    <?php else: ?>
+                      <form id="deleteForm_<?php echo $job['job_post_id']; ?>" method="POST" style="display:none;">
+                        <input type="hidden" name="action" value="delete_job">
+                        <input type="hidden" name="job_id" value="<?php echo $job['job_post_id']; ?>">
+                      </form>
+                      <button type="button" class="btn-small" style="background: #f8d7da; border: 1px solid #f5c6cb; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600; color: #721c24;" onclick="openDeleteConfirm(<?php echo $job['job_post_id']; ?>)">Delete</button>
+                    <?php endif; ?>
+                  </div>
                 </div>
+              <?php endforeach; ?>
+            <?php else: ?>
+              <div class="job-card" style="text-align: center; color: var(--text-light); padding: 2rem; grid-column: 1 / -1;">
+                <p>No job postings yet. Click "Create New Job Posting" to get started.</p>
               </div>
+            <?php endif; ?>
+          </div>
 
-              <!-- Applications (hide for drafts) -->
-              <?php if (!$is_draft): ?>
-              <div class="app-count">
-                <div class="app-count-num"><?php echo $apps; ?></div>
-                <div class="app-count-label">Applicants</div>
-              </div>
-              <?php endif; ?>
+          <!-- Job Cards -->
+          <div class="jobs-list">
+            <?php if (count($jobs) > 0): ?>
+              <?php
+              $category_icons = [
+                'IT' => '💻',
+                'Healthcare' => '🏥',
+                'Education' => '📚',
+                'Finance' => '💰',
+                'Retail' => '🛒',
+                'Manufacturing' => '🏭',
+                'Construction' => '🏗️',
+                'Food' => '🍽️',
+                'Transport' => '🚚',
+                'Admin' => '📋',
+                'Other' => '💼',
+              ];
+              ?>
+              <?php foreach ($jobs as $job):
+                $job_status = $job['job_status'] ?? 'active';
+                $is_closed  = ($job_status === 'closed');
+                $is_draft   = ($job_status === 'draft');
+                $icon       = $category_icons[$job['job_category'] ?? ''] ?? '💼';
+                $apps       = $job_counts[$job['job_post_id']] ?? 0;
+              ?>
+                <div class="job-card <?php echo $is_draft ? 'draft-card' : ''; ?>">
 
-              <!-- Status badge -->
-              <span class="status-badge <?php echo $is_draft ? 'draft' : ($is_closed ? 'closed' : 'active'); ?>">
-                <?php echo $is_draft ? 'Draft' : ($is_closed ? 'Closed' : 'Active'); ?>
-              </span>
+                  <div class="job-icon"><?php echo $icon; ?></div>
 
-              <!-- Actions -->
-              <div class="job-actions">
+                  <div class="job-info">
+                    <div class="job-title"><?php echo htmlspecialchars($job['title']); ?></div>
+                    <div class="job-meta">
+                      <?php if ($job['location']): ?>
+                        <span class="job-meta-item">
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M6 1C4.067 1 2.5 2.567 2.5 4.5c0 2.625 3.5 6.5 3.5 6.5s3.5-3.875 3.5-6.5C9.5 2.567 7.933 1 6 1zm0 4.75a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5z" fill="currentColor" opacity=".6" />
+                          </svg>
+                          <?php echo htmlspecialchars($job['location']); ?>
+                        </span>
+                      <?php endif; ?>
+                      <?php if ($job['work_type']): ?>
+                        <span class="job-meta-item">
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <rect x="1.5" y="2.5" width="9" height="7" rx="1" stroke="currentColor" opacity=".6" />
+                            <path d="M1.5 5h9" stroke="currentColor" opacity=".6" />
+                            <path d="M4 2.5V1.5M8 2.5V1.5" stroke="currentColor" opacity=".6" stroke-linecap="round" />
+                          </svg>
+                          <?php echo htmlspecialchars($job['work_type']); ?>
+                        </span>
+                      <?php endif; ?>
+                      <span class="job-meta-item">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                          <circle cx="6" cy="6" r="4.5" stroke="currentColor" opacity=".6" />
+                          <path d="M6 3.5v2.75l1.5 1.5" stroke="currentColor" opacity=".6" stroke-linecap="round" />
+                        </svg>
+                        <?php echo date('M j, Y', strtotime($job['job_post_created'])); ?>
+                      </span>
+                      <?php if ($job['salary']): ?>
+                        <span class="job-meta-item">₱ <?php echo htmlspecialchars($job['salary']); ?></span>
+                      <?php endif; ?>
+                      <?php if ($is_draft): ?>
+                        <span class="job-meta-item" style="color:#a07010;font-weight:600;">✏️ Incomplete draft</span>
+                      <?php endif; ?>
+                    </div>
+                  </div>
 
-                <!-- Edit -->
-                <div class="icon-btn-wrap">
-                  <button class="icon-btn" onclick="openEditModal(
+                  <!-- Applications (hide for drafts) -->
+                  <?php if (!$is_draft): ?>
+                    <div class="app-count">
+                      <div class="app-count-num"><?php echo $apps; ?></div>
+                      <div class="app-count-label">Applicants</div>
+                    </div>
+                  <?php endif; ?>
+
+                  <!-- Status badge -->
+                  <span class="status-badge <?php echo $is_draft ? 'draft' : ($is_closed ? 'closed' : 'active'); ?>">
+                    <?php echo $is_draft ? 'Draft' : ($is_closed ? 'Closed' : 'Active'); ?>
+                  </span>
+
+                  <!-- Actions -->
+                  <div class="job-actions">
+
+                    <!-- Edit -->
+                    <div class="icon-btn-wrap">
+                      <button class="icon-btn" onclick="openEditModal(
                     <?php echo $job['job_post_id']; ?>,
                     '<?php echo htmlspecialchars(addslashes($job['title'])); ?>',
                     '<?php echo htmlspecialchars(addslashes($job['job_category'] ?? '')); ?>',
@@ -740,353 +1958,614 @@ $stmt->close();
                     '<?php echo htmlspecialchars(addslashes($job['skills'])); ?>',
                     '<?php echo $job['application_deadline'] ?? ''; ?>',
                     '<?php echo $job_status; ?>')">
-                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M10.586 1.586a2 2 0 012.828 2.828L4.5 13.328l-3 .672.672-3 8.414-9.414z" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  </button>
-                  <span class="icon-tooltip">Edit</span>
+                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                          <path d="M10.586 1.586a2 2 0 012.828 2.828L4.5 13.328l-3 .672.672-3 8.414-9.414z" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                      </button>
+                      <span class="icon-tooltip">Edit</span>
+                    </div>
+
+                    <?php if ($is_draft): ?>
+                      <!-- Publish draft -->
+                      <form id="publishForm_<?php echo $job['job_post_id']; ?>" method="POST" style="display:none;">
+                        <input type="hidden" name="action" value="publish_draft">
+                        <input type="hidden" name="job_id" value="<?php echo $job['job_post_id']; ?>">
+                      </form>
+                      <div class="icon-btn-wrap">
+                        <button class="icon-btn amber" onclick="openPublishConfirm(<?php echo $job['job_post_id']; ?>)">
+                          <!-- Send/publish icon -->
+                          <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                            <path d="M13.5 7.5L1.5 2l2.5 5.5-2.5 5.5 12-5.5z" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round" />
+                          </svg>
+                        </button>
+                        <span class="icon-tooltip">Publish</span>
+                      </div>
+                      <!-- Delete draft -->
+                      <form id="deleteForm_<?php echo $job['job_post_id']; ?>" method="POST" style="display:none;">
+                        <input type="hidden" name="action" value="delete_job">
+                        <input type="hidden" name="job_id" value="<?php echo $job['job_post_id']; ?>">
+                      </form>
+                      <div class="icon-btn-wrap">
+                        <button class="icon-btn danger" onclick="openDeleteConfirm(<?php echo $job['job_post_id']; ?>)">
+                          <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                            <path d="M2.5 4h10M5 4V2.5h5V4M6 7v4M9 7v4M3.5 4l.5 8.5h7L12 4" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" />
+                          </svg>
+                        </button>
+                        <span class="icon-tooltip">Delete</span>
+                      </div>
+
+                    <?php elseif (!$is_closed): ?>
+                      <!-- Close active job -->
+                      <form id="closeForm_<?php echo $job['job_post_id']; ?>" method="POST" style="display:none;">
+                        <input type="hidden" name="action" value="close_job">
+                        <input type="hidden" name="job_id" value="<?php echo $job['job_post_id']; ?>">
+                      </form>
+                      <div class="icon-btn-wrap">
+                        <button class="icon-btn" onclick="openCloseConfirm(<?php echo $job['job_post_id']; ?>)">
+                          <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                            <rect x="2.5" y="6.5" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.35" />
+                            <path d="M5 6.5V4.5a2.5 2.5 0 015 0v2" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" />
+                            <circle cx="7.5" cy="10" r="1" fill="currentColor" />
+                          </svg>
+                        </button>
+                        <span class="icon-tooltip">Close</span>
+                      </div>
+
+                    <?php else: ?>
+                      <!-- Delete closed job -->
+                      <form id="deleteForm_<?php echo $job['job_post_id']; ?>" method="POST" style="display:none;">
+                        <input type="hidden" name="action" value="delete_job">
+                        <input type="hidden" name="job_id" value="<?php echo $job['job_post_id']; ?>">
+                      </form>
+                      <div class="icon-btn-wrap">
+                        <button class="icon-btn danger" onclick="openDeleteConfirm(<?php echo $job['job_post_id']; ?>)">
+                          <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                            <path d="M2.5 4h10M5 4V2.5h5V4M6 7v4M9 7v4M3.5 4l.5 8.5h7L12 4" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" />
+                          </svg>
+                        </button>
+                        <span class="icon-tooltip">Delete</span>
+                      </div>
+                    <?php endif; ?>
+
+                  </div>
                 </div>
+              <?php endforeach; ?>
 
-                <?php if ($is_draft): ?>
-                  <!-- Publish draft -->
-                  <form id="publishForm_<?php echo $job['job_post_id']; ?>" method="POST" style="display:none;">
-                    <input type="hidden" name="action" value="publish_draft">
-                    <input type="hidden" name="job_id" value="<?php echo $job['job_post_id']; ?>">
-                  </form>
-                  <div class="icon-btn-wrap">
-                    <button class="icon-btn amber" onclick="openPublishConfirm(<?php echo $job['job_post_id']; ?>)">
-                      <!-- Send/publish icon -->
-                      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M13.5 7.5L1.5 2l2.5 5.5-2.5 5.5 12-5.5z" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round"/></svg>
-                    </button>
-                    <span class="icon-tooltip">Publish</span>
-                  </div>
-                  <!-- Delete draft -->
-                  <form id="deleteForm_<?php echo $job['job_post_id']; ?>" method="POST" style="display:none;">
-                    <input type="hidden" name="action" value="delete_job">
-                    <input type="hidden" name="job_id" value="<?php echo $job['job_post_id']; ?>">
-                  </form>
-                  <div class="icon-btn-wrap">
-                    <button class="icon-btn danger" onclick="openDeleteConfirm(<?php echo $job['job_post_id']; ?>)">
-                      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2.5 4h10M5 4V2.5h5V4M6 7v4M9 7v4M3.5 4l.5 8.5h7L12 4" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </button>
-                    <span class="icon-tooltip">Delete</span>
-                  </div>
-
-                <?php elseif (!$is_closed): ?>
-                  <!-- Close active job -->
-                  <form id="closeForm_<?php echo $job['job_post_id']; ?>" method="POST" style="display:none;">
-                    <input type="hidden" name="action" value="close_job">
-                    <input type="hidden" name="job_id" value="<?php echo $job['job_post_id']; ?>">
-                  </form>
-                  <div class="icon-btn-wrap">
-                    <button class="icon-btn" onclick="openCloseConfirm(<?php echo $job['job_post_id']; ?>)">
-                      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="2.5" y="6.5" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.35"/><path d="M5 6.5V4.5a2.5 2.5 0 015 0v2" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/><circle cx="7.5" cy="10" r="1" fill="currentColor"/></svg>
-                    </button>
-                    <span class="icon-tooltip">Close</span>
-                  </div>
-
-                <?php else: ?>
-                  <!-- Delete closed job -->
-                  <form id="deleteForm_<?php echo $job['job_post_id']; ?>" method="POST" style="display:none;">
-                    <input type="hidden" name="action" value="delete_job">
-                    <input type="hidden" name="job_id" value="<?php echo $job['job_post_id']; ?>">
-                  </form>
-                  <div class="icon-btn-wrap">
-                    <button class="icon-btn danger" onclick="openDeleteConfirm(<?php echo $job['job_post_id']; ?>)">
-                      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2.5 4h10M5 4V2.5h5V4M6 7v4M9 7v4M3.5 4l.5 8.5h7L12 4" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </button>
-                    <span class="icon-tooltip">Delete</span>
-                  </div>
-                <?php endif; ?>
-
+            <?php else: ?>
+              <div class="empty-state">
+                <div class="empty-state-icon">
+                  <?php echo $filter_status === 'drafts' ? '✏️' : '📋'; ?>
+                </div>
+                <h3><?php echo $filter_status === 'drafts' ? 'No drafts saved yet' : 'No job postings yet'; ?></h3>
+                <p><?php echo $filter_status === 'drafts'
+                      ? 'Click "Create New Posting" and choose "Save as Draft" to save an incomplete posting.'
+                      : 'Click "Create New Posting" above to publish your first job listing.'; ?></p>
               </div>
-            </div>
-            <?php endforeach; ?>
+            <?php endif; ?>
+          </div>
 
-          <?php else: ?>
-            <div class="empty-state">
-              <div class="empty-state-icon">
-                <?php echo $filter_status === 'drafts' ? '✏️' : '📋'; ?>
-              </div>
-              <h3><?php echo $filter_status === 'drafts' ? 'No drafts saved yet' : 'No job postings yet'; ?></h3>
-              <p><?php echo $filter_status === 'drafts'
-                  ? 'Click "Create New Posting" and choose "Save as Draft" to save an incomplete posting.'
-                  : 'Click "Create New Posting" above to publish your first job listing.'; ?></p>
-            </div>
-          <?php endif; ?>
+        </div><!-- /content-col -->
+      </div><!-- /main-layout -->
+
+    </div><!-- /page-wrapper -->
+
+    <!-- ══ CREATE JOB MODAL ══ -->
+    <div id="jobModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Create New Job Posting</h2>
+          <button class="modal-close" onclick="closeModal('jobModal')">&times;</button>
         </div>
-
-      </div><!-- /content-col -->
-    </div><!-- /main-layout -->
-
-  </div><!-- /page-wrapper -->
-
-  <!-- ══ CREATE JOB MODAL ══ -->
-  <div id="jobModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Create New Job Posting</h2>
-        <button class="modal-close" onclick="closeModal('jobModal')">&times;</button>
+        <form method="POST" action="" id="createJobForm">
+          <input type="hidden" name="action" value="create_job">
+          <input type="hidden" name="save_as_draft" id="save_as_draft_flag" value="0">
+          <div class="modal-body">
+            <div class="draft-note">
+              💡 <span>You can <strong>Save as Draft</strong> anytime — only a title is required. Come back to finish and publish later.</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Job Title *</label>
+              <input type="text" name="job_title" class="input" required placeholder="e.g. Senior Software Engineer">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Category</label>
+                <select name="job_category" class="select">
+                  <option value="">Select Category</option>
+                  <option value="IT">Information Technology</option>
+                  <option value="Healthcare">Healthcare</option>
+                  <option value="Education">Education</option>
+                  <option value="Finance">Finance & Banking</option>
+                  <option value="Retail">Retail & Sales</option>
+                  <option value="Manufacturing">Manufacturing</option>
+                  <option value="Construction">Construction</option>
+                  <option value="Food">Food & Hospitality</option>
+                  <option value="Transport">Transportation</option>
+                  <option value="Admin">Administration</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Work Type</label>
+                <select name="job_type" class="select">
+                  <option value="">Select Type</option>
+                  <option value="Full-time">Full-time</option>
+                  <option value="Part-time">Part-time</option>
+                  <option value="Contract">Contract</option>
+                  <option value="Internship">Internship</option>
+                  <option value="Freelance">Freelance</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Job Description</label>
+              <textarea name="job_description" class="textarea" placeholder="Describe responsibilities, requirements, and benefits…"></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Salary Range</label>
+                <input type="text" name="salary_range" class="input" placeholder="e.g. ₱25,000 – ₱35,000">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Application Deadline</label>
+                <input type="date" name="application_deadline" class="input" min="<?php echo date('Y-m-d'); ?>">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Location <span style="font-weight:400;color:var(--text-light);">(click map to pin)</span></label>
+              <input type="text" name="location" class="input" id="jobLocationInput" placeholder="Enter address or click the map">
+              <input type="hidden" name="location_lat" id="location_lat">
+              <input type="hidden" name="location_lng" id="location_lng">
+              <div id="locationMap" class="location-map"></div>
+              <div class="location-hint">📍 <span id="locationHintText">Click anywhere on the map to pin a location</span></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Required Skills</label>
+              <input type="text" name="required_skills" class="input" placeholder="e.g. HTML, CSS, JavaScript, PHP">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-modal-cancel" onclick="closeModal('jobModal')">Cancel</button>
+            <button type="button" class="btn-modal-draft" onclick="submitAsDraft()">Save as Draft</button>
+            <button type="button" class="btn-modal-submit" onclick="submitAsActive()">Post Job</button>
+          </div>
+        </form>
       </div>
-      <form method="POST" action="" id="createJobForm">
-        <input type="hidden" name="action" value="create_job">
-        <input type="hidden" name="save_as_draft" id="save_as_draft_flag" value="0">
+    </div>
+
+    <!-- ══ EDIT JOB MODAL ══ -->
+    <div id="editJobModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Edit Job Posting</h2>
+          <button class="modal-close" onclick="closeModal('editJobModal')">&times;</button>
+        </div>
+        <form method="POST" action="" id="editJobForm">
+          <input type="hidden" name="action" value="update_job">
+          <input type="hidden" name="job_id" id="edit_job_id">
+          <input type="hidden" name="edit_save_as_draft" id="edit_save_as_draft_flag" value="0">
+          <div class="modal-body">
+            <div id="edit_draft_note" class="draft-note" style="display:none;">
+              ✏️ <span>This is a <strong>draft</strong>. Fill in all fields and click <strong>Publish</strong> to make it live, or save progress as a draft.</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Job Title *</label>
+              <input type="text" name="edit_job_title" id="edit_job_title" class="input" required>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Category</label>
+                <select name="edit_job_category" id="edit_job_category" class="select">
+                  <option value="">Select Category</option>
+                  <option value="IT">Information Technology</option>
+                  <option value="Healthcare">Healthcare</option>
+                  <option value="Education">Education</option>
+                  <option value="Finance">Finance & Banking</option>
+                  <option value="Retail">Retail & Sales</option>
+                  <option value="Manufacturing">Manufacturing</option>
+                  <option value="Construction">Construction</option>
+                  <option value="Food">Food & Hospitality</option>
+                  <option value="Transport">Transportation</option>
+                  <option value="Admin">Administration</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Work Type</label>
+                <select name="edit_job_type" id="edit_job_type" class="select">
+                  <option value="">Select Type</option>
+                  <option value="Full-time">Full-time</option>
+                  <option value="Part-time">Part-time</option>
+                  <option value="Contract">Contract</option>
+                  <option value="Internship">Internship</option>
+                  <option value="Freelance">Freelance</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Job Description</label>
+              <textarea name="edit_job_description" id="edit_job_description" class="textarea"></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Salary Range</label>
+                <input type="text" name="edit_salary_range" id="edit_salary_range" class="input">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Application Deadline</label>
+                <input type="date" name="edit_application_deadline" id="edit_application_deadline" class="input" min="<?php echo date('Y-m-d'); ?>">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Location</label>
+              <input type="text" name="edit_location" id="edit_location" class="input">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Required Skills</label>
+              <input type="text" name="edit_required_skills" id="edit_required_skills" class="input">
+            </div>
+          </div>
+          <div class="modal-footer" id="edit_modal_footer">
+            <button type="button" class="btn-modal-cancel" onclick="closeModal('editJobModal')">Cancel</button>
+            <!-- Buttons injected by JS based on draft status -->
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ══ CONFIRM PUBLISH MODAL ══ -->
+    <div id="confirmPublishModal" class="modal">
+      <div class="modal-content narrow">
+        <div class="modal-header">
+          <h2>Publish Draft?</h2>
+          <button class="modal-close" onclick="closeModal('confirmPublishModal')">&times;</button>
+        </div>
         <div class="modal-body">
-          <div class="draft-note">
-            💡 <span>You can <strong>Save as Draft</strong> anytime — only a title is required. Come back to finish and publish later.</span>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Job Title *</label>
-            <input type="text" name="job_title" class="input" required placeholder="e.g. Senior Software Engineer">
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Category</label>
-              <select name="job_category" class="select">
-                <option value="">Select Category</option>
-                <option value="IT">Information Technology</option>
-                <option value="Healthcare">Healthcare</option>
-                <option value="Education">Education</option>
-                <option value="Finance">Finance & Banking</option>
-                <option value="Retail">Retail & Sales</option>
-                <option value="Manufacturing">Manufacturing</option>
-                <option value="Construction">Construction</option>
-                <option value="Food">Food & Hospitality</option>
-                <option value="Transport">Transportation</option>
-                <option value="Admin">Administration</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Work Type</label>
-              <select name="job_type" class="select">
-                <option value="">Select Type</option>
-                <option value="Full-time">Full-time</option>
-                <option value="Part-time">Part-time</option>
-                <option value="Contract">Contract</option>
-                <option value="Internship">Internship</option>
-                <option value="Freelance">Freelance</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Job Description</label>
-            <textarea name="job_description" class="textarea" placeholder="Describe responsibilities, requirements, and benefits…"></textarea>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Salary Range</label>
-              <input type="text" name="salary_range" class="input" placeholder="e.g. ₱25,000 – ₱35,000">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Application Deadline</label>
-              <input type="date" name="application_deadline" class="input" min="<?php echo date('Y-m-d'); ?>">
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Location <span style="font-weight:400;color:var(--text-light);">(click map to pin)</span></label>
-            <input type="text" name="location" class="input" id="jobLocationInput" placeholder="Enter address or click the map">
-            <input type="hidden" name="location_lat" id="location_lat">
-            <input type="hidden" name="location_lng" id="location_lng">
-            <div id="locationMap" class="location-map"></div>
-            <div class="location-hint">📍 <span id="locationHintText">Click anywhere on the map to pin a location</span></div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Required Skills</label>
-            <input type="text" name="required_skills" class="input" placeholder="e.g. HTML, CSS, JavaScript, PHP">
-          </div>
+          <p style="color:var(--text-mid);margin:0;font-size:0.9rem;">This will make the job posting live and visible to job seekers.</p>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn-modal-cancel" onclick="closeModal('jobModal')">Cancel</button>
-          <button type="button" class="btn-modal-draft" onclick="submitAsDraft()">Save as Draft</button>
-          <button type="button" class="btn-modal-submit" onclick="submitAsActive()">Post Job</button>
+          <button type="button" class="btn-modal-cancel" onclick="closeModal('confirmPublishModal')">Cancel</button>
+          <button type="button" class="btn-modal-submit" onclick="confirmPublishJob()">Publish Now</button>
         </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- ══ EDIT JOB MODAL ══ -->
-  <div id="editJobModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Edit Job Posting</h2>
-        <button class="modal-close" onclick="closeModal('editJobModal')">&times;</button>
       </div>
-      <form method="POST" action="" id="editJobForm">
-        <input type="hidden" name="action" value="update_job">
-        <input type="hidden" name="job_id" id="edit_job_id">
-        <input type="hidden" name="edit_save_as_draft" id="edit_save_as_draft_flag" value="0">
+    </div>
+
+    <!-- ══ CONFIRM CLOSE MODAL ══ -->
+    <div id="confirmCloseModal" class="modal">
+      <div class="modal-content narrow">
+        <div class="modal-header">
+          <h2>Close Job Posting?</h2>
+          <button class="modal-close" onclick="closeModal('confirmCloseModal')">&times;</button>
+        </div>
         <div class="modal-body">
-          <div id="edit_draft_note" class="draft-note" style="display:none;">
-            ✏️ <span>This is a <strong>draft</strong>. Fill in all fields and click <strong>Publish</strong> to make it live, or save progress as a draft.</span>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Job Title *</label>
-            <input type="text" name="edit_job_title" id="edit_job_title" class="input" required>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Category</label>
-              <select name="edit_job_category" id="edit_job_category" class="select">
-                <option value="">Select Category</option>
-                <option value="IT">Information Technology</option>
-                <option value="Healthcare">Healthcare</option>
-                <option value="Education">Education</option>
-                <option value="Finance">Finance & Banking</option>
-                <option value="Retail">Retail & Sales</option>
-                <option value="Manufacturing">Manufacturing</option>
-                <option value="Construction">Construction</option>
-                <option value="Food">Food & Hospitality</option>
-                <option value="Transport">Transportation</option>
-                <option value="Admin">Administration</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Work Type</label>
-              <select name="edit_job_type" id="edit_job_type" class="select">
-                <option value="">Select Type</option>
-                <option value="Full-time">Full-time</option>
-                <option value="Part-time">Part-time</option>
-                <option value="Contract">Contract</option>
-                <option value="Internship">Internship</option>
-                <option value="Freelance">Freelance</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Job Description</label>
-            <textarea name="edit_job_description" id="edit_job_description" class="textarea"></textarea>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Salary Range</label>
-              <input type="text" name="edit_salary_range" id="edit_salary_range" class="input">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Application Deadline</label>
-              <input type="date" name="edit_application_deadline" id="edit_application_deadline" class="input" min="<?php echo date('Y-m-d'); ?>">
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Location</label>
-            <input type="text" name="edit_location" id="edit_location" class="input">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Required Skills</label>
-            <input type="text" name="edit_required_skills" id="edit_required_skills" class="input">
+          <p style="color:var(--text-mid);margin:0;font-size:0.9rem;">Are you sure you want to close this job posting? Applicants will no longer be able to apply.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-modal-cancel" onclick="closeModal('confirmCloseModal')">Cancel</button>
+          <button type="button" class="btn-modal-submit" onclick="confirmCloseJob()">Close Posting</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ CONFIRM DELETE MODAL ══ -->
+    <div id="confirmDeleteModal" class="modal">
+      <div class="modal-content narrow">
+        <div class="modal-header">
+          <h2>Delete Job Posting?</h2>
+          <button class="modal-close" onclick="closeModal('confirmDeleteModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="warning-text">⚠️ This action cannot be undone.</div>
+          <p style="color:var(--text-mid);margin:0;font-size:0.9rem;">The job posting and all related data will be permanently removed.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-modal-cancel" onclick="closeModal('confirmDeleteModal')">Cancel</button>
+          <button type="button" class="btn-modal-danger" onclick="confirmDeleteJob()">Delete Permanently</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SCRIPTS ══ -->
+    <script>
+      let jobLocationMap = null;
+      let jobLocationMarker = null;
+      let jobLocationBoundaryMask = null;
+      let jobLocationBoundaryOutline = null;
+      let nasugbuBoundaryGeometry = null;
+      let nasugbuBoundaryLoadPromise = null;
+      let jobLocationDebounceTimer = null;
+      let jobLocationRequestId = 0;
+      let pendingLocationCoords = null;
+      let locationConfirmPopup = null;
+      let locationWarningPopup = null;
+      const NASUGBU_BOUNDS_COORDS = [
+        [13.90, 120.40],
+        [14.30, 120.95]
+      ];
+      const NASUGBU_LOCATION_WARNING = 'Location must be within Nasugbu, Batangas only.';
+      const DEFAULT_LOCATION_HINT = 'Click anywhere within Nasugbu, Batangas to select a location';
+
+      function getJobLocationElements() {
+        return {
+          input: document.getElementById('jobLocationInput'),
+          lat: document.getElementById('location_lat'),
+          lng: document.getElementById('location_lng'),
+          map: document.getElementById('locationMap'),
+          hint: document.getElementById('locationHintText')
+        };
+      }
+
+      function isNasugbuAddress(address) {
+        const normalized = String(address || '').toLowerCase();
+        return normalized.includes('nasugbu') && normalized.includes('batangas');
+      }
+
+      function isPointInsideRing(lat, lng, ring) {
+        if (!Array.isArray(ring) || ring.length < 3) {
+          return false;
+        }
+
+        let inside = false;
+        let previousIndex = ring.length - 1;
+
+        for (let currentIndex = 0; currentIndex < ring.length; currentIndex++) {
+          const currentPoint = ring[currentIndex];
+          const previousPoint = ring[previousIndex];
+          const currentLng = Number(currentPoint[0]);
+          const currentLat = Number(currentPoint[1]);
+          const previousLng = Number(previousPoint[0]);
+          const previousLat = Number(previousPoint[1]);
+
+          const intersects = ((currentLat > lat) !== (previousLat > lat)) &&
+            (lng < ((previousLng - currentLng) * (lat - currentLat)) / ((previousLat - currentLat) || 1e-9) + currentLng);
+
+          if (intersects) {
+            inside = !inside;
+          }
+
+          previousIndex = currentIndex;
+        }
+
+        return inside;
+      }
+
+      function isPointInsideNasugbuBoundary(lat, lng) {
+        if (nasugbuBoundaryGeometry && nasugbuBoundaryGeometry.type === 'Polygon' && Array.isArray(nasugbuBoundaryGeometry.coordinates)) {
+          return isPointInsideRing(lat, lng, nasugbuBoundaryGeometry.coordinates[0]);
+        }
+
+        return lat >= 13.90 && lat <= 14.30 && lng >= 120.40 && lng <= 120.95;
+      }
+
+      function isNasugbuCoordinates(lat, lng) {
+        const latitude = Number(lat);
+        const longitude = Number(lng);
+        return Number.isFinite(latitude) && Number.isFinite(longitude) && isPointInsideNasugbuBoundary(latitude, longitude);
+      }
+
+      function clearJobLocationSelection(message) {
+        const elements = getJobLocationElements();
+        setJobLocationCoordinates('', '');
+        pendingLocationCoords = null;
+
+        if (jobLocationMarker && jobLocationMap) {
+          jobLocationMap.removeLayer(jobLocationMarker);
+          jobLocationMarker = null;
+        }
+
+        if (elements.hint) {
+          elements.hint.textContent = message || DEFAULT_LOCATION_HINT;
+          elements.hint.style.color = message ? '#dc3545' : '';
+        }
+      }
+
+      function addNasugbuBoundaryMask() {
+        if (!jobLocationMap || !window.L) {
+          return;
+        }
+
+        if (jobLocationBoundaryMask) {
+          return;
+        }
+
+        if (!nasugbuBoundaryGeometry || nasugbuBoundaryGeometry.type !== 'Polygon' || !Array.isArray(nasugbuBoundaryGeometry.coordinates) || !nasugbuBoundaryGeometry.coordinates.length) {
+          return;
+        }
+
+        const boundaryRing = nasugbuBoundaryGeometry.coordinates[0].map(function(point) {
+          return [Number(point[1]), Number(point[0])];
+        });
+
+        const outsideNasugbu = [
+          [85, -180],
+          [85, 180],
+          [-85, 180],
+          [-85, -180]
+        ];
+
+        jobLocationBoundaryMask = L.polygon([outsideNasugbu, boundaryRing], {
+          stroke: false,
+          fillColor: '#6c757d',
+          fillOpacity: 0.28,
+          interactive: false,
+          pane: 'overlayPane'
+        }).addTo(jobLocationMap);
+
+        jobLocationBoundaryOutline = L.geoJSON(nasugbuBoundaryGeometry, {
+          style: {
+            color: '#155724',
+            weight: 2,
+            dashArray: '6 6',
+            fill: false,
+            interactive: false
+          }
+        }).addTo(jobLocationMap);
+
+        const boundaryLayer = L.geoJSON(nasugbuBoundaryGeometry);
+        if (boundaryLayer && boundaryLayer.getBounds && boundaryLayer.getBounds().isValid()) {
+          jobLocationMap.setMaxBounds(boundaryLayer.getBounds().pad(0.08));
+        }
+      }
+
+      async function loadNasugbuBoundaryMask() {
+        if (nasugbuBoundaryLoadPromise) {
+          return nasugbuBoundaryLoadPromise;
+        }
+
+        nasugbuBoundaryLoadPromise = (async function() {
+          try {
+            const response = await fetch('./geocode-location.php?location=' + encodeURIComponent('Nasugbu, Batangas, Philippines') + '&boundary=1');
+            if (!response.ok) {
+              return;
+            }
+
+            const data = await response.json();
+            if (!data || !data.success || !data.data || !data.data.geojson || data.data.geojson.type !== 'Polygon') {
+              return;
+            }
+
+            nasugbuBoundaryGeometry = data.data.geojson;
+
+            if (jobLocationMap) {
+              if (jobLocationBoundaryMask) {
+                jobLocationMap.removeLayer(jobLocationBoundaryMask);
+                jobLocationBoundaryMask = null;
+              }
+
+              if (jobLocationBoundaryOutline) {
+                jobLocationMap.removeLayer(jobLocationBoundaryOutline);
+                jobLocationBoundaryOutline = null;
+              }
+
+              addNasugbuBoundaryMask();
+            }
+          } catch (error) {
+            console.error('Failed to load Nasugbu boundary geometry:', error);
+          }
+        })();
+
+        return nasugbuBoundaryLoadPromise;
+      }
+
+      function closeLocationWarningPopup() {
+        if (jobLocationMap && locationWarningPopup) {
+          jobLocationMap.closePopup(locationWarningPopup);
+        }
+        locationWarningPopup = null;
+      }
+
+      function showLocationWarningPopup(lat, lng, message) {
+        if (!jobLocationMap || !window.L) {
+          return;
+        }
+
+        closeLocationWarningPopup();
+
+        const popupContent = `
+        <div class="location-warning-popup">
+          <div class="warning-pill">Location blocked</div>
+          <h4>${message}</h4>
+          <p>Only Nasugbu, Batangas is allowed for this job post.</p>
+          <div class="popup-actions">
+            <button class="popup-btn popup-btn-save popup-btn-warning" onclick="closeLocationWarningPopup()">Okay</button>
           </div>
         </div>
-        <div class="modal-footer" id="edit_modal_footer">
-          <button type="button" class="btn-modal-cancel" onclick="closeModal('editJobModal')">Cancel</button>
-          <!-- Buttons injected by JS based on draft status -->
-        </div>
-      </form>
-    </div>
-  </div>
+      `;
 
-  <!-- ══ CONFIRM PUBLISH MODAL ══ -->
-  <div id="confirmPublishModal" class="modal">
-    <div class="modal-content narrow">
-      <div class="modal-header">
-        <h2>Publish Draft?</h2>
-        <button class="modal-close" onclick="closeModal('confirmPublishModal')">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p style="color:var(--text-mid);margin:0;font-size:0.9rem;">This will make the job posting live and visible to job seekers.</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-modal-cancel" onclick="closeModal('confirmPublishModal')">Cancel</button>
-        <button type="button" class="btn-modal-submit" onclick="confirmPublishJob()">Publish Now</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ CONFIRM CLOSE MODAL ══ -->
-  <div id="confirmCloseModal" class="modal">
-    <div class="modal-content narrow">
-      <div class="modal-header">
-        <h2>Close Job Posting?</h2>
-        <button class="modal-close" onclick="closeModal('confirmCloseModal')">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p style="color:var(--text-mid);margin:0;font-size:0.9rem;">Are you sure you want to close this job posting? Applicants will no longer be able to apply.</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-modal-cancel" onclick="closeModal('confirmCloseModal')">Cancel</button>
-        <button type="button" class="btn-modal-submit" onclick="confirmCloseJob()">Close Posting</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ CONFIRM DELETE MODAL ══ -->
-  <div id="confirmDeleteModal" class="modal">
-    <div class="modal-content narrow">
-      <div class="modal-header">
-        <h2>Delete Job Posting?</h2>
-        <button class="modal-close" onclick="closeModal('confirmDeleteModal')">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="warning-text">⚠️ This action cannot be undone.</div>
-        <p style="color:var(--text-mid);margin:0;font-size:0.9rem;">The job posting and all related data will be permanently removed.</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-modal-cancel" onclick="closeModal('confirmDeleteModal')">Cancel</button>
-        <button type="button" class="btn-modal-danger" onclick="confirmDeleteJob()">Delete Permanently</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ SCRIPTS ══ -->
-  <script>
-    /* ─── Location map ─── */
-    let jobLocationMap = null, jobLocationMarker = null;
-    let jobLocationDebounceTimer = null, jobLocationRequestId = 0;
-    let pendingLocationCoords = null;
-
-    function getJobLocationElements() {
-      return {
-        input: document.getElementById('jobLocationInput'),
-        lat:   document.getElementById('location_lat'),
-        lng:   document.getElementById('location_lng'),
-        map:   document.getElementById('locationMap'),
-        hint:  document.getElementById('locationHintText')
-      };
-    }
-
-    function setJobLocationCoordinates(lat, lng) {
-      const el = getJobLocationElements();
-      if (el.lat) el.lat.value = (lat !== null && lat !== undefined) ? String(lat) : '';
-      if (el.lng) el.lng.value = (lng !== null && lng !== undefined) ? String(lng) : '';
-    }
-
-    function ensureJobLocationMap() {
-      if (!window.L || jobLocationMap) return;
-      const el = getJobLocationElements();
-      if (!el.map) return;
-      jobLocationMap = L.map('locationMap', { zoomControl: true, scrollWheelZoom: false }).setView([14.0728, 120.6339], 13);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(jobLocationMap);
-      jobLocationMap.on('click', handleJobLocationMapClick);
-    }
-
-    async function handleJobLocationMapClick(e) {
-      const { lat, lng } = e.latlng;
-      pendingLocationCoords = { lat, lng };
-      if (!jobLocationMarker) {
-        jobLocationMarker = L.marker([lat, lng]).addTo(jobLocationMap);
-      } else {
-        jobLocationMarker.setLatLng([lat, lng]);
+        locationWarningPopup = L.popup({
+            closeButton: false,
+            closeOnClick: false,
+            autoClose: true,
+            autoPan: true,
+            className: 'location-warning-popup-wrapper',
+            offset: [0, -24],
+            maxWidth: 320
+          })
+          .setLatLng([lat, lng])
+          .setContent(popupContent)
+          .openOn(jobLocationMap);
       }
-      jobLocationMarker.bindPopup('<div class="location-confirm-popup"><h4>Fetching address…</h4></div>', { closeButton: false, closeOnClick: false, autoClose: false, className: 'location-popup-wrapper' }).openPopup();
-      try {
-        const res = await fetch('./geocode-location.php?lat=' + encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lng));
-        const data = res.ok ? await res.json() : null;
-        showLocationConfirmPopup(lat, lng, (data && data.success && data.data && data.data.display_name) ? data.data.display_name : 'Address not found');
-      } catch (err) {
-        showLocationConfirmPopup(lat, lng, 'Could not retrieve address');
-      }
-    }
 
-    function showLocationConfirmPopup(lat, lng, address) {
-      const html = `<div class="location-confirm-popup">
+      function setJobLocationCoordinates(lat, lng) {
+        const el = getJobLocationElements();
+        if (el.lat) el.lat.value = (lat !== null && lat !== undefined) ? String(lat) : '';
+        if (el.lng) el.lng.value = (lng !== null && lng !== undefined) ? String(lng) : '';
+      }
+
+      function ensureJobLocationMap() {
+        if (!window.L || jobLocationMap) {
+          return;
+        }
+
+        const elements = getJobLocationElements();
+        if (!elements.map) {
+          return;
+        }
+
+        jobLocationMap = L.map('locationMap', {
+          zoomControl: true,
+          scrollWheelZoom: false
+        }).setView([14.0728, 120.6339], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(jobLocationMap);
+
+        loadNasugbuBoundaryMask();
+        jobLocationMap.on('click', handleJobLocationMapClick);
+      }
+
+      async function handleJobLocationMapClick(e) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+
+        if (!isNasugbuCoordinates(lat, lng)) {
+          clearJobLocationSelection(NASUGBU_LOCATION_WARNING);
+          showLocationWarningPopup(lat, lng, NASUGBU_LOCATION_WARNING);
+          return;
+        }
+
+        pendingLocationCoords = {
+          lat,
+          lng
+        };
+        if (!jobLocationMarker) {
+          jobLocationMarker = L.marker([lat, lng]).addTo(jobLocationMap);
+        } else {
+          jobLocationMarker.setLatLng([lat, lng]);
+        }
+        jobLocationMarker.bindPopup('<div class="location-confirm-popup"><h4>Fetching address…</h4></div>', {
+          closeButton: false,
+          closeOnClick: false,
+          autoClose: false,
+          className: 'location-popup-wrapper'
+        }).openPopup();
+        try {
+          const response = await fetch('./geocode-location.php?lat=' + encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lng));
+          const data = await response.json().catch(() => null);
+
+          if (!response.ok || !data || !data.success || !data.data || !data.data.display_name) {
+            clearJobLocationSelection((data && data.message) ? data.message : NASUGBU_LOCATION_WARNING);
+            showLocationWarningPopup(lat, lng, (data && data.message) ? data.message : NASUGBU_LOCATION_WARNING);
+            return;
+          }
+
+          if (!isNasugbuAddress(data.data.display_name)) {
+            clearJobLocationSelection(NASUGBU_LOCATION_WARNING);
+            showLocationWarningPopup(lat, lng, NASUGBU_LOCATION_WARNING);
+            return;
+          }
+
+          showLocationConfirmPopup(lat, lng, data.data.display_name);
+        } catch (error) {
+          console.error('Location reverse geocoding failed:', error);
+          clearJobLocationSelection(NASUGBU_LOCATION_WARNING);
+          showLocationWarningPopup(lat, lng, NASUGBU_LOCATION_WARNING);
+        }
+      }
+
+      function showLocationConfirmPopup(lat, lng, address) {
+        const html = `<div class="location-confirm-popup">
         <h4>Save This Location?</h4>
         <div class="popup-address">${address}</div>
         <div class="popup-actions">
@@ -1094,240 +2573,330 @@ $stmt->close();
           <button class="popup-btn popup-btn-save" onclick="confirmLocationSelection()">Save</button>
         </div>
       </div>`;
-      if (jobLocationMarker) jobLocationMarker.setPopupContent(html);
-    }
+        if (jobLocationMarker) jobLocationMarker.setPopupContent(html);
+      }
 
-    function confirmLocationSelection() {
-      if (!pendingLocationCoords) return;
-      const el = getJobLocationElements();
-      const addrEl = document.querySelector('.location-confirm-popup .popup-address');
-      setJobLocationCoordinates(pendingLocationCoords.lat, pendingLocationCoords.lng);
-      if (el.input && addrEl) el.input.value = addrEl.textContent;
-      if (el.hint) { el.hint.textContent = 'Location selected ✓'; el.hint.style.color = '#1a7a46'; }
-      cancelLocationSelection();
-    }
-
-    function cancelLocationSelection() {
-      if (jobLocationMarker) jobLocationMarker.closePopup();
-      pendingLocationCoords = null;
-    }
-
-    async function scheduleJobLocationGeocode() {
-      clearTimeout(jobLocationDebounceTimer);
-      jobLocationDebounceTimer = setTimeout(runJobLocationGeocode, 500);
-    }
-
-    async function runJobLocationGeocode() {
-      const el = getJobLocationElements();
-      if (!el.input) return;
-      const query = el.input.value.trim();
-      if (!query) { setJobLocationCoordinates('', ''); return; }
-      const rid = ++jobLocationRequestId;
-      try {
-        const res = await fetch('./geocode-location.php?location=' + encodeURIComponent(query));
-        if (!res.ok) return;
-        const data = await res.json();
-        if (rid !== jobLocationRequestId || !data.success || !data.data) return;
-        const lat = data.data.lat, lng = data.data.lng;
-        if (isNaN(lat) || isNaN(lng)) return;
-        ensureJobLocationMap();
-        if (!jobLocationMarker) {
-          jobLocationMarker = L.marker([lat, lng]).addTo(jobLocationMap);
-        } else {
-          jobLocationMarker.setLatLng([lat, lng]);
+      function confirmLocationSelection() {
+        if (!pendingLocationCoords) return;
+        const el = getJobLocationElements();
+        const addrEl = document.querySelector('.location-confirm-popup .popup-address');
+        setJobLocationCoordinates(pendingLocationCoords.lat, pendingLocationCoords.lng);
+        if (el.input && addrEl) el.input.value = addrEl.textContent;
+        if (el.hint) {
+          el.hint.textContent = 'Location selected ✓';
+          el.hint.style.color = '#1a7a46';
         }
-        jobLocationMap.setView([lat, lng], 16, { animate: true });
-        setJobLocationCoordinates(lat, lng);
-      } catch (e) {}
-    }
-
-    /* ─── Create form submission ─── */
-    function submitAsDraft() {
-      document.getElementById('save_as_draft_flag').value = '1';
-      document.getElementById('createJobForm').submit();
-    }
-
-    function submitAsActive() {
-      document.getElementById('save_as_draft_flag').value = '0';
-      const el = getJobLocationElements();
-      const lat = el.lat ? el.lat.value.trim() : '';
-      const lng = el.lng ? el.lng.value.trim() : '';
-      if (!lat || !lng) {
-        alert('Please pin a location on the map before posting the job.');
-        return;
+        cancelLocationSelection();
       }
-      document.getElementById('createJobForm').submit();
-    }
 
-    /* ─── Edit form submission ─── */
-    function submitEditAsDraft() {
-      document.getElementById('edit_save_as_draft_flag').value = '1';
-      document.getElementById('editJobForm').submit();
-    }
+      function cancelLocationSelection() {
+        if (jobLocationMarker) jobLocationMarker.closePopup();
+        pendingLocationCoords = null;
+      }
 
-    function submitEditAsActive() {
-      document.getElementById('edit_save_as_draft_flag').value = '0';
-      document.getElementById('editJobForm').submit();
-    }
+      async function scheduleJobLocationGeocode() {
+        clearTimeout(jobLocationDebounceTimer);
+        jobLocationDebounceTimer = setTimeout(runJobLocationGeocode, 500);
+      }
 
-    /* ─── Modal logic ─── */
-    function openModal(id) {
-      const m = document.getElementById(id);
-      if (!m) return;
-      m.classList.add('active');
-      document.body.style.overflow = 'hidden';
-      if (id === 'jobModal') {
+      async function runJobLocationGeocode() {
+        const elements = getJobLocationElements();
+        if (!elements.input) {
+          return;
+        }
+
+        const query = elements.input.value.trim();
+        if (!query) {
+          clearJobLocationSelection(DEFAULT_LOCATION_HINT);
+          return;
+        }
+
+        const requestId = ++jobLocationRequestId;
+
+        try {
+          const response = await fetch('./geocode-location.php?location=' + encodeURIComponent(query));
+
+          if (!response.ok) {
+            if (response.status === 422) {
+              const errorData = await response.json().catch(() => null);
+              clearJobLocationSelection((errorData && errorData.message) ? errorData.message : NASUGBU_LOCATION_WARNING);
+              showLocationWarningPopup(
+                jobLocationMap ? jobLocationMap.getCenter().lat : 14.0728,
+                jobLocationMap ? jobLocationMap.getCenter().lng : 120.6339,
+                (errorData && errorData.message) ? errorData.message : NASUGBU_LOCATION_WARNING
+              );
+            }
+            return;
+          }
+
+          const data = await response.json();
+          if (requestId !== jobLocationRequestId || !data.success || !data.data) {
+            return;
+          }
+
+          const lat = data.data.lat;
+          const lng = data.data.lng;
+          const displayName = data.data.display_name || '';
+
+          if (Number.isNaN(lat) || Number.isNaN(lng) || !isNasugbuCoordinates(lat, lng) || !isNasugbuAddress(displayName)) {
+            clearJobLocationSelection(NASUGBU_LOCATION_WARNING);
+            showLocationWarningPopup(lat, lng, NASUGBU_LOCATION_WARNING);
+            return;
+          }
+          ensureJobLocationMap();
+          if (!jobLocationMarker) {
+            jobLocationMarker = L.marker([lat, lng]).addTo(jobLocationMap);
+          } else {
+            jobLocationMarker.setLatLng([lat, lng]);
+          }
+          jobLocationMap.setView([lat, lng], 16, {
+            animate: true
+          });
+          setJobLocationCoordinates(lat, lng);
+          if (elements.hint) {
+            elements.hint.textContent = 'Location selected ✓';
+            elements.hint.style.color = '#155724';
+          }
+        } catch (error) {
+          console.error('Location geocoding failed:', error);
+        }
+      }
+
+      /* ─── Create form submission ─── */
+      function submitAsDraft() {
+        document.getElementById('save_as_draft_flag').value = '1';
+        document.getElementById('createJobForm').submit();
+      }
+
+      function submitAsActive() {
+        document.getElementById('save_as_draft_flag').value = '0';
+        const el = getJobLocationElements();
+        const lat = el.lat ? el.lat.value.trim() : '';
+        const lng = el.lng ? el.lng.value.trim() : '';
+        if (!lat || !lng) {
+          alert('Please pin a location on the map before posting the job.');
+          return;
+        }
+        document.getElementById('createJobForm').submit();
+      }
+
+      /* ─── Edit form submission ─── */
+      function submitEditAsDraft() {
+        document.getElementById('edit_save_as_draft_flag').value = '1';
+        document.getElementById('editJobForm').submit();
+      }
+
+      function submitEditAsActive() {
+        document.getElementById('edit_save_as_draft_flag').value = '0';
+        document.getElementById('editJobForm').submit();
+      }
+
+      /* ─── Modal logic ─── */
+      function openModal(id) {
+        const m = document.getElementById(id);
+        if (!m) return;
+        m.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        if (id === 'jobModal') {
+          ensureJobLocationMap();
+          setTimeout(() => {
+            if (jobLocationMap) jobLocationMap.invalidateSize();
+          }, 250);
+        }
+      }
+
+      function closeModal(id) {
+        const m = document.getElementById(id);
+        if (!m) return;
+        m.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+
+      function openEditModal(jobId, title, category, description, salary, location, workType, skills, deadline, status) {
+        document.getElementById('edit_job_id').value = jobId;
+        document.getElementById('edit_job_title').value = title;
+        document.getElementById('edit_job_category').value = category;
+        document.getElementById('edit_job_description').value = description;
+        document.getElementById('edit_salary_range').value = salary;
+        document.getElementById('edit_location').value = location;
+        document.getElementById('edit_job_type').value = workType;
+        document.getElementById('edit_required_skills').value = skills;
+        document.getElementById('edit_application_deadline').value = deadline;
+
+        const isDraft = (status === 'draft');
+        document.getElementById('edit_draft_note').style.display = isDraft ? '' : 'none';
+
+        // Rebuild footer buttons
+        const footer = document.getElementById('edit_modal_footer');
+        // Remove all but Cancel
+        Array.from(footer.querySelectorAll('button:not(.btn-modal-cancel)')).forEach(b => b.remove());
+
+        if (isDraft) {
+          // Save draft progress + Publish buttons
+          const draftBtn = document.createElement('button');
+          draftBtn.type = 'button';
+          draftBtn.className = 'btn-modal-draft';
+          draftBtn.textContent = 'Save Draft';
+          draftBtn.onclick = submitEditAsDraft;
+          footer.appendChild(draftBtn);
+
+          const publishBtn = document.createElement('button');
+          publishBtn.type = 'button';
+          publishBtn.className = 'btn-modal-submit';
+          publishBtn.textContent = 'Publish Now';
+          publishBtn.onclick = submitEditAsActive;
+          footer.appendChild(publishBtn);
+        } else {
+          const updateBtn = document.createElement('button');
+          updateBtn.type = 'button';
+          updateBtn.className = 'btn-modal-submit';
+          updateBtn.textContent = 'Update Job';
+          updateBtn.onclick = submitEditAsActive;
+          footer.appendChild(updateBtn);
+        }
+
+        openModal('editJobModal');
+      }
+
+      /* ─── Confirm actions ─── */
+      let pendingJobId = null;
+
+      function openCloseConfirm(id) {
+        pendingJobId = id;
+        openModal('confirmCloseModal');
+      }
+
+      function openDeleteConfirm(id) {
+        pendingJobId = id;
+        openModal('confirmDeleteModal');
+      }
+
+      function openPublishConfirm(id) {
+        pendingJobId = id;
+        openModal('confirmPublishModal');
+      }
+
+      function confirmCloseJob() {
+        if (pendingJobId) document.getElementById('closeForm_' + pendingJobId)?.submit();
+      }
+
+      function confirmDeleteJob() {
+        if (pendingJobId) document.getElementById('deleteForm_' + pendingJobId)?.submit();
+      }
+
+      function confirmPublishJob() {
+        if (pendingJobId) document.getElementById('publishForm_' + pendingJobId)?.submit();
+      }
+
+      /* ─── Init ─── */
+      document.addEventListener('DOMContentLoaded', function() {
         ensureJobLocationMap();
-        setTimeout(() => { if (jobLocationMap) jobLocationMap.invalidateSize(); }, 250);
-      }
-    }
 
-    function closeModal(id) {
-      const m = document.getElementById(id);
-      if (!m) return;
-      m.classList.remove('active');
-      document.body.style.overflow = '';
-    }
+        const elements = getJobLocationElements();
+        if (elements.input) {
+          elements.input.addEventListener('input', function() {
+            clearJobLocationSelection(DEFAULT_LOCATION_HINT);
+            scheduleJobLocationGeocode();
+          });
+        }
 
-    function openEditModal(jobId, title, category, description, salary, location, workType, skills, deadline, status) {
-      document.getElementById('edit_job_id').value               = jobId;
-      document.getElementById('edit_job_title').value            = title;
-      document.getElementById('edit_job_category').value         = category;
-      document.getElementById('edit_job_description').value      = description;
-      document.getElementById('edit_salary_range').value         = salary;
-      document.getElementById('edit_location').value             = location;
-      document.getElementById('edit_job_type').value             = workType;
-      document.getElementById('edit_required_skills').value      = skills;
-      document.getElementById('edit_application_deadline').value = deadline;
+        const jobForm = document.querySelector('#jobModal form');
+        if (jobForm) {
+          jobForm.addEventListener('submit', function(event) {
+            const latValue = elements.lat ? elements.lat.value.trim() : '';
+            const lngValue = elements.lng ? elements.lng.value.trim() : '';
+            const locationValue = elements.input ? elements.input.value.trim() : '';
 
-      const isDraft = (status === 'draft');
-      document.getElementById('edit_draft_note').style.display = isDraft ? '' : 'none';
+            if (!latValue || !lngValue) {
+              event.preventDefault();
+              showLocationWarningPopup(
+                jobLocationMap ? jobLocationMap.getCenter().lat : 14.0728,
+                jobLocationMap ? jobLocationMap.getCenter().lng : 120.6339,
+                'Please pin a location inside Nasugbu, Batangas before submitting.'
+              );
+              return;
+            }
 
-      // Rebuild footer buttons
-      const footer = document.getElementById('edit_modal_footer');
-      // Remove all but Cancel
-      Array.from(footer.querySelectorAll('button:not(.btn-modal-cancel)')).forEach(b => b.remove());
+            if (!isNasugbuCoordinates(latValue, lngValue) || !isNasugbuAddress(locationValue)) {
+              event.preventDefault();
+              showLocationWarningPopup(Number(latValue), Number(lngValue), NASUGBU_LOCATION_WARNING);
+            }
+          });
+        }
 
-      if (isDraft) {
-        // Save draft progress + Publish buttons
-        const draftBtn = document.createElement('button');
-        draftBtn.type = 'button';
-        draftBtn.className = 'btn-modal-draft';
-        draftBtn.textContent = 'Save Draft';
-        draftBtn.onclick = submitEditAsDraft;
-        footer.appendChild(draftBtn);
-
-        const publishBtn = document.createElement('button');
-        publishBtn.type = 'button';
-        publishBtn.className = 'btn-modal-submit';
-        publishBtn.textContent = 'Publish Now';
-        publishBtn.onclick = submitEditAsActive;
-        footer.appendChild(publishBtn);
-      } else {
-        const updateBtn = document.createElement('button');
-        updateBtn.type = 'button';
-        updateBtn.className = 'btn-modal-submit';
-        updateBtn.textContent = 'Update Job';
-        updateBtn.onclick = submitEditAsActive;
-        footer.appendChild(updateBtn);
-      }
-
-      openModal('editJobModal');
-    }
-
-    /* ─── Confirm actions ─── */
-    let pendingJobId = null;
-
-    function openCloseConfirm(id)   { pendingJobId = id; openModal('confirmCloseModal'); }
-    function openDeleteConfirm(id)  { pendingJobId = id; openModal('confirmDeleteModal'); }
-    function openPublishConfirm(id) { pendingJobId = id; openModal('confirmPublishModal'); }
-
-    function confirmCloseJob()   { if (pendingJobId) document.getElementById('closeForm_'   + pendingJobId)?.submit(); }
-    function confirmDeleteJob()  { if (pendingJobId) document.getElementById('deleteForm_'  + pendingJobId)?.submit(); }
-    function confirmPublishJob() { if (pendingJobId) document.getElementById('publishForm_' + pendingJobId)?.submit(); }
-
-    /* ─── Init ─── */
-    document.addEventListener('DOMContentLoaded', function () {
-      ensureJobLocationMap();
-
-      const el = getJobLocationElements();
-      if (el.input) {
-        el.input.addEventListener('input', function () {
-          setJobLocationCoordinates('', '');
-          scheduleJobLocationGeocode();
+        document.querySelectorAll('.modal').forEach(modal => {
+          modal.addEventListener('click', function(event) {
+            if (event.target === this) {
+              closeModal(this.id);
+            }
+          });
         });
-      }
 
-      document.querySelectorAll('.modal').forEach(m => {
-        m.addEventListener('click', function (e) {
-          if (e.target === this) closeModal(this.id);
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') document.querySelectorAll('.modal.active').forEach(m => closeModal(m.id));
         });
+
+        const alert = document.getElementById('success-alert');
+        if (alert) {
+          setTimeout(() => {
+            alert.style.opacity = '0';
+            alert.style.transform = 'translateY(-6px)';
+            setTimeout(() => alert.remove(), 400);
+          }, 3000);
+        }
       });
 
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') document.querySelectorAll('.modal.active').forEach(m => closeModal(m.id));
+      /* ─── Navbar scroll detection ─── */
+      const navbar = document.querySelector('.navbar');
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 20) {
+          navbar.classList.add('scrolled');
+        } else {
+          navbar.classList.remove('scrolled');
+        }
       });
+    </script>
 
-      const alert = document.getElementById('success-alert');
-      if (alert) {
-        setTimeout(() => {
-          alert.style.opacity = '0';
-          alert.style.transform = 'translateY(-6px)';
-          setTimeout(() => alert.remove(), 400);
-        }, 3000);
-      }
-    });
-
-    /* ─── Navbar scroll detection ─── */
-    const navbar = document.querySelector('.navbar');
-    window.addEventListener('scroll', () => {
-      if (window.scrollY > 20) {
-        navbar.classList.add('scrolled');
-      } else {
-        navbar.classList.remove('scrolled');
-      }
-    });
-  </script>
-
-  <!-- ══ FOOTER ══ -->
-  <footer class="footer">
-    <div class="footer-inner">
-      <div class="footer-top">
-        <div class="footer-brand">
-          <h3>TalentScout AI</h3>
-          <p>Smart AI-powered recruitment platform for PESO Nasugbu, Batangas. Connecting employers with qualified local talent.</p>
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <h3>TalentScout AI</h3>
+            <p>Smart AI-powered recruitment platform for PESO Nasugbu, Batangas. Connecting employers with qualified local talent.</p>
+          </div>
+          <div class="footer-col">
+            <h4>For Job Seekers</h4>
+            <ul>
+              <li><a href="../../employees/">Browse Jobs</a></li>
+              <li><a href="../../employees/modules/ai-matching/">AI Matching</a></li>
+              <li><a href="../../employees/modules/skill-gap-analysis/">Skill Gap Analysis</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>For Employers</h4>
+            <ul>
+              <li><a href="../../index.php">Home</a></li>
+              <li><a href="./">Post Jobs</a></li>
+              <li><a href="../employee-finder/">Find Talent</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>PESO Nasugbu</h4>
+            <ul>
+              <li><a href="#">Contact Us</a></li>
+              <li><a href="#">Privacy Policy</a></li>
+              <li><a href="#">Terms of Service</a></li>
+            </ul>
+          </div>
         </div>
-        <div class="footer-col">
-          <h4>For Job Seekers</h4>
-          <ul>
-            <li><a href="../../employees/">Browse Jobs</a></li>
-            <li><a href="../../employees/modules/ai-matching/">AI Matching</a></li>
-            <li><a href="../../employees/modules/skill-gap-analysis/">Skill Gap Analysis</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>For Employers</h4>
-          <ul>
-            <li><a href="../../index.php">Home</a></li>
-            <li><a href="./">Post Jobs</a></li>
-            <li><a href="../employee-finder/">Find Talent</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>PESO Nasugbu</h4>
-          <ul>
-            <li><a href="#">Contact Us</a></li>
-            <li><a href="#">Privacy Policy</a></li>
-            <li><a href="#">Terms of Service</a></li>
-          </ul>
+        <div class="footer-bottom">
+          <span>© 2026 TalentScout AI – PESO Nasugbu, Batangas</span>
+          <span>Connecting Employers with Local Talent</span>
         </div>
       </div>
-      <div class="footer-bottom">
-        <span>© 2026 TalentScout AI – PESO Nasugbu, Batangas</span>
-        <span>Connecting Employers with Local Talent</span>
-      </div>
-    </div>
-  </footer>
+    </footer>
 
 </body>
+
 </html>
