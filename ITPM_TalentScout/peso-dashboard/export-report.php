@@ -18,36 +18,31 @@ require_once __DIR__ . '/dashboard-data.php';
     }
 
     :root {
-      --ink: #14302d;
-      --muted: #5f6f6b;
-      --line: #d7e7e2;
+      --ink: #000000;
+      --muted: #333333;
+      --line: #cccccc;
       --panel: #ffffff;
-      --bg: #eefaf7;
-      --accent: #1E9E86;
-      --accent-2: #0f766e;
-      --accent-3: #2dd4bf;
-      --shadow: 0 10px 30px rgba(20, 48, 45, 0.08);
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(180deg, #f4fffb 0%, var(--bg) 100%);
-      padding: 24px;
+      font-family: Arial, sans-serif;
+      background: #ffffff;
+      padding: 10px;
       color: var(--ink);
-      line-height: 1.5;
+      line-height: 1.4;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
+      font-size: 12px;
     }
 
     @page {
-      margin: 14mm;
+      margin: 10mm;
     }
 
     .report-shell {
-      max-width: 1120px;
+      max-width: 1100px;
       margin: 0 auto;
-      background: rgba(255, 255, 255, 0.76);
-      backdrop-filter: blur(10px);
+      background: #ffffff;
     }
 
     .header {
@@ -55,169 +50,167 @@ require_once __DIR__ . '/dashboard-data.php';
       justify-content: space-between;
       align-items: center;
       gap: 1rem;
-      margin-bottom: 1.5rem;
-      padding: 1.35rem 1.5rem;
-      background: linear-gradient(135deg, rgba(30, 158, 134, 0.10), rgba(45, 212, 191, 0.06));
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
+      margin-bottom: 1rem;
+      padding: 0.8rem 1rem;
+      background: #1E9E86;
+      border: 1px solid #1E9E86;
+      color: white;
     }
 
     .logo {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.5rem;
     }
 
     .logo-icon {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, var(--accent-2), var(--accent));
-      color: white;
-      border-radius: 12px;
+      width: 32px;
+      height: 32px;
+      background: white;
+      color: #1E9E86;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 800;
-      font-size: 1rem;
+      font-weight: 700;
+      font-size: 0.9rem;
     }
 
     .logo-text {
-      font-size: 1.2rem;
+      font-size: 1rem;
       font-weight: 700;
+      color: white;
     }
 
     .logo-text span {
-      color: var(--accent);
+      color: white;
     }
 
     .report-title {
-      font-size: 1.8rem;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      color: var(--ink);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: white;
     }
 
     .report-date {
-      color: var(--muted);
-      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.8rem;
     }
 
     .stats-row {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 1rem;
-      margin-bottom: 1.5rem;
+      gap: 0;
+      margin-bottom: 1rem;
+      border: 1px solid var(--line);
     }
 
     .stat-card {
       background: var(--panel);
-      padding: 1.15rem 1.25rem;
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow);
+      padding: 0.6rem 0.8rem;
+      border-right: 1px solid var(--line);
       text-align: center;
-      position: relative;
-      overflow: hidden;
     }
 
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      inset: 0 auto auto 0;
-      width: 100%;
-      height: 4px;
-      background: linear-gradient(90deg, var(--accent-2), var(--accent-3));
+    .stat-card:last-child {
+      border-right: none;
     }
 
     .stat-value {
-      margin-top: 0.1rem;
-      font-size: 2.2rem;
-      font-weight: 900;
-      color: var(--accent);
-      letter-spacing: -0.03em;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #000 !important;
+      margin: 0;
     }
 
     .stat-label {
-      font-size: 0.76rem;
+      font-size: 0.7rem;
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-top: 0.15rem;
+      letter-spacing: 0.05em;
+      margin-top: 0.1rem;
     }
 
     .summary-row {
       display: grid;
-      grid-template-columns: 1.3fr 0.7fr;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
+      grid-template-columns: 1fr;
+      gap: 0;
+      margin-bottom: 1rem;
+      border: 1px solid var(--line);
     }
 
     .summary-card,
     .section-card {
       background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
+      border-bottom: 1px solid var(--line);
       overflow: hidden;
     }
 
+    .summary-card:last-child {
+      border-bottom: none;
+    }
+
     .summary-card {
-      padding: 1.25rem 1.35rem;
+      padding: 0.8rem 1rem;
     }
 
     .summary-eyebrow {
-      font-size: 0.74rem;
+      font-size: 0.7rem;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--accent);
-      font-weight: 800;
-      margin-bottom: 0.35rem;
+      letter-spacing: 0.08em;
+      color: #666;
+      font-weight: 700;
+      margin-bottom: 0.15rem;
     }
 
     .summary-title {
-      font-size: 1.5rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      margin-bottom: 0.4rem;
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      color: #000;
     }
 
     .summary-copy {
-      color: var(--muted);
-      max-width: 70ch;
-      font-size: 0.95rem;
+      color: #555;
+      font-size: 0.85rem;
+      line-height: 1.3;
     }
 
     .summary-meta {
-      padding: 1.25rem 1.35rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      background: linear-gradient(180deg, rgba(30, 158, 134, 0.10), rgba(30, 158, 134, 0.03));
+      padding: 0.8rem 1rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      background: #ffffff;
+      border-top: 1px solid var(--line);
     }
 
     .summary-meta-label {
-      font-size: 0.78rem;
+      font-size: 0.7rem;
       text-transform: uppercase;
-      letter-spacing: 0.11em;
-      color: var(--muted);
-      margin-bottom: 0.35rem;
+      letter-spacing: 0.08em;
+      color: #999;
+      margin-bottom: 0.15rem;
+      font-weight: 700;
     }
 
     .summary-meta-value {
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 700;
-      color: var(--ink);
+      color: #000;
+      margin: 0;
     }
 
     .section {
-      margin-bottom: 1.5rem;
+      margin-bottom: 0.8rem;
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
 
     .section-card {
-      padding: 1.1rem 1.25rem 1.25rem;
+      padding: 0.8rem 1rem;
       page-break-inside: avoid;
       break-inside: avoid;
+      border: 1px solid var(--line);
     }
 
     .section-title {
@@ -225,179 +218,150 @@ require_once __DIR__ . '/dashboard-data.php';
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      font-size: 1rem;
-      font-weight: 800;
-      margin-bottom: 1rem;
-      padding-bottom: 0.7rem;
-      border-bottom: 1px solid var(--line);
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #000;
+      color: #000;
     }
 
     .section-title span:last-child {
       color: var(--muted);
-      font-size: 0.8rem;
-      font-weight: 600;
+      font-size: 0.75rem;
+      font-weight: 500;
     }
 
     .two-col {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 1rem;
+      gap: 0.5rem;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
+      border: 1px solid var(--line);
     }
 
     th {
-      background: #edf8f5;
-      padding: 0.8rem 0.75rem;
+      background: #eeeeee;
+      padding: 0.5rem 0.6rem;
       text-align: left;
-      font-weight: 600;
-      color: var(--ink);
+      font-weight: 700;
+      color: #000;
       border-bottom: 1px solid var(--line);
     }
 
     td {
-      padding: 0.75rem;
-      border-bottom: 1px solid #eef3f1;
+      padding: 0.5rem 0.6rem;
+      border-bottom: 1px solid var(--line);
       vertical-align: top;
     }
 
     .status-badge {
       display: inline-block;
-      padding: 0.3rem 0.55rem;
-      border-radius: 999px;
-      font-size: 0.75rem;
+      padding: 0.2rem 0.4rem;
+      border-radius: 0;
+      font-size: 0.7rem;
       font-weight: 600;
-      border: 1px solid transparent;
+      border: 1px solid #999;
+      background: #fff;
+      color: #111 !important;
     }
 
-    .status-pending {
-      background: #f3f4f6;
-      color: #4b5563;
-      border-color: #d1d5db;
-    }
-
-    .status-applied {
-      background: #e0f2fe;
-      color: #0369a1;
-      border-color: #bae6fd;
-    }
-
-    .status-interview {
-      background: #fef3c7;
-      color: #92400e;
-      border-color: #fde68a;
-    }
-
-    .status-matched {
-      background: #ede9fe;
-      color: #6d28d9;
-      border-color: #ddd6fe;
-    }
-
-    .status-offer {
-      background: #d1fae5;
-      color: #065f46;
-      border-color: #a7f3d0;
-    }
-
-    .status-accepted {
-      background: #dcfce7;
-      color: #15803d;
-      border-color: #bbf7d0;
-    }
-
-    .status-rejected {
-      background: #fee2e2;
-      color: #991b1b;
-      border-color: #fecaca;
-    }
-
+    .status-pending,
+    .status-applied,
+    .status-interview,
+    .status-matched,
+    .status-offer,
+    .status-accepted,
+    .status-rejected,
     .status-hired {
-      background: linear-gradient(135deg, rgba(30, 158, 134, 0.15), rgba(45, 212, 191, 0.15));
-      color: var(--accent-2);
-      font-weight: 700;
-      border-color: rgba(30, 158, 134, 0.18);
+      background: #fff;
+      color: #111 !important;
+      border-color: #999;
+      font-weight: 600;
     }
 
     .bar-list {
       display: flex;
       flex-direction: column;
-      gap: 0.7rem;
+      gap: 0.4rem;
     }
 
     .bar-item {
       display: flex;
       align-items: center;
-      gap: 0.85rem;
+      gap: 0.5rem;
+      padding: 0.3rem 0;
     }
 
     .bar-name {
       flex: 1;
       font-weight: 600;
-      color: var(--ink);
+      color: #000 !important;
+      font-size: 0.8rem;
     }
 
     .bar-count {
-      font-weight: 700;
-      color: var(--accent);
-      min-width: 1.6rem;
+      font-weight: 600;
+      color: #000 !important;
+      min-width: 1.5rem;
       text-align: right;
+      font-size: 0.8rem;
     }
 
     .bar-bar {
-      flex: 2.3;
-      height: 10px;
-      background: #e8f1ee;
-      border-radius: 999px;
+      flex: 1.5;
+      height: 6px;
+      background: #ddd;
+      border: 1px solid #999;
       overflow: hidden;
     }
 
     .bar-fill {
       height: 100%;
-      background: linear-gradient(90deg, var(--accent-2), var(--accent-3));
-      border-radius: 999px;
+      background: #333;
     }
 
     .footer {
-      margin-top: 1.5rem;
-      padding-top: 0.85rem;
+      margin-top: 1rem;
+      padding-top: 0.5rem;
       border-top: 1px solid var(--line);
       text-align: center;
-      font-size: 0.8rem;
+      font-size: 0.7rem;
       color: var(--muted);
     }
 
     .status-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.5rem 0.75rem;
+      gap: 0.4rem 0.5rem;
     }
 
     .status-pill {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.65rem;
-      padding: 0.55rem 0.7rem;
+      gap: 0.4rem;
+      padding: 0.35rem 0.5rem;
       border: 1px solid var(--line);
-      border-radius: 12px;
-      background: #fbfefc;
-      font-size: 0.8rem;
+      background: #fff;
+      font-size: 0.75rem;
     }
 
     .status-pill strong {
-      font-size: 0.9rem;
+      font-size: 0.8rem;
+      font-weight: 700;
     }
 
     .dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 999px;
+      width: 6px;
+      height: 6px;
       flex-shrink: 0;
+      background: #222;
     }
 
     .locations-table td:first-child,
@@ -408,7 +372,7 @@ require_once __DIR__ . '/dashboard-data.php';
 
     .table-wrap {
       border: 1px solid var(--line);
-      border-radius: 14px;
+      border-radius: 6px;
       overflow: hidden;
     }
 
@@ -420,7 +384,6 @@ require_once __DIR__ . '/dashboard-data.php';
 
       .report-shell {
         background: transparent;
-        box-shadow: none;
       }
 
       .stats-row {
@@ -433,14 +396,6 @@ require_once __DIR__ . '/dashboard-data.php';
 
       .summary-row {
         grid-template-columns: 1fr;
-      }
-
-      .header,
-      .summary-card,
-      .summary-meta,
-      .stat-card,
-      .section-card {
-        box-shadow: none;
       }
 
       .section-card,
@@ -516,11 +471,11 @@ require_once __DIR__ . '/dashboard-data.php';
             $pct = ($pos['count'] / $max_pos) * 100;
           ?>
             <div class="bar-item">
-              <div class="bar-name"><?php echo htmlspecialchars($pos['title']); ?></div>
+              <div class="bar-name" style="color: #000;"><?php echo htmlspecialchars(strip_tags($pos['title'])); ?></div>
               <div class="bar-bar">
                 <div class="bar-fill" style="width: <?php echo $pct; ?>%;"></div>
               </div>
-              <div class="bar-count"><?php echo $pos['count']; ?></div>
+              <div class="bar-count" style="color: #000;"><?php echo $pos['count']; ?></div>
             </div>
           <?php endforeach; ?>
         </div>
@@ -535,11 +490,11 @@ require_once __DIR__ . '/dashboard-data.php';
             $pct = ($emp['count'] / $max_emp) * 100;
           ?>
             <div class="bar-item">
-              <div class="bar-name"><?php echo htmlspecialchars($emp['company_name']); ?></div>
+              <div class="bar-name" style="color: #000;"><?php echo htmlspecialchars(strip_tags($emp['company_name'])); ?></div>
               <div class="bar-bar">
                 <div class="bar-fill" style="width: <?php echo $pct; ?>%;"></div>
               </div>
-              <div class="bar-count"><?php echo $emp['count']; ?></div>
+              <div class="bar-count" style="color: #000;"><?php echo $emp['count']; ?></div>
             </div>
           <?php endforeach; ?>
         </div>
@@ -553,19 +508,7 @@ require_once __DIR__ . '/dashboard-data.php';
             <div class="status-pill">
               <div style="display:flex;align-items:center;gap:0.5rem;min-width:0;">
                 <span class="dot" style="background: <?php
-                                                      echo match ($status) {
-                                                        'Pending' => '#6c757d',
-                                                        'Applied' => '#17a2b8',
-                                                        'Interview Scheduled' => '#ffc107',
-                                                        'Matched' => '#6610f2',
-                                                        'Offer Received' => '#20c997',
-                                                        'Offer Sent' => '#007bff',
-                                                        'Offer Declined' => '#fd7e14',
-                                                        'Accepted' => '#28a745',
-                                                        'Rejected' => '#dc3545',
-                                                        'Hired' => '#1E9E86',
-                                                        default => '#1E9E86',
-                                                      };
+                                                      echo '#111111';
                                                       ?>"></span>
                 <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><?php echo $status; ?></span>
               </div>
@@ -592,11 +535,11 @@ require_once __DIR__ . '/dashboard-data.php';
           <tbody>
             <?php foreach ($recent_apps as $app): ?>
               <tr>
-                <td><?php echo htmlspecialchars($app['first_name'] . ' ' . $app['last_name']); ?></td>
-                <td><?php echo htmlspecialchars($app['title']); ?></td>
-                <td><?php echo htmlspecialchars($app['address'] ?? '-'); ?></td>
-                <td><span class="status-badge status-<?php echo strtolower(str_replace(' ', '-', $app['status'])); ?>"><?php echo $app['status']; ?></span></td>
-                <td><?php echo date('M d, Y', strtotime($app['application_date'])); ?></td>
+                <td style="color: #000;"><?php echo htmlspecialchars(strip_tags($app['first_name'] . ' ' . $app['last_name'])); ?></td>
+                <td style="color: #000;"><?php echo htmlspecialchars(strip_tags($app['title'])); ?></td>
+                <td style="color: #000;"><?php echo htmlspecialchars(strip_tags($app['address'] ?? '-')); ?></td>
+                <td><span class="status-badge status-<?php echo strtolower(str_replace(' ', '-', $app['status'])); ?>" style="color: #000;"><?php echo htmlspecialchars(strip_tags($app['status'])); ?></span></td>
+                <td style="color: #000;"><?php echo date('M d, Y', strtotime($app['application_date'])); ?></td>
               </tr>
             <?php endforeach; ?>
           </tbody>
@@ -613,11 +556,11 @@ require_once __DIR__ . '/dashboard-data.php';
           $pct = ($brgy['count'] / $max_brgy) * 100;
         ?>
           <div class="bar-item">
-            <div class="bar-name"><?php echo htmlspecialchars($brgy['address']); ?></div>
+            <div class="bar-name" style="color: #000;"><?php echo htmlspecialchars(strip_tags($brgy['address'])); ?></div>
             <div class="bar-bar">
               <div class="bar-fill" style="width: <?php echo $pct; ?>%;"></div>
             </div>
-            <div class="bar-count"><?php echo $brgy['count']; ?></div>
+            <div class="bar-count" style="color: #000;"><?php echo $brgy['count']; ?></div>
           </div>
         <?php endforeach; ?>
       </div>
