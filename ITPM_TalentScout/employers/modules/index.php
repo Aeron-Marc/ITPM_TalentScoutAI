@@ -5,10 +5,89 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Tools — For Employers | TalentScout AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../styles/global.css">
   <link rel="stylesheet" href="../../styles/page-layout.css">
   <style>
-    .modules-section { padding: 3rem 2.5rem; background: white; }
+    /* ══ NAVBAR ══ */
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2.5rem; height: 66px;
+      background: rgba(253,250,245,0.82);
+      backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid rgba(90,138,104,0.1);
+      animation: navSlide 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    @keyframes navSlide {
+      from { transform: translateY(-100%); opacity: 0; }
+      to   { transform: translateY(0);     opacity: 1; }
+    }
+
+    .nav-logo {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-family: 'Lora', serif; font-weight: 700; font-size: 1.12rem;
+      color: var(--charcoal);
+    }
+
+    .nav-logo-mark {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--sage), var(--sage-dark));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.7rem; font-weight: 700; color: #fff; letter-spacing: 0.05em;
+      box-shadow: 0 4px 12px rgba(90,138,104,0.35);
+    }
+
+    .nav-logo em { font-style: italic; color: var(--sage); }
+
+    .nav-logo-text { display: none; }
+
+    @media (min-width: 768px) {
+      .nav-logo-text { display: inline; }
+      .nav-logo-text span { color: var(--sage); }
+    }
+
+    .nav-links { display: flex; list-style: none; gap: 0.2rem; }
+
+    .nav-links a {
+      padding: 0.2rem 0.6rem; border-radius: 999px;
+      font-size: 0.84rem; font-weight: 500; color: var(--text-mid);
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .nav-links a:hover, .nav-links a.active { background: var(--mint); color: var(--sage-dark); font-weight: 600; }
+
+    .nav-actions { display: flex; align-items: center; gap: 0.65rem; }
+    .nav-user { font-size: 0.82rem; color: var(--text-soft); }
+
+    .btn {
+      padding: 0.42rem 1.1rem; border-radius: 999px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.83rem; font-weight: 500; border: none;
+      cursor: pointer; transition: all 0.2s; display: inline-block;
+    }
+
+    .btn-outline {
+      border: 1.5px solid var(--mint-deep); color: var(--text-mid);
+      background: transparent;
+    }
+
+    .btn-outline:hover { background: var(--mint); border-color: var(--sage); color: var(--sage-dark); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--sage), var(--sage-dark));
+      color: #fff; font-weight: 700;
+      box-shadow: 0 4px 14px rgba(90,138,104,0.32);
+    }
+
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(90,138,104,0.4); }
+
+    .modules-section { padding: 3rem 2.5rem; background: white; margin-top: 66px; }
     .modules-inner { max-width: 1200px; margin: 0 auto; }
     .modules-header { margin-bottom: 2.5rem; }
     .modules-grid {

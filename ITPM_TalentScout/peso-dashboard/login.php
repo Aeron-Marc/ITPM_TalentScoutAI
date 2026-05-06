@@ -41,296 +41,465 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>PESO Admin Login</title>
-    <link rel="stylesheet" href="../styles/global.css">
-    <style>
-        :root {
-            --hero-bg: radial-gradient(circle at top, rgba(152, 251, 203, 0.48), transparent 42%), linear-gradient(180deg, #f4fffb 0%, #e8fff7 100%);
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PESO Admin Login | TalentScout AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: inherit;
-            background: var(--hero-bg);
-            display: grid;
-            place-items: center;
-            color: var(--text-dark);
-        }
+    :root {
+      --sage:        #3d6b50;
+      --sage-light:  #5a8a68;
+      --sage-pale:   #d4e6d6;
+      --sage-deep:   #1e3a2e;
+      --sand:        #f5f0e8;
+      --sand-dark:   #ece5d5;
+      --cream:       #faf8f3;
+      --charcoal:    #2a2a22;
+      --warm-mid:    #5a5448;
+      --warm-light:  #9a9288;
+      --gold:        #c8a96e;
+      --gold-pale:   #f0e4c8;
+      --radius-xl:   24px;
+      --radius-lg:   16px;
+      --radius-md:   10px;
+      --radius-pill: 999px;
+      --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+    }
 
-        .login-shell {
-            width: min(1100px, calc(100vw - 2rem));
-            display: grid;
-            grid-template-columns: 1.05fr 0.95fr;
-            gap: 1.5rem;
-            align-items: stretch;
-        }
+    html { scroll-behavior: smooth; }
 
-        .login-hero,
-        .login-card {
-            border-radius: 24px;
-            box-shadow: 0 18px 50px rgba(15, 23, 42, 0.10);
-            overflow: hidden;
-        }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--charcoal);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
 
-        .login-hero {
-            position: relative;
-            padding: 2.25rem;
-            background: linear-gradient(140deg, #0f766e 0%, #1e9e86 50%, #2dd4bf 100%);
-            color: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 560px;
-        }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    }
 
-        .login-hero::before,
-        .login-hero::after {
-            content: '';
-            position: absolute;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.14);
-            pointer-events: none;
-        }
+    a { text-decoration: none; color: inherit; }
 
-        .login-hero::before {
-            width: 220px;
-            height: 220px;
-            top: -70px;
-            right: -40px;
-        }
+    /* ────────── NAVBAR ────────── */
+    .navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 3rem;
+      height: 64px;
+      background: rgba(250, 248, 243, 0.88);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(139, 128, 112, 0.12);
+      animation: slideDown 0.6s var(--ease-out) both;
+    }
 
-        .login-hero::after {
-            width: 160px;
-            height: 160px;
-            bottom: -50px;
-            left: -30px;
-        }
+    @keyframes slideDown {
+      from { transform: translateY(-100%); opacity: 0; }
+      to   { transform: translateY(0); opacity: 1; }
+    }
 
-        .hero-brand {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-        }
+    .nav-logo {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: var(--charcoal);
+      letter-spacing: -0.01em;
+    }
 
-        .hero-badge {
-            width: 52px;
-            height: 52px;
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.16);
-            display: grid;
-            place-items: center;
-            font-size: 1.1rem;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            backdrop-filter: blur(10px);
-        }
+    .nav-logo-mark {
+      width: 34px; height: 34px;
+      background: var(--sage-deep);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0.04em;
+    }
 
-        .hero-title {
-            position: relative;
-            z-index: 1;
-            max-width: 420px;
-            margin-top: 1.5rem;
-        }
+    .nav-logo em { font-style: italic; color: var(--sage); }
 
-        .hero-title h1 {
-            margin: 0;
-            font-size: clamp(2rem, 4vw, 3.35rem);
-            line-height: 0.98;
-            letter-spacing: -0.03em;
-        }
+    .nav-right {
+      display: flex; align-items: center; gap: 0.7rem;
+    }
 
-        .hero-title p {
-            margin: 1rem 0 0;
-            font-size: 1rem;
-            line-height: 1.65;
-            color: rgba(255, 255, 255, 0.92);
-        }
+    .btn-nav-ghost {
+      padding: 0.4rem 1rem;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--warm-light);
+      color: var(--warm-mid);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.83rem;
+      font-weight: 500;
+      background: transparent;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
 
-        .hero-points {
-            position: relative;
-            z-index: 1;
-            display: grid;
-            gap: 0.75rem;
-            margin-top: 2rem;
-        }
+    .btn-nav-ghost:hover { background: var(--sand); border-color: var(--warm-mid); }
 
-        .hero-point {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.85rem 1rem;
-            border-radius: 14px;
-            background: rgba(255, 255, 255, 0.14);
-            backdrop-filter: blur(10px);
-        }
+    /* ────────── AUTH PAGE ────────── */
+    .auth-wrap {
+      min-height: 100vh;
+      padding-top: 64px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, var(--sand) 0%, var(--cream) 100%);
+      position: relative;
+      overflow: hidden;
+    }
 
-        .hero-point strong {
-            display: block;
-        }
+    .auth-wrap::before {
+      content: '';
+      position: absolute;
+      top: -100px; right: -100px;
+      width: 400px; height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--sage-pale) 0%, transparent 70%);
+      pointer-events: none;
+    }
 
-        .hero-point span {
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.9);
-        }
+    .auth-wrap::after {
+      content: '';
+      position: absolute;
+      bottom: -80px; left: -80px;
+      width: 300px; height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--gold-pale) 0%, transparent 70%);
+      pointer-events: none;
+    }
 
-        .login-card {
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(18px);
-            padding: 2.25rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
+    .auth-grid {
+      width: 100%;
+      max-width: 980px;
+      display: grid;
+      grid-template-columns: 1fr 1.05fr;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: 0 12px 48px rgba(42,42,34,0.1), 0 2px 8px rgba(42,42,34,0.06);
+      position: relative;
+      z-index: 1;
+      animation: fadeUp 0.7s var(--ease-out) both;
+    }
 
-        .login-card h2 {
-            margin: 0 0 0.5rem;
-            font-size: 1.8rem;
-            letter-spacing: -0.02em;
-        }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
 
-        .login-card p {
-            margin: 0 0 1.5rem;
-            color: var(--text-mid);
-            line-height: 1.6;
-        }
+    .auth-info {
+      padding: 3rem 2.5rem;
+      background: linear-gradient(135deg, var(--sage-deep), var(--sage));
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
 
-        .field {
-            margin-bottom: 1rem;
-        }
+    .auth-info::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+      pointer-events: none;
+    }
 
-        .field label {
-            display: block;
-            margin-bottom: 0.45rem;
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: var(--text-dark);
-        }
+    .auth-info::after {
+      content: '';
+      position: absolute;
+      bottom: -60px; left: -40px;
+      width: 180px; height: 180px;
+      border-radius: 50%;
+      background: rgba(200,169,110,0.1);
+      pointer-events: none;
+    }
 
-        .input {
-            width: 100%;
-            padding: 0.9rem 1rem;
-            border: 1px solid #cfe7e2;
-            border-radius: 14px;
-            background: white;
-            font-size: 0.95rem;
-            transition: border-color .2s, box-shadow .2s, transform .2s;
-            box-sizing: border-box;
-        }
+    .auth-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: rgba(255,255,255,0.15);
+      border-radius: var(--radius-pill);
+      padding: 0.3rem 0.75rem;
+      margin-bottom: 1.25rem;
+      width: fit-content;
+    }
 
-        .input:focus {
-            outline: none;
-            border-color: var(--primary-dark);
-            box-shadow: 0 0 0 4px rgba(30, 158, 134, 0.12);
-        }
+    .auth-info h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.9rem;
+      font-weight: 900;
+      line-height: 1.2;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
 
-        .error {
-            margin: 0 0 1rem;
-            padding: 0.8rem 0.95rem;
-            border-radius: 12px;
-            background: #fff1f2;
-            color: #b91c1c;
-            font-size: 0.92rem;
-            font-weight: 600;
-        }
+    .auth-info p {
+      font-size: 0.9rem;
+      line-height: 1.7;
+      opacity: 0.85;
+      margin-bottom: 1.5rem;
+    }
 
-        .actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1rem;
-            margin-top: 0.5rem;
-        }
+    .auth-points {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      font-size: 0.88rem;
+      position: relative;
+      z-index: 1;
+    }
 
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.9rem 1.15rem;
-            border-radius: 14px;
-            border: none;
-            background: linear-gradient(135deg, var(--primary-dark), #0f766e);
-            color: white;
-            font-weight: 800;
-            letter-spacing: 0.01em;
-            text-decoration: none;
-            box-shadow: 0 10px 24px rgba(30, 158, 134, 0.28);
-            cursor: pointer;
-        }
+    .auth-points li {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
 
-        .back-link {
-            color: var(--text-mid);
-            font-size: 0.92rem;
-            text-decoration: none;
-        }
+    .auth-points li .check-icon {
+      width: 22px; height: 22px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      flex-shrink: 0;
+    }
 
-        .back-link:hover {
-            color: var(--text-dark);
-        }
+    .auth-card {
+      padding: 2.5rem;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
 
-        @media (max-width: 900px) {
-            .login-shell {
-                grid-template-columns: 1fr;
-            }
+    .auth-card-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--charcoal);
+      margin-bottom: 1.8rem;
+    }
 
-            .login-hero {
-                min-height: 320px;
-            }
-        }
-    </style>
+    .auth-card-logo-icon {
+      width: 30px; height: 30px;
+      background: var(--sage-pale);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--sage-deep);
+    }
+
+    .auth-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--charcoal);
+      margin-bottom: 0.35rem;
+      letter-spacing: -0.02em;
+    }
+
+    .auth-subtitle {
+      color: var(--warm-light);
+      margin-bottom: 1.75rem;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+    }
+
+    .field label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--warm-mid);
+      margin-bottom: 0.4rem;
+      letter-spacing: 0.01em;
+    }
+
+    .field input {
+      width: 100%;
+      border: 1.5px solid var(--sand-dark);
+      border-radius: var(--radius-lg);
+      padding: 0.7rem 0.9rem;
+      font-size: 0.88rem;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--charcoal);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: var(--cream);
+    }
+
+    .field input:focus {
+      border-color: var(--sage-light);
+      box-shadow: 0 0 0 3px var(--sage-pale);
+      background: #fff;
+    }
+
+    .field input::placeholder { color: var(--warm-light); }
+
+    .btn-auth {
+      width: 100%;
+      justify-content: center;
+      padding: 0.8rem 1.2rem;
+      font-size: 0.9rem;
+      border-radius: var(--radius-lg);
+      background: var(--sage-deep);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 14px rgba(30, 62, 46, 0.28);
+      margin-top: 0.25rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .btn-auth:hover {
+      background: var(--sage);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(30, 62, 46, 0.35);
+    }
+
+    .auth-message {
+      margin-top: 0.9rem;
+      padding: 0.75rem 0.9rem;
+      border-radius: var(--radius-md);
+      font-size: 0.84rem;
+      font-weight: 500;
+    }
+
+    .auth-message.error {
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+
+    @media (max-width: 900px) {
+      .navbar { padding: 0 1.5rem; }
+      
+      .auth-grid {
+        grid-template-columns: 1fr;
+        max-width: 520px;
+      }
+
+      .auth-info { padding: 2rem 1.75rem; }
+      .auth-card { padding: 2rem 1.75rem; }
+
+      .auth-wrap {
+        padding: calc(64px + 2rem) 1rem 2rem;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .navbar { padding: 0 1.2rem; }
+      .auth-info h1 { font-size: 1.5rem; }
+      .auth-card { padding: 1.5rem; }
+    }
+  </style>
 </head>
 
 <body>
-    <div class="login-shell">
-        <section class="login-hero">
-            <div class="hero-brand">
-                <div class="hero-badge">TS</div>
-                <div>
-                    <div style="font-weight:800;font-size:1.05rem;line-height:1;">TalentScout AI</div>
-                    <div style="font-size:0.85rem;opacity:0.88;">PESO Admin Portal</div>
-                </div>
-            </div>
-            <div class="hero-title">
-                <h1>Manage hiring operations from one secure dashboard.</h1>
-                <p>Access employer activity, applications, analytics, and reports with a clean PESO admin workspace built for quick review.</p>
-            </div>
-            <div class="hero-points">
-                <div class="hero-point">
-                    <div class="hero-badge" style="width:40px;height:40px;border-radius:12px;">✓</div>
-                    <div><strong>Centralized control</strong><span>Track applications, employers, and reports in one place.</span></div>
-                </div>
-                <div class="hero-point">
-                    <div class="hero-badge" style="width:40px;height:40px;border-radius:12px;">🔒</div>
-                    <div><strong>Protected access</strong><span>Only authenticated PESO admins can enter the dashboard.</span></div>
-                </div>
-            </div>
-        </section>
-
-        <section class="login-card">
-            <h2>Sign in</h2>
-            <p>Use your PESO admin credentials to continue.</p>
-            <?php if ($error): ?><div class="error"><?php echo htmlspecialchars($error); ?></div><?php endif; ?>
-            <form method="post" action="">
-                <div class="field">
-                    <label for="username">Username</label>
-                    <input id="username" name="username" class="input" placeholder="Enter your username" required>
-                </div>
-                <div class="field">
-                    <label for="password">Password</label>
-                    <input id="password" name="password" type="password" class="input" placeholder="Enter your password" required>
-                </div>
-                <div class="actions">
-                    <button class="btn" type="submit">Login to dashboard</button>
-                </div>
-            </form>
-        </section>
+  <nav class="navbar">
+    <a href="./index.php" class="nav-logo">
+      <div class="nav-logo-mark">TS</div>
+      <span>Talent<em>Scout</em> AI</span>
+    </a>
+    <div class="nav-right">
+      <a href="./login.php" class="btn-nav-ghost">Admin Login</a>
     </div>
+  </nav>
+
+  <main class="auth-wrap">
+    <section class="auth-grid">
+      <aside class="auth-info">
+        <span class="auth-kicker">🔐 Admin Access</span>
+        <h1>Secure portal for PESO admins</h1>
+        <p>
+          Manage hiring operations, track applications, monitor employers, and access platform analytics with the TalentScout AI admin dashboard.
+        </p>
+        <ul class="auth-points">
+          <li>
+            <span class="check-icon">✓</span>
+            <span>View real-time platform statistics and insights</span>
+          </li>
+          <li>
+            <span class="check-icon">✓</span>
+            <span>Manage applications and employer accounts</span>
+          </li>
+          <li>
+            <span class="check-icon">✓</span>
+            <span>Generate comprehensive hiring reports</span>
+          </li>
+        </ul>
+      </aside>
+
+      <section class="auth-card">
+        <div class="auth-card-logo">
+          <div class="auth-card-logo-icon">TS</div>
+          <span>TalentScout AI</span>
+        </div>
+        <h2 class="auth-title">Sign in</h2>
+        <p class="auth-subtitle">Enter your PESO admin credentials to continue.</p>
+        
+        <?php if ($error): ?>
+          <div class="auth-message error"><?php echo htmlspecialchars($error); ?></div>
+        <?php endif; ?>
+        
+        <form method="post" action="" class="auth-form">
+          <div class="field">
+            <label for="username">Username</label>
+            <input id="username" name="username" class="input" placeholder="Enter your username" required>
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" class="input" placeholder="Enter your password" required>
+          </div>
+          <button class="btn-auth" type="submit">Login to Dashboard</button>
+        </form>
+      </section>
+    </section>
+  </main>
 </body>
 
 </html>

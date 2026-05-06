@@ -50,17 +50,6 @@ require_once __DIR__ . '/../database/db.php';
 
       a { text-decoration: none; color: inherit; }
 
-      /* ── GRAIN OVERLAY ── */
-      body::before {
-        content: '';
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        z-index: 9999;
-        opacity: 0.03;
-        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-      }
-
       /* ── NAVBAR ── */
       .navbar {
         position: fixed;
@@ -173,38 +162,31 @@ require_once __DIR__ . '/../database/db.php';
         position: relative;
         min-height: 100vh;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
         overflow: hidden;
         padding-top: 64px;
+        background: linear-gradient(135deg, rgba(20,30,50,0.45) 0%, rgba(30,20,40,0.45) 50%, rgba(20,35,60,0.45) 100%), url("../picture.jpg") center/cover no-repeat;
+        background-attachment: fixed;
       }
 
-      .hero-bg {
-        position: absolute;
-        inset: 0;
-        background: url('hero-bg.jpg') center/cover no-repeat;
-        transform: scale(1.05);
-        animation: heroZoom 12s ease-in-out infinite alternate;
-      }
-
-      @keyframes heroZoom {
-        from { transform: scale(1.05); }
-        to   { transform: scale(1.12); }
-      }
-
-      .hero-bg::after {
+      .hero::before {
         content: '';
         position: absolute;
         inset: 0;
-        background: linear-gradient(
-          to bottom,
-          rgba(42, 42, 34, 0.45) 0%,
-          rgba(42, 42, 34, 0.28) 50%,
-          rgba(42, 42, 34, 0.55) 100%
-        );
+        background: linear-gradient(135deg, rgba(74,107,80,0.1) 0%, rgba(200,169,110,0.08) 50%, rgba(74,107,80,0.1) 100%);
+        pointer-events: none;
+        z-index: 0;
+        animation: gradientShift 8s ease-in-out infinite;
       }
 
-      .hero-center {
+      @keyframes gradientShift {
+        0%, 100% { opacity: 0.4; }
+        50% { opacity: 0.7; }
+      }
+
+      .hero-upper {
         position: relative;
         z-index: 2;
         display: flex;
@@ -212,26 +194,17 @@ require_once __DIR__ . '/../database/db.php';
         align-items: center;
         justify-content: center;
         text-align: center;
-        padding: 3rem 2rem;
-        animation: heroFadeIn 1s 0.3s var(--ease-out) both;
-      }
-
-      @keyframes heroFadeIn {
-        from { opacity: 0; transform: translateY(30px); }
-        to   { opacity: 1; transform: translateY(0); }
-      }
-
-      /* Glass card — like image 2 */
-      .hero-card {
-        background: rgba(250, 248, 243, 0.82);
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
-        border: 1px solid rgba(255,255,255,0.6);
-        border-radius: var(--radius-xl);
-        padding: 3.2rem 3.8rem 2.8rem;
-        max-width: 600px;
+        padding: 3.5rem 2rem;
+        animation: heroFadeInUp 1.2s 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
         width: 100%;
-        box-shadow: 0 24px 72px rgba(42,42,34,0.22), 0 4px 16px rgba(42,42,34,0.12);
+        max-width: 800px;
+        margin: auto;
+        backdrop-filter: blur(2px);
+      }
+
+      @keyframes heroFadeInUp {
+        from { opacity: 0; transform: translateY(40px); filter: blur(10px); }
+        to   { opacity: 1; transform: translateY(0); filter: blur(0); }
       }
 
       .hero-eyebrow {
@@ -242,37 +215,67 @@ require_once __DIR__ . '/../database/db.php';
         font-weight: 600;
         letter-spacing: 0.13em;
         text-transform: uppercase;
-        color: var(--sage);
+        color: #ffd700;
         margin-bottom: 1.2rem;
-        background: var(--sage-pale);
-        padding: 0.28rem 0.85rem;
+        background: rgba(200, 169, 110, 0.12);
+        backdrop-filter: blur(12px);
+        padding: 0.38rem 1rem;
         border-radius: var(--radius-pill);
+        border: 1.5px solid rgba(200, 169, 110, 0.35);
+        animation: eyebrowPulse 3s ease-in-out infinite;
+        box-shadow: 0 0 20px rgba(200, 169, 110, 0.2);
+      }
+
+      @keyframes eyebrowPulse {
+        0%, 100% { box-shadow: 0 0 15px rgba(200, 169, 110, 0.15), inset 0 0 20px rgba(200, 169, 110, 0.05); }
+        50% { box-shadow: 0 0 30px rgba(200, 169, 110, 0.3), inset 0 0 20px rgba(200, 169, 110, 0.1); }
       }
 
       .hero-title {
         font-family: 'Playfair Display', serif;
-        font-size: clamp(1.9rem, 4vw, 2.8rem);
+        font-size: clamp(2.2rem, 5vw, 3.6rem);
         font-weight: 900;
-        color: var(--charcoal);
-        line-height: 1.15;
-        letter-spacing: -0.025em;
-        margin-bottom: 1rem;
+        color: #ffffff;
+        line-height: 1.1;
+        letter-spacing: -0.03em;
+        margin-bottom: 1.2rem;
+        text-shadow:
+          0 0 30px rgba(200, 169, 110, 0.35),
+          0 0 60px rgba(107, 143, 113, 0.15),
+          0 4px 20px rgba(0, 0, 0, 0.5);
+        animation: titleFloat 4s ease-in-out infinite;
       }
 
       .hero-title em {
         font-style: italic;
-        color: var(--sage);
+        background: linear-gradient(120deg, #ffd700, #ffed4e, #c8a96e);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        filter: drop-shadow(0 0 15px rgba(200, 169, 110, 0.3));
+      }
+
+      @keyframes titleFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
       }
 
       .hero-desc {
-        font-size: 0.92rem;
-        color: var(--warm-mid);
-        line-height: 1.7;
-        margin-bottom: 2rem;
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.9);
+        line-height: 1.8;
+        margin-bottom: 2.5rem;
         font-weight: 400;
-        max-width: 420px;
+        max-width: 500px;
         margin-left: auto;
         margin-right: auto;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+        animation: fadeInDelay 1.2s 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      }
+
+      @keyframes fadeInDelay {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
       }
 
       .hero-actions {
@@ -280,74 +283,80 @@ require_once __DIR__ . '/../database/db.php';
         gap: 0.75rem;
         justify-content: center;
         flex-wrap: wrap;
+        margin-bottom: 0;
       }
 
       .btn-hero-primary {
-        padding: 0.82rem 2rem;
-        background: var(--sage-deep);
+        padding: 1rem 2.5rem;
+        background: linear-gradient(135deg, #c8a96e 0%, #d4b896 100%);
         color: #fff;
         border-radius: var(--radius-pill);
         font-family: 'DM Sans', sans-serif;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         font-weight: 700;
-        border: none;
+        border: 2px solid rgba(200, 169, 110, 0.5);
         cursor: pointer;
-        display: inline-flex; align-items: center; gap: 0.4rem;
-        transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-        box-shadow: 0 6px 20px rgba(74,107,80,0.35);
-        letter-spacing: 0.01em;
+        display: inline-flex; align-items: center; gap: 0.5rem;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow:
+          0 0 20px rgba(200, 169, 110, 0.4),
+          0 8px 25px rgba(200, 169, 110, 0.25),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        letter-spacing: 0.02em;
+        position: relative;
+        overflow: hidden;
+        animation: buttonBounce 1s 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
       }
 
+      .btn-hero-primary::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -100%;
+        width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+      }
+
+      .btn-hero-primary:hover::before { left: 100%; }
+
       .btn-hero-primary:hover {
-        background: var(--sage);
-        transform: translateY(-2px);
-        box-shadow: 0 10px 28px rgba(74,107,80,0.42);
+        background: linear-gradient(135deg, #d4b896 0%, #e8cfb0 100%);
+        transform: translateY(-4px) scale(1.05);
+        box-shadow:
+          0 0 30px rgba(200, 169, 110, 0.6),
+          0 12px 35px rgba(200, 169, 110, 0.35),
+          inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      }
+
+      .btn-hero-primary:active { transform: translateY(-2px) scale(1.02); }
+
+      @keyframes buttonBounce {
+        0% { opacity: 0; transform: scale(0.8) translateY(20px); }
+        100% { opacity: 1; transform: scale(1) translateY(0); }
       }
 
       .btn-hero-ghost {
         padding: 0.82rem 1.8rem;
-        background: transparent;
-        color: var(--charcoal);
+        background: rgba(255,255,255,0.15);
+        color: #ffffff;
         border-radius: var(--radius-pill);
         font-family: 'DM Sans', sans-serif;
         font-size: 0.9rem;
         font-weight: 600;
-        border: 1.5px solid rgba(42,42,34,0.22);
+        border: 1.5px solid rgba(255,255,255,0.35);
         cursor: pointer;
         display: inline-block;
         transition: background 0.2s, border-color 0.2s, transform 0.15s;
+        backdrop-filter: blur(6px);
       }
 
       .btn-hero-ghost:hover {
-        background: var(--sand);
-        border-color: var(--stone);
+        background: rgba(255,255,255,0.25);
+        border-color: #ffffff;
         transform: translateY(-2px);
       }
 
-      /* Floating scroll indicator */
-      .hero-scroll {
-        position: absolute;
-        bottom: 2.5rem;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 3;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.4rem;
-        color: rgba(255,255,255,0.7);
-        font-size: 0.7rem;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        animation: bounce 2s ease-in-out infinite;
-      }
-
-      @keyframes bounce {
-        0%, 100% { transform: translateX(-50%) translateY(0); }
-        50% { transform: translateX(-50%) translateY(6px); }
-      }
-
-      .hero-scroll svg { opacity: 0.8; }
+      .hero-image-strip { display: none; }
 
       /* ── STAT BAR ── */
       .stat-bar {
@@ -407,9 +416,7 @@ require_once __DIR__ . '/../database/db.php';
         align-items: center;
       }
 
-      .welcome-visual {
-        position: relative;
-      }
+      .welcome-visual { position: relative; }
 
       .welcome-img-wrap {
         width: 100%;
@@ -450,20 +457,8 @@ require_once __DIR__ . '/../database/db.php';
         50% { transform: translateY(-7px); }
       }
 
-      .badge-float.b1 {
-        top: -18px; right: -20px;
-        font-size: 0.78rem;
-        font-weight: 600;
-        color: var(--charcoal);
-      }
-
-      .badge-float.b2 {
-        bottom: -18px; left: -20px;
-        animation-delay: 2s;
-        font-size: 0.78rem;
-        font-weight: 600;
-        color: var(--charcoal);
-      }
+      .badge-float.b1 { top: -18px; right: -20px; font-size: 0.78rem; font-weight: 600; color: var(--charcoal); }
+      .badge-float.b2 { bottom: -18px; left: -20px; animation-delay: 2s; font-size: 0.78rem; font-weight: 600; color: var(--charcoal); }
 
       .badge-icon {
         width: 34px; height: 34px;
@@ -492,10 +487,7 @@ require_once __DIR__ . '/../database/db.php';
         margin-bottom: 1.1rem;
       }
 
-      .welcome-text h2 em {
-        font-style: italic;
-        color: var(--sage);
-      }
+      .welcome-text h2 em { font-style: italic; color: var(--sage); }
 
       .welcome-text p {
         font-size: 0.89rem;
@@ -504,9 +496,7 @@ require_once __DIR__ . '/../database/db.php';
         margin-bottom: 1.8rem;
       }
 
-      .welcome-btns {
-        display: flex; gap: 0.75rem; flex-wrap: wrap;
-      }
+      .welcome-btns { display: flex; gap: 0.75rem; flex-wrap: wrap; }
 
       .btn-sage {
         padding: 0.68rem 1.5rem;
@@ -759,13 +749,6 @@ require_once __DIR__ . '/../database/db.php';
         line-height: 1.65;
       }
 
-      /* ── DIVIDER ── */
-      .divider-wave {
-        width: 100%;
-        overflow: hidden;
-        line-height: 0;
-      }
-
       /* ── CTA ── */
       .cta {
         background: var(--charcoal);
@@ -928,10 +911,7 @@ require_once __DIR__ . '/../database/db.php';
         transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
       }
 
-      .reveal.visible {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      .reveal.visible { opacity: 1; transform: translateY(0); }
 
       .reveal-delay-1 { transition-delay: 0.1s; }
       .reveal-delay-2 { transition-delay: 0.2s; }
@@ -954,7 +934,7 @@ require_once __DIR__ . '/../database/db.php';
         .benefits-grid { grid-template-columns: 1fr; }
         .footer-top { grid-template-columns: 1fr; }
         .footer-bottom { flex-direction: column; text-align: center; }
-        .hero-card { padding: 2.2rem 1.8rem 2rem; }
+        .hero-upper { padding: 2.5rem 1.5rem 1.5rem; }
         .welcome { padding: 4rem 1.5rem; }
         .badge-float { display: none; }
       }
@@ -968,6 +948,7 @@ require_once __DIR__ . '/../database/db.php';
         <div class="nav-logo-mark">TS</div>
         <span>Talent<em>Scout</em> AI</span>
       </a>
+      <!-- Complete nav tabs from first code (includes Messages & Applications) -->
       <ul class="nav-links">
         <li><a href="./index.php" class="active">Home</a></li>
         <li><a href="./modules/job-postings/index.php">Browse Jobs</a></li>
@@ -990,27 +971,17 @@ require_once __DIR__ . '/../database/db.php';
 
     <!-- ── HERO ── -->
     <section class="hero">
-      <div class="hero-bg"></div>
-
-      <div class="hero-center">
-        <div class="hero-card">
-          <div class="hero-eyebrow">🌿 PESO Nasugbu, Batangas</div>
-          <h1 class="hero-title">
-            Land Your Next <em>Opportunity</em><br>in Nasugbu
-          </h1>
-          <p class="hero-desc">
-            Get AI-powered recommendations, build your resume, and track your applications — all in one place.
-          </p>
-          <div class="hero-actions">
-            <a href="./modules/job-postings/" class="btn-hero-primary">Browse Jobs →</a>
-            <a href="./modules/applicant-tracking/" class="btn-hero-ghost">Track Applications</a>
-          </div>
+      <div class="hero-upper">
+        <div class="hero-eyebrow">🌿 PESO Nasugbu, Batangas</div>
+        <h1 class="hero-title">
+          Land Your Next <em>Opportunity</em><br>in Nasugbu
+        </h1>
+        <p class="hero-desc">
+          Get AI-powered recommendations, build your resume, and track your applications — all in one place.
+        </p>
+        <div class="hero-actions">
+          <a href="./modules/job-postings/" class="btn-hero-primary">Browse Jobs</a>
         </div>
-      </div>
-
-      <div class="hero-scroll">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
-        Scroll
       </div>
     </section>
 

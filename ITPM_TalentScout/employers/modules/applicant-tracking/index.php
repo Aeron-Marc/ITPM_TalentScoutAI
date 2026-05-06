@@ -37,7 +37,6 @@ $stmt->bind_param("i", $employer_id);
 $stmt->execute();
 $result = $stmt->get_result();
 while ($row = $result->fetch_assoc()) {
-  // Calculate display status based on hire_status
   $hireStatus = $row['hire_status'] ?? 'none';
   if ($hireStatus === 'accepted') {
     $row['display_status'] = 'Hired';
@@ -64,7 +63,6 @@ $stats = [
 
 foreach ($applications as $app) {
   $hireStatus = $app['hire_status'] ?? 'none';
-  
   if ($hireStatus === 'accepted') {
     $stats['hired']++;
   } elseif ($hireStatus === 'offered') {
@@ -92,12 +90,162 @@ foreach ($applications as $app) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Application Tracker — TalentScout AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../../../styles/global.css">
   <link rel="stylesheet" href="../../../styles/page-layout.css">
   <style>
-    /* ===== STICKY FOOTER LAYOUT ===== */
-    html,
-    body {
+    /* ══ NAVBAR ══ */
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2.5rem; height: 66px;
+      background: var(--sage);
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+      transition: all 0.4s;
+      animation: navSlide 0.7s var(--ease) both;
+    }
+
+    .navbar.scrolled {
+      background: var(--sage);
+      border-bottom-color: rgba(0,0,0,0.15);
+    }
+
+    @keyframes navSlide {
+      from { transform: translateY(-100%); opacity: 0; }
+      to   { transform: translateY(0);     opacity: 1; }
+    }
+
+    .nav-logo {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-family: 'Lora', serif; font-weight: 700; font-size: 1.12rem;
+      color: #fff;
+      transition: color 0.4s;
+    }
+
+    .navbar.scrolled .nav-logo { color: var(--charcoal); }
+
+    .nav-logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--sage), var(--sage-dark));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.7rem; font-weight: 700; color: #fff; letter-spacing: 0.05em;
+      box-shadow: 0 4px 12px rgba(90,138,104,0.35);
+    }
+
+    .nav-logo-text { display: inline; }
+    .nav-logo-text span { color: var(--mint-deep); transition: color 0.4s; }
+    .navbar.scrolled .nav-logo-text span { color: var(--sage); }
+
+    .nav-links { display: flex; list-style: none; gap: 0.2rem; margin: 0; padding: 0; }
+
+    .nav-links a {
+      padding: 0.2rem 0.75rem;
+      font-size: 0.84rem; font-weight: 500; color: rgba(255,255,255,0.8);
+      transition: color 0.2s, border-bottom 0.2s;
+      position: relative;
+      padding-bottom: 0.4rem;
+    }
+
+    .navbar.scrolled .nav-links a { color: rgba(255,255,255,0.8); }
+
+    .nav-links a:hover {
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .nav-links a.active {
+      color: #fff;
+      font-weight: 600;
+      border-bottom: 2.5px solid #fff;
+    }
+
+    .navbar.scrolled .nav-links a:hover {
+      color: #fff;
+    }
+
+    .navbar.scrolled .nav-links a.active {
+      color: #fff;
+      border-bottom-color: #fff;
+    }
+
+    .nav-actions { display: flex; align-items: center; gap: 0.65rem; }
+
+    .nav-user { font-size: 0.82rem; color: rgba(255,255,255,0.75); transition: color 0.4s; }
+    .navbar.scrolled .nav-user { color: var(--text-soft); }
+
+    .btn-outline {
+      padding: 0.42rem 1.1rem; border-radius: 999px;
+      border: 1.5px solid rgba(255,255,255,0.4); color: #fff;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.83rem; font-weight: 500; background: transparent;
+      cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+
+    .btn-outline:hover {
+      background: rgba(255,255,255,0.15);
+      border-color: #fff;
+    }
+
+    .navbar.scrolled .btn-outline {
+      border-color: rgba(90,138,104,0.3);
+      color: var(--text-mid);
+    }
+
+    .navbar.scrolled .btn-outline:hover {
+      background: var(--mint);
+      border-color: var(--sage);
+      color: var(--sage-dark);
+    }
+
+    .btn-primary {
+      padding: 0.42rem 1.3rem; border-radius: 999px;
+      background: linear-gradient(135deg, var(--mint-deep), var(--mint));
+      color: var(--charcoal); font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.83rem; font-weight: 700; border: none;
+      cursor: pointer; transition: all 0.2s; text-decoration: none;
+      box-shadow: 0 4px 14px rgba(90,138,104,0.32);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(90,138,104,0.4);
+    }
+
+    @media (max-width: 1024px) {
+      .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+      text-decoration: none;
+    }
+
+    .btn-outline {
+      border: 1.5px solid var(--mint-deep); color: var(--text-mid);
+      background: transparent;
+    }
+
+    .btn-outline:hover { background: var(--mint); border-color: var(--sage); color: var(--sage-dark); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--sage), var(--sage-dark));
+      color: #fff; font-weight: 700;
+      box-shadow: 0 4px 14px rgba(90,138,104,0.32);
+    }
+
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(90,138,104,0.4); }
+
+    /* ===== LAYOUT ===== */
+    html, body {
       height: 100%;
       margin: 0;
       padding: 0;
@@ -108,57 +256,68 @@ foreach ($applications as $app) {
       flex-direction: column;
     }
 
-    /* Main content area expands to fill available space */
-    .page-container,
-    main {
+    .page-container, main {
       flex: 1 0 auto;
     }
 
-    /* Footer stays at the bottom */
     .footer {
       flex-shrink: 0;
     }
 
-    .container { max-width: 1400px; margin: 0 auto; padding: 2.5rem; }
-    
-    .page-header {
+    /* Push content below fixed navbar */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 2.5rem 3rem;
+      padding-top: 0;
+    }
+
+    /* ══ PAGE HERO ══ */
+    .page-hero {
+      background: linear-gradient(135deg, #f0fff8 0%, #e8f8f0 60%, #f5fdf8 100%);
+      border-bottom: 1px solid rgba(90,138,104,0.12);
+      padding: 2.5rem 2.5rem 2rem;
+      margin-top: 66px;
       margin-bottom: 2.5rem;
     }
-    .page-header h1 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: var(--text-dark);
-      margin-bottom: 0.5rem;
-    }
-    .page-header p {
-      color: var(--text-light);
-      font-size: 0.95rem;
-    }
+    .page-hero-inner { max-width: 1200px; margin: 0 auto; }
+    .page-hero h1 { font-family: 'Lora', serif; font-size: 1.9rem; font-weight: 700; color: var(--text-dark); margin: 0 0 0.3rem 0; }
+    .page-hero p { font-size: 0.92rem; color: var(--text-light); margin: 0; }
 
     /* Stats Block */
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 3rem;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 3.5rem;
     }
+
     .stat-card {
       background: white;
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 1.5rem;
+      padding: 1.4rem 1.5rem;
+      transition: box-shadow 0.2s, transform 0.2s;
     }
+
+    .stat-card:hover {
+      box-shadow: 0 6px 20px rgba(90,138,104,0.12);
+      transform: translateY(-2px);
+    }
+
     .stat-value {
       font-size: 2.2rem;
       font-weight: 800;
       color: var(--primary-dark);
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.35rem;
+      line-height: 1;
     }
+
     .stat-label {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: var(--text-light);
       text-transform: uppercase;
-      letter-spacing: 0.6px;
+      letter-spacing: 0.7px;
       font-weight: 600;
     }
 
@@ -168,6 +327,7 @@ foreach ($applications as $app) {
       border: 1px solid var(--border);
       border-radius: var(--radius);
       overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
     }
 
     table {
@@ -176,28 +336,27 @@ foreach ($applications as $app) {
     }
 
     thead {
-      background: #f5f5f5;
+      background: #f7f7f7;
       border-bottom: 1px solid var(--border);
     }
 
     th {
-      padding: 1rem 1.25rem;
+      padding: 0.9rem 1.25rem;
       text-align: left;
-      font-size: 0.85rem;
+      font-size: 0.78rem;
       font-weight: 700;
       color: var(--text-dark);
       text-transform: uppercase;
-      letter-spacing: 0.4px;
+      letter-spacing: 0.5px;
     }
 
     tbody tr {
       border-bottom: 1px solid var(--border);
-      transition: all 0.2s ease;
+      transition: background 0.15s;
     }
 
     tbody tr:hover {
-      background-color: #fafafa;
-      box-shadow: inset 0 0 12px rgba(30, 158, 134, 0.08);
+      background-color: #fafdf9;
     }
 
     tbody tr:last-child {
@@ -205,104 +364,105 @@ foreach ($applications as $app) {
     }
 
     td {
-      padding: 1.25rem;
-      font-size: 0.95rem;
+      padding: 1rem 1.25rem;
+      font-size: 0.92rem;
       color: var(--text-dark);
+      vertical-align: middle;
     }
 
-    .candidate-col {
-      font-weight: 600;
-    }
+    .candidate-col { font-weight: 600; }
 
     .position-col {
       color: var(--text-light);
-      font-size: 0.9rem;
+      font-size: 0.88rem;
     }
 
-    .status-col {
+    .status-badge {
       font-weight: 600;
-      padding: 0.5rem 0.75rem;
-      border-radius: 4px;
-      font-size: 0.85rem;
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
       display: inline-block;
       text-transform: uppercase;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
     }
 
-    .status-applied { background: #e8e8e8; color: #666; }
+    .status-applied   { background: #efefef; color: #555; }
     .status-interview { background: #d1ecf1; color: #0c5460; }
-    .status-offer { background: #d4edda; color: #155724; }
-    .status-rejected { background: #f8d7da; color: #721c24; }
-    .status-hired { background: #c8e6c9; color: #1b5e20; }
+    .status-offer     { background: #d4edda; color: #155724; }
+    .status-rejected  { background: #f8d7da; color: #721c24; }
+    .status-hired     { background: #c8e6c9; color: #1b5e20; }
 
-    .match-score {
-      font-weight: 700;
-      color: var(--primary-dark);
-    }
+    .match-score { font-weight: 700; }
 
     .date-col {
       color: var(--text-light);
-      font-size: 0.9rem;
+      font-size: 0.88rem;
+      white-space: nowrap;
     }
 
-    .action-col {
-      text-align: center;
-    }
+    .action-col { text-align: center; }
 
-    .btn-small {
-      background: white;
+    /* Eye icon button */
+    .btn-eye {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
       border: 1px solid var(--border);
-      padding: 0.4rem 0.8rem;
-      border-radius: 4px;
-      font-size: 0.8rem;
+      background: white;
       cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      font-weight: 600;
-      color: var(--text-dark);
-      text-decoration: none;
-      display: inline-block;
+      transition: all 0.2s ease;
+      color: var(--text-mid);
     }
 
-    .btn-small:hover {
+    .btn-eye:hover {
       background: var(--primary-dark);
-      color: white;
       border-color: var(--primary-dark);
+      color: white;
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(30, 158, 134, 0.15);
+      box-shadow: 0 4px 12px rgba(30,158,134,0.2);
     }
 
-    .btn-small:active {
-      transform: translateY(0);
+    .btn-eye svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
     }
 
-    .footer { background: #1a1a1a; color: white; padding: 2rem; margin-top: 3rem; text-align: center; }
+    .footer {
+      background: #1a1a1a;
+      color: rgba(255,255,255,0.6);
+      padding: 1.75rem 2rem;
+      text-align: center;
+      font-size: 0.85rem;
+    }
 
     /* Modal Styles */
     .modal {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       z-index: 1000;
       display: flex;
       align-items: center;
       justify-content: center;
-      animation: fadeIn 0.3s ease;
+      animation: fadeIn 0.2s ease;
     }
 
     @keyframes fadeIn {
       from { opacity: 0; }
-      to { opacity: 1; }
+      to   { opacity: 1; }
     }
 
     .modal-overlay {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.45);
       cursor: pointer;
     }
 
@@ -310,131 +470,124 @@ foreach ($applications as $app) {
       position: relative;
       background: white;
       border-radius: var(--radius);
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 24px 64px rgba(0,0,0,0.22);
       max-width: 600px;
       width: 90%;
-      max-height: 85vh;
+      max-height: 88vh;
       overflow-y: auto;
-      animation: slideUp 0.3s ease;
+      animation: slideUp 0.25s ease;
     }
 
     @keyframes slideUp {
-      from {
-        transform: translateY(30px);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
+      from { transform: translateY(24px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
     }
 
     .modal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1.5rem;
+      padding: 1.25rem 1.5rem;
       border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: white;
+      z-index: 1;
     }
 
     .modal-header h2 {
       margin: 0;
-      font-size: 1.25rem;
+      font-size: 1.15rem;
     }
 
     .modal-close {
       background: none;
       border: none;
-      font-size: 2rem;
+      font-size: 1.5rem;
       cursor: pointer;
       color: var(--text-light);
       padding: 0;
-      width: 2.5rem;
-      height: 2.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      width: 2.2rem; height: 2.2rem;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 6px;
       transition: all 0.2s ease;
+      line-height: 1;
     }
 
     .modal-close:hover {
+      background: #f0f0f0;
       color: var(--text-dark);
-      transform: rotate(90deg);
     }
 
-    .modal-body {
-      padding: 2rem;
-    }
+    .modal-body { padding: 1.75rem; }
 
     .modal-footer {
-      padding: 1.5rem;
+      padding: 1.25rem 1.5rem;
       border-top: 1px solid var(--border);
       display: flex;
-      gap: 1rem;
+      gap: 0.75rem;
       justify-content: flex-end;
     }
 
     .candidate-info {
-      margin-bottom: 2rem;
-      padding: 1.5rem;
+      margin-bottom: 1.75rem;
+      padding: 1.25rem;
       background: #f9f9f9;
       border-radius: var(--radius);
     }
 
     .candidate-info h3 {
-      margin-top: 0;
-      font-size: 1.1rem;
-      margin-bottom: 0.75rem;
+      margin: 0 0 1rem;
+      font-size: 1.05rem;
     }
 
     .info-row {
       display: flex;
       justify-content: space-between;
-      padding: 0.5rem 0;
-      border-bottom: 1px solid #e0e0e0;
+      padding: 0.45rem 0;
+      border-bottom: 1px solid #ebebeb;
     }
 
-    .info-row:last-child {
-      border-bottom: none;
-    }
+    .info-row:last-child { border-bottom: none; }
 
     .info-label {
       font-weight: 600;
       color: var(--text-dark);
-      min-width: 120px;
+      font-size: 0.88rem;
+      min-width: 110px;
     }
 
     .info-value {
       color: var(--text-light);
       text-align: right;
+      font-size: 0.88rem;
     }
 
     .status-update-section {
-      margin-top: 2rem;
-      padding: 1.5rem;
+      margin-top: 1.75rem;
+      padding: 1.25rem;
       background: #f9f9f9;
       border-radius: var(--radius);
     }
 
     .status-update-section h3 {
-      margin-top: 0;
-      font-size: 1rem;
-      margin-bottom: 1rem;
+      margin: 0 0 1rem;
+      font-size: 0.95rem;
     }
 
     .status-buttons {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 0.75rem;
+      gap: 0.65rem;
     }
 
     .status-btn {
-      padding: 0.6rem 0.8rem;
+      padding: 0.55rem 0.75rem;
       border: 1px solid var(--border);
-      border-radius: 4px;
+      border-radius: 6px;
       background: white;
       cursor: pointer;
-      font-size: 0.85rem;
+      font-size: 0.83rem;
       font-weight: 600;
       transition: all 0.2s ease;
       color: var(--text-dark);
@@ -448,7 +601,7 @@ foreach ($applications as $app) {
 
     .status-btn.btn-reject {
       grid-column: 1 / -1;
-      background: #fee;
+      background: #fff0f0;
       border-color: #fcc;
       color: #c33;
     }
@@ -462,6 +615,10 @@ foreach ($applications as $app) {
       background: var(--primary-dark) !important;
       border-color: var(--primary-dark) !important;
       color: white !important;
+    }
+
+    .modal-input {
+      box-sizing: border-box;
     }
   </style>
 </head>
@@ -489,11 +646,14 @@ foreach ($applications as $app) {
     </div>
   </nav>
 
-  <div class="container">
-    <div class="page-header">
+  <div class="page-hero">
+    <div class="page-hero-inner">
       <h1>Job Application Tracker</h1>
       <p>Manage your entire hiring pipeline from application to hire</p>
     </div>
+  </div>
+
+  <div class="container">
 
     <!-- Stats Grid -->
     <div class="stats-grid">
@@ -519,27 +679,25 @@ foreach ($applications as $app) {
       </div>
     </div>
 
-    <!-- Kanban Board -->
+    <!-- Applications Table -->
     <div class="table-wrapper">
       <table>
         <thead>
           <tr>
-            <th style="width: 20%;">Candidate Name</th>
-            <th style="width: 15%;">Position</th>
-            <th style="width: 15%;">Status</th>
+            <th style="width: 22%;">Candidate</th>
+            <th style="width: 18%;">Position</th>
+            <th style="width: 14%;">Status</th>
             <th style="width: 12%;">Match Score</th>
             <th style="width: 18%;">Applied Date</th>
-            <th style="width: 20%;">Action</th>
+            <th style="width: 16%; text-align: center;">Action</th>
           </tr>
         </thead>
         <tbody>
           <?php if (count($applications) > 0): ?>
             <?php foreach ($applications as $app): 
-              // Use display_status from query
               $displayStatus = $app['display_status'];
               $hireStatus = $app['hire_status'] ?? 'none';
               
-              // Determine status class based on hire_status first
               $status_class = 'status-applied';
               if ($hireStatus === 'accepted') {
                 $status_class = 'status-hired';
@@ -563,7 +721,6 @@ foreach ($applications as $app) {
                 }
               }
               
-              // Simple skill-based match score algorithm
               $job_skills = !empty($app['job_skills']) 
                   ? array_map('trim', array_filter(explode(',', $app['job_skills']))) 
                   : [];
@@ -579,21 +736,31 @@ foreach ($applications as $app) {
             <tr data-application-id="<?php echo $app['application_id']; ?>">
               <td class="candidate-col"><?php echo htmlspecialchars($app['first_name'] . ' ' . $app['last_name']); ?></td>
               <td class="position-col"><?php echo htmlspecialchars($app['job_title']); ?></td>
-              <td><span class="status-col <?php echo $status_class; ?>"><?php echo htmlspecialchars($displayStatus); ?></span></td>
+              <td><span class="status-badge <?php echo $status_class; ?>"><?php echo htmlspecialchars($displayStatus); ?></span></td>
               <td class="match-score" style="color: <?php 
                   if ($match_score >= 80) echo '#28a745';
-                  elseif ($match_score >= 50) echo '#ffc107';
+                  elseif ($match_score >= 50) echo '#e6a817';
                   else echo '#dc3545';
                 ?>;"><?php echo $match_score; ?>%</td>
               <td class="date-col"><?php echo date('M j, Y', strtotime($app['application_date'])); ?></td>
               <td class="action-col">
-                <button class="btn-small view-details" onclick="openApplicationModal(<?php echo $app['application_id']; ?>)">View</button>
+                <button 
+                  class="btn-eye" 
+                  onclick="openApplicationModal(<?php echo $app['application_id']; ?>)"
+                  title="View application details"
+                >
+                  <!-- Eye icon -->
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
               </td>
             </tr>
             <?php endforeach; ?>
           <?php else: ?>
             <tr>
-              <td colspan="6" style="text-align: center; color: var(--text-light); padding: 2rem;">
+              <td colspan="6" style="text-align: center; color: var(--text-light); padding: 3rem 2rem;">
                 No applications yet. Share your job postings with candidates to start receiving applications.
               </td>
             </tr>
@@ -612,9 +779,9 @@ foreach ($applications as $app) {
         <button class="modal-close" onclick="closeStatusModal()">×</button>
       </div>
       <div class="modal-body" style="text-align: center;">
-        <p style="font-size: 1.1rem; margin-bottom: 1rem;">Are you sure you want to change status to:</p>
-        <div id="newStatusDisplay" style="font-weight: 700; font-size: 1.3rem; color: var(--primary-dark); margin-bottom: 1.5rem;"></div>
-        <p style="font-size: 0.9rem; color: var(--text-light);">This action cannot be undone.</p>
+        <p style="font-size: 1rem; margin-bottom: 1rem;">Are you sure you want to change status to:</p>
+        <div id="newStatusDisplay" style="font-weight: 700; font-size: 1.2rem; color: var(--primary-dark); margin-bottom: 1.25rem;"></div>
+        <p style="font-size: 0.88rem; color: var(--text-light);">This action cannot be undone.</p>
       </div>
       <div class="modal-footer" style="justify-content: center;">
         <button class="btn btn-outline" onclick="closeStatusModal()">Cancel</button>
@@ -626,14 +793,14 @@ foreach ($applications as $app) {
   <!-- Notification Modal -->
   <div id="notificationModal" class="modal" style="display: none; z-index: 3001;">
     <div class="modal-overlay" onclick="closeNotificationModal()"></div>
-    <div class="modal-content" style="max-width: 400px;">
+    <div class="modal-content" style="max-width: 380px;">
       <div class="modal-header">
         <h2 id="notificationTitle"></h2>
         <button class="modal-close" onclick="closeNotificationModal()">×</button>
       </div>
       <div class="modal-body" style="text-align: center;">
         <div id="notificationIcon" style="font-size: 3rem; margin-bottom: 1rem;"></div>
-        <p id="notificationMessage" style="font-size: 1.1rem;"></p>
+        <p id="notificationMessage" style="font-size: 1rem;"></p>
       </div>
       <div class="modal-footer" style="justify-content: center;">
         <button class="btn btn-primary" onclick="closeNotificationModal()">OK</button>
@@ -657,19 +824,19 @@ foreach ($applications as $app) {
         <h3 style="margin-top: 0;">Schedule Interview</h3>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
           <div>
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Date</label>
-            <input type="date" id="scheduleDate" class="modal-input" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px;" required min="<?php echo date('Y-m-d'); ?>">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.88rem;">Date</label>
+            <input type="date" id="scheduleDate" class="modal-input" style="width: 100%; padding: 0.65rem 0.75rem; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem;" required min="<?php echo date('Y-m-d'); ?>">
           </div>
           <div>
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Time</label>
-            <input type="time" id="scheduleTime" class="modal-input" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px;" required>
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.88rem;">Time</label>
+            <input type="time" id="scheduleTime" class="modal-input" style="width: 100%; padding: 0.65rem 0.75rem; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem;" required>
           </div>
         </div>
         <div style="margin-bottom: 1rem;">
-          <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Confirmation Message (optional)</label>
-          <textarea id="scheduleMessage" class="modal-input" rows="3" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; resize: vertical;" placeholder="Please confirm your availability for this interview."></textarea>
+          <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.88rem;">Confirmation Message (optional)</label>
+          <textarea id="scheduleMessage" class="modal-input" rows="3" style="width: 100%; padding: 0.65rem 0.75rem; border: 1px solid #ddd; border-radius: 6px; resize: vertical; font-size: 0.9rem;" placeholder="Please confirm your availability for this interview."></textarea>
         </div>
-        <div style="display: flex; gap: 1rem;">
+        <div style="display: flex; gap: 0.75rem;">
           <button type="button" class="btn btn-outline" onclick="hideScheduleForm()" style="flex: 1;">Cancel</button>
           <button type="button" class="btn btn-primary" onclick="submitScheduleInterview()" style="flex: 1;">Schedule</button>
         </div>
@@ -678,11 +845,11 @@ foreach ($applications as $app) {
       <div id="offerForm" style="display: none; padding: 1.5rem; border-top: 1px solid #eee;">
         <h3 style="margin-top: 0;">Send Job Offer</h3>
         <div style="margin-bottom: 1rem;">
-          <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Offer Message</label>
-          <textarea id="offerMessage" class="modal-input" rows="4" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; resize: vertical;" placeholder="Congratulations! We are pleased to offer you the position. Please respond to this offer."></textarea>
+          <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.88rem;">Offer Message</label>
+          <textarea id="offerMessage" class="modal-input" rows="4" style="width: 100%; padding: 0.65rem 0.75rem; border: 1px solid #ddd; border-radius: 6px; resize: vertical; font-size: 0.9rem;" placeholder="Congratulations! We are pleased to offer you the position. Please respond to this offer."></textarea>
         </div>
-        <p style="font-size: 0.85rem; color: #666; margin-bottom: 1rem;">This will notify the candidate about the job offer.</p>
-        <div style="display: flex; gap: 1rem;">
+        <p style="font-size: 0.83rem; color: #888; margin-bottom: 1rem;">This will notify the candidate about the job offer.</p>
+        <div style="display: flex; gap: 0.75rem;">
           <button type="button" class="btn btn-outline" onclick="hideScheduleForm()" style="flex: 1;">Cancel</button>
           <button type="button" class="btn btn-primary" onclick="submitSendOffer()" style="flex: 1;">Send Offer</button>
         </div>
@@ -698,25 +865,22 @@ foreach ($applications as $app) {
   </footer>
 
 <script>
-    // Open the application details modal
     function openApplicationModal(applicationId) {
       var modal = document.getElementById('applicationModal');
       var modalBody = document.getElementById('modalBody');
       
       modal.style.display = 'flex';
-      modalBody.innerHTML = '<div style="text-align: center; padding: 2rem;">Loading...</div>';
+      modalBody.style.display = 'block';
+      document.getElementById('scheduleForm').style.display = 'none';
+      document.getElementById('offerForm').style.display = 'none';
+      modalBody.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-light);">Loading...</div>';
 
-      // Use relative path to the API
-      var apiPath = 'get-application.php?application_id=' + applicationId;
-
-      // Fetch the application details
-      fetch(apiPath)
+      fetch('get-application.php?application_id=' + applicationId)
         .then(function(response) { return response.json(); })
         .then(function(data) {
           if (data.success) {
             var app = data.application;
             
-            // Build status display with mapping
             var displayStatus = app.status;
             var isHired = app.hire_status === 'accepted';
             if (isHired) displayStatus = 'Hired';
@@ -726,7 +890,6 @@ foreach ($applications as $app) {
             else if (app.status === 'Interview Scheduled') displayStatus = 'Schedule Interview';
             else if (app.status === 'Rejected') displayStatus = 'Rejected';
             
-            // Status update buttons - hide if hired
             var statusButtons = '';
             if (!isHired) {
               var statusOpts = ['Applied', 'Schedule Interview', 'Send Offer', 'Hired', 'Rejected'];
@@ -738,70 +901,66 @@ foreach ($applications as $app) {
               }
             }
             
-            // Message button - hide if hired
             var messageBtn = '';
             if (!isHired) {
-              messageBtn = '<div style="margin-top: 1.5rem;"><button class="btn btn-outline" style="width: 100%;" onclick="messageCandidate(' + app.application_id + ', \'' + app.first_name + ' ' + app.last_name + '\')">Message Candidate</button></div>';
+              messageBtn = '<div style="margin-top: 1.25rem;"><button class="btn btn-outline" style="width: 100%;" onclick="messageCandidate(' + app.application_id + ', \'' + app.first_name + ' ' + app.last_name + '\')">Message Candidate</button></div>';
             }
             
-            // Message history
             var msgHistory = '';
             if (app.message_history && app.message_history.length > 0) {
-              msgHistory = '<div style="margin-top: 2rem; padding: 1.5rem; background: #f9f9f9; border-radius: var(--radius);"><h3>Message History</h3>';
+              msgHistory = '<div style="margin-top: 1.75rem; padding: 1.25rem; background: #f9f9f9; border-radius: var(--radius);"><h3 style="margin: 0 0 1rem; font-size: 0.95rem;">Message History</h3>';
               for (var j = 0; j < app.message_history.length; j++) {
                 var msg = app.message_history[j];
                 var sender = msg.sender_type === 'employer' ? 'You' : 'Candidate';
-                msgHistory += '<div style="margin-bottom: 0.75rem; padding: 0.75rem; background: white; border-radius: 8px;"><div style="font-size: 0.8rem; color: #888;">' + sender + ' • ' + new Date(msg.timestamp).toLocaleDateString() + '</div><div>' + msg.message + '</div></div>';
+                msgHistory += '<div style="margin-bottom: 0.65rem; padding: 0.65rem; background: white; border-radius: 6px; border: 1px solid #eee;"><div style="font-size: 0.78rem; color: #999; margin-bottom: 0.3rem;">' + sender + ' · ' + new Date(msg.timestamp).toLocaleDateString() + '</div><div style="font-size: 0.9rem;">' + msg.message + '</div></div>';
               }
               msgHistory += '</div>';
             }
             
             var html = '<div class="candidate-info">' +
               '<h3>' + app.first_name + ' ' + app.last_name + '</h3>' +
-              '<div class="info-row"><span class="info-label">Position:</span><span class="info-value">' + app.job_title + '</span></div>' +
-              '<div class="info-row"><span class="info-label">Email:</span><span class="info-value"><a href="mailto:' + app.email + '">' + app.email + '</a></span></div>' +
-              '<div class="info-row"><span class="info-label">Location:</span><span class="info-value">' + (app.address || 'N/A') + '</span></div>' +
-              '<div class="info-row"><span class="info-label">Applied:</span><span class="info-value">' + new Date(app.application_date).toLocaleDateString() + '</span></div>' +
-              '<div class="info-row"><span class="info-label">Status:</span><span class="info-value" style="font-weight: bold;">' + displayStatus + '</span></div>' +
+              '<div class="info-row"><span class="info-label">Position</span><span class="info-value">' + app.job_title + '</span></div>' +
+              '<div class="info-row"><span class="info-label">Email</span><span class="info-value"><a href="mailto:' + app.email + '" style="color: var(--primary-dark);">' + app.email + '</a></span></div>' +
+              '<div class="info-row"><span class="info-label">Location</span><span class="info-value">' + (app.address || 'N/A') + '</span></div>' +
+              '<div class="info-row"><span class="info-label">Applied</span><span class="info-value">' + new Date(app.application_date).toLocaleDateString() + '</span></div>' +
+              '<div class="info-row"><span class="info-label">Status</span><span class="info-value" style="font-weight: 600;">' + displayStatus + '</span></div>' +
               '</div>' +
               (statusButtons ? '<div class="status-update-section"><h3>Update Status</h3><div class="status-buttons">' + statusButtons + '</div></div>' : '') +
               messageBtn +
               msgHistory +
-              '<div style="margin-top: 2rem; padding: 1.5rem; background: #f9f9f9; border-radius: var(--radius);"><h3>Job Description</h3><p style="color: #888;">' + (app.job_description || 'No description') + '</p></div>';
+              '<div style="margin-top: 1.75rem; padding: 1.25rem; background: #f9f9f9; border-radius: var(--radius);"><h3 style="margin: 0 0 0.75rem; font-size: 0.95rem;">Job Description</h3><p style="color: #777; font-size: 0.88rem; margin: 0; line-height: 1.6;">' + (app.job_description || 'No description available.') + '</p></div>';
             
             modalBody.innerHTML = html;
           } else {
-            modalBody.innerHTML = '<div style="color: red; text-align: center;">Error: ' + data.message + '</div>';
+            modalBody.innerHTML = '<div style="color: #dc3545; text-align: center; padding: 2rem;">Error: ' + data.message + '</div>';
           }
         })
         .catch(function(error) {
           console.error(error);
-          modalBody.innerHTML = '<div style="color: red; text-align: center;">Error loading details</div>';
+          modalBody.innerHTML = '<div style="color: #dc3545; text-align: center; padding: 2rem;">Error loading details. Please try again.</div>';
         });
     }
 
     function closeApplicationModal() {
       document.getElementById('applicationModal').style.display = 'none';
+      document.getElementById('scheduleForm').style.display = 'none';
+      document.getElementById('offerForm').style.display = 'none';
+      document.getElementById('modalBody').style.display = 'block';
     }
 
     function updateApplicationStatus(applicationId, newStatus) {
-      // If Schedule Interview, show inline form
       if (newStatus === 'Schedule Interview') {
         window.pendingStatusUpdate = { applicationId: applicationId, newStatus: newStatus };
         closeApplicationModal();
         showScheduleForm(applicationId);
         return;
       }
-      
-      // If Send Offer, use existing chat-sms function via fetch
       if (newStatus === 'Send Offer') {
         window.pendingStatusUpdate = { applicationId: applicationId, newStatus: newStatus };
         closeApplicationModal();
         showOfferForm(applicationId);
         return;
       }
-      
-      // For other statuses (Applied, Hired, Rejected), show confirmation modal
       document.getElementById('newStatusDisplay').textContent = newStatus;
       document.getElementById('statusModal').style.display = 'flex';
       window.pendingStatusUpdate = { applicationId: applicationId, newStatus: newStatus };
@@ -809,30 +968,20 @@ foreach ($applications as $app) {
 
     function showScheduleForm(applicationId) {
       var modal = document.getElementById('applicationModal');
-      var modalBody = document.getElementById('modalBody');
-      var scheduleForm = document.getElementById('scheduleForm');
-      var offerForm = document.getElementById('offerForm');
-      
       modal.style.display = 'flex';
-      scheduleForm.style.display = 'block';
-      offerForm.style.display = 'none';
-      modalBody.style.display = 'none';
-      
-      // Set minimum date to today
+      document.getElementById('scheduleForm').style.display = 'block';
+      document.getElementById('offerForm').style.display = 'none';
+      document.getElementById('modalBody').style.display = 'none';
       var today = new Date().toISOString().split('T')[0];
       document.getElementById('scheduleDate').min = today;
     }
 
     function showOfferForm(applicationId) {
       var modal = document.getElementById('applicationModal');
-      var modalBody = document.getElementById('modalBody');
-      var scheduleForm = document.getElementById('scheduleForm');
-      var offerForm = document.getElementById('offerForm');
-      
       modal.style.display = 'flex';
-      offerForm.style.display = 'block';
-      scheduleForm.style.display = 'none';
-      modalBody.style.display = 'none';
+      document.getElementById('offerForm').style.display = 'block';
+      document.getElementById('scheduleForm').style.display = 'none';
+      document.getElementById('modalBody').style.display = 'none';
     }
 
     function hideScheduleForm() {
@@ -846,49 +995,37 @@ foreach ($applications as $app) {
     function updateStatusViaAction(action, applicationId, formData, successMessage) {
       var data = { action: action, application_id: applicationId };
       if (formData) {
-        for (var key in formData) {
-          data[key] = formData[key];
-        }
+        for (var key in formData) { data[key] = formData[key]; }
       }
-      
       var formDataObj = new FormData();
-      for (var key in data) {
-        formDataObj.append(key, data[key]);
-      }
+      for (var key in data) { formDataObj.append(key, data[key]); }
       
-      fetch('update-application.php', {
-        method: 'POST',
-        body: formDataObj
-      })
-      .then(function(response) { return response.json(); })
-      .then(function(result) {
-        if (result.success) {
-          showNotificationModal('Success', successMessage || 'Action completed');
-          hideScheduleForm();
-          setTimeout(function() { location.reload(); }, 1500);
-        } else {
-          showNotificationModal('Error', result.message || 'Failed');
-        }
-      })
-      .catch(function(error) {
-        showNotificationModal('Error', 'Failed to process request');
-      });
+      fetch('update-application.php', { method: 'POST', body: formDataObj })
+        .then(function(response) { return response.json(); })
+        .then(function(result) {
+          if (result.success) {
+            showNotificationModal('Success', successMessage || 'Action completed');
+            hideScheduleForm();
+            setTimeout(function() { location.reload(); }, 1500);
+          } else {
+            showNotificationModal('Error', result.message || 'Failed');
+          }
+        })
+        .catch(function() {
+          showNotificationModal('Error', 'Failed to process request');
+        });
     }
 
     function submitScheduleInterview() {
       var data = window.pendingStatusUpdate;
       if (!data) return;
-      
       var scheduleDate = document.getElementById('scheduleDate').value;
       var scheduleTime = document.getElementById('scheduleTime').value;
       var scheduleMessage = document.getElementById('scheduleMessage').value;
-      
       if (!scheduleDate || !scheduleTime) {
         showNotificationModal('Error', 'Please select date and time');
         return;
       }
-      
-      // Use update-application.php to handle scheduling
       updateStatusViaAction('schedule_interview_action', data.applicationId, {
         scheduled_date: scheduleDate,
         scheduled_time: scheduleTime,
@@ -899,49 +1036,33 @@ foreach ($applications as $app) {
     function submitSendOffer() {
       var data = window.pendingStatusUpdate;
       if (!data) return;
-      
       var offerMessage = document.getElementById('offerMessage').value;
-      
-      // Use update-application.php to handle offer
       updateStatusViaAction('offer_hire_action', data.applicationId, {
         hire_message: offerMessage
       }, 'Job offer sent successfully');
     }
 
-    function closeApplicationModal() {
-      document.getElementById('applicationModal').style.display = 'none';
-      document.getElementById('scheduleForm').style.display = 'none';
-      document.getElementById('offerForm').style.display = 'none';
-      document.getElementById('modalBody').style.display = 'block';
-    }
-
     function confirmStatusUpdate() {
       var data = window.pendingStatusUpdate;
       if (!data) return;
-      
       closeStatusModal();
-      
       var formData = new FormData();
       formData.append('application_id', data.applicationId);
       formData.append('status', data.newStatus);
-
-      fetch('update-application.php', {
-        method: 'POST',
-        body: formData
-      })
-      .then(function(response) { return response.json(); })
-      .then(function(result) {
-        if (result.success) {
-          showNotificationModal('Success', 'Application status updated to "' + data.newStatus + '"');
-          closeApplicationModal();
-          setTimeout(function() { location.reload(); }, 1500);
-        } else {
-          showNotificationModal('Error', result.message || 'Failed to update status');
-        }
-      })
-      .catch(function(error) {
-        showNotificationModal('Error', 'Failed to update status');
-      });
+      fetch('update-application.php', { method: 'POST', body: formData })
+        .then(function(response) { return response.json(); })
+        .then(function(result) {
+          if (result.success) {
+            showNotificationModal('Success', 'Application status updated to "' + data.newStatus + '"');
+            closeApplicationModal();
+            setTimeout(function() { location.reload(); }, 1500);
+          } else {
+            showNotificationModal('Error', result.message || 'Failed to update status');
+          }
+        })
+        .catch(function() {
+          showNotificationModal('Error', 'Failed to update status');
+        });
     }
 
     function closeStatusModal() {
@@ -966,14 +1087,6 @@ foreach ($applications as $app) {
       window.location.href = '../chat-sms/?application_id=' + applicationId;
     }
 
-    // Close modal when clicking overlay
-    document.addEventListener('click', function(e) {
-      if (e.target.classList.contains('modal-overlay')) {
-        e.target.parentElement.style.display = 'none';
-      }
-    });
-
-    // Close modal on Escape key
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
         closeApplicationModal();
@@ -982,8 +1095,17 @@ foreach ($applications as $app) {
       }
     });
 
-    // Set up confirm button
     document.getElementById('confirmStatusBtn').addEventListener('click', confirmStatusUpdate);
+
+    /* Navbar scroll detection */
+    const navbar = document.querySelector('.navbar');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 20) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
+      }
+    });
   </script>
 
 </body>

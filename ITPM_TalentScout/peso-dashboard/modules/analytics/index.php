@@ -2,64 +2,51 @@
 session_start();
 require_once __DIR__ . '/../../auth.php';
 peso_require_admin('../../login.php');
-require_once('../../../database/db.php');
+require_once __DIR__ . '/../../../database/db.php';
 
-// Get database connection
+// Get PDO connection
+try {
+    $pdo = new PDO(
+        'mysql:host=localhost;dbname=itpm_talentscoutai;charset=utf8mb4',
+        'root',
+        '',
+        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]
+    );
+} catch (PDOException $e) {
+    die("DB Error: " . $e->getMessage());
+}
+
+function db_val($pdo, $sql, $params = [], $default = 0) {
+    try {
+        $s = $pdo->prepare($sql);
+        $s->execute($params);
+        return $s->fetchColumn() ?? $default;
+    } catch (Exception $e) { return $default; }
+}
+function db_all($pdo, $sql, $params = []) {
+    try {
+        $s = $pdo->prepare($sql);
+        $s->execute($params);
+        return $s->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) { return []; }
+}
+
+// Get database connection for backwards compat
 $conn = getConnection();
 
 // Fetch statistics
 $stats = [
-  'total_applicants' => 0,
-  'active_jobs' => 0,
-  'employers' => 0,
-  'hires' => 0
+  'total_applicants' => db_val($pdo, "SELECT COUNT(*) FROM employee"),
+  'active_jobs' => db_val($pdo, "SELECT COUNT(*) FROM job_post WHERE application_deadline >= CURDATE()"),
+  'employers' => db_val($pdo, "SELECT COUNT(*) FROM employer WHERE status = 'active'"),
+  'hires' => db_val($pdo, "SELECT COUNT(*) FROM application WHERE status = 'Hired' OR status = 'Accepted'")
 ];
 
-// Total applicants
-$stmt = $conn->prepare("SELECT COUNT(*) as count FROM employee");
-$stmt->execute();
-$result = $stmt->get_result();
-$row = $result->fetch_assoc();
-$stats['total_applicants'] = $row['count'];
-$stmt->close();
-
-// Active jobs
-$stmt = $conn->prepare("SELECT COUNT(*) as count FROM job_post WHERE application_deadline >= CURDATE()");
-$stmt->execute();
-$result = $stmt->get_result();
-$row = $result->fetch_assoc();
-$stats['active_jobs'] = $row['count'];
-$stmt->close();
-
-// Employers
-$stmt = $conn->prepare("SELECT COUNT(*) as count FROM employer WHERE status = 'active'");
-$stmt->execute();
-$result = $stmt->get_result();
-$row = $result->fetch_assoc();
-$stats['employers'] = $row['count'];
-$stmt->close();
-
-// Successful hires
-$stmt = $conn->prepare("SELECT COUNT(*) as count FROM application WHERE status = 'Hired' OR status = 'Accepted'");
-$stmt->execute();
-$result = $stmt->get_result();
-$row = $result->fetch_assoc();
-$stats['hires'] = $row['count'];
-$stmt->close();
-
 // Fetch top hiring categories (by job posts)
-$top_categories = [];
-$stmt = $conn->prepare("SELECT title, COUNT(*) as count FROM job_post GROUP BY title ORDER BY count DESC LIMIT 5");
-$stmt->execute();
-$result = $stmt->get_result();
-while ($row = $result->fetch_assoc()) {
-  $top_categories[] = $row;
-}
-$stmt->close();
+$top_categories = db_all($pdo, "SELECT title, COUNT(*) as count FROM job_post GROUP BY title ORDER BY count DESC LIMIT 5");
 
 // Fetch recent applications
-$recent_applications = [];
-$stmt = $conn->prepare("SELECT 
+$recent_applications = db_all($pdo, "SELECT 
   e.first_name as firstName, 
   e.last_name as lastName,
   e.address as location,
@@ -71,22 +58,13 @@ JOIN employee e ON a.employee_id = e.employee_id
 JOIN job_post jp ON a.job_post_id = jp.job_post_id
 ORDER BY a.application_date DESC
 LIMIT 15");
-$stmt->execute();
-$result = $stmt->get_result();
-while ($row = $result->fetch_assoc()) {
-  $recent_applications[] = $row;
-}
-$stmt->close();
 
 // Fetch barangay distribution
-$barangay_data = [];
-$stmt = $conn->prepare("SELECT address, COUNT(*) as count FROM employee GROUP BY address ORDER BY count DESC LIMIT 5");
-$stmt->execute();
-$result = $stmt->get_result();
-while ($row = $result->fetch_assoc()) {
-  $barangay_data[] = $row;
-}
-$stmt->close();
+$barangay_data = db_all($pdo, "SELECT address, COUNT(*) as count FROM employee GROUP BY address ORDER BY count DESC LIMIT 5");
+
+// Get sidebar data
+$pending_approvals = 0;
+$unverified_users = 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -94,178 +72,184 @@ $stmt->close();
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Analytics & Reports | PESO Admin - TalentScout AI</title>
-  <link rel="stylesheet" href="../../../styles/global.css">
+  <title>Analytics & Reports – TalentScout AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:       #3d6b50;
+      --green-dark:  #2d5040;
+      --green-deeper:#1e3a2e;
+      --green-light: #5a8a68;
+      --mint:        #e8f5ee;
+      --mint-mid:    #c8e6d4;
+      --mint-deep:   #a8d4b8;
+      --gold:        #c8a46a;
+      --gold-light:  #fef3d0;
+      --gold-text:   #8a6030;
+      --blue:        #3a7cbf;
+      --blue-light:  #dce8f8;
+      --blue-text:   #185fa5;
+      --teal:        #1a8a6e;
+      --teal-light:  #d4f0e6;
+      --red:         #c0392b;
+      --red-light:   #fde8e8;
+      --bg:          #f0faf4;
+      --bg-card:     #ffffff;
+      --border:      #d4eddf;
+      --text-main:   #1a2e22;
+      --text-mid:    #3d5445;
+      --text-soft:   #5a8a68;
+      --text-muted:  #7a9a82;
+      --shadow-sm:   0 2px 8px rgba(45,80,64,0.07);
+      --shadow-md:   0 6px 24px rgba(45,80,64,0.10);
+      --shadow-lg:   0 12px 40px rgba(45,80,64,0.14);
+      --radius-sm:   8px;
+      --radius-md:   12px;
+      --radius-lg:   16px;
+      --radius-xl:   20px;
+    }
+
+    html { scroll-behavior: smooth; }
     body {
-      background: #EEFFF9;
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0;
+      width: 240px; background: var(--green-deeper);
+      display: flex; flex-direction: column;
+      z-index: 200; transition: transform 0.35s cubic-bezier(.22,1,.36,1);
     }
 
-    /* Admin Layout */
-    .admin-wrapper {
-      display: flex;
-      min-height: calc(100vh - var(--nav-height));
+    .sidebar-logo {
+      padding: 22px 20px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex; align-items: center; gap: 10px;
     }
 
-    /* Sidebar */
-    .admin-sidebar {
-      width: 240px;
-      background: var(--primary-darker);
-      min-height: 100%;
-      padding: 1.5rem 0;
+    .logo-mark {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--green-light), var(--green));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: #fff; letter-spacing: 0.05em;
       flex-shrink: 0;
-      position: sticky;
-      top: var(--nav-height);
-      height: calc(100vh - var(--nav-height));
-      overflow-y: auto;
     }
 
-    .sidebar-menu-label {
-      font-size: 0.72rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
-      color: rgba(255, 255, 255, 0.45);
-      padding: 0 1.25rem;
-      margin-bottom: 0.5rem;
-      margin-top: 1.25rem;
+    .logo-text {
+      font-size: 14px; font-weight: 700; color: #fff; line-height: 1.2;
+    }
+    .logo-text span { color: var(--mint-deep); }
+    .logo-sub { font-size: 9px; color: rgba(255,255,255,0.4); letter-spacing: 0.06em; }
+
+    .sidebar-nav { flex: 1; padding: 16px 12px; overflow-y: auto; }
+
+    .nav-section-label {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.15em;
+      text-transform: uppercase; color: rgba(255,255,255,0.3);
+      padding: 14px 10px 6px;
     }
 
-    .sidebar-menu-label:first-child {
-      margin-top: 0;
-    }
-
-    .sidebar-link {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.7rem 1.25rem;
-      font-size: 0.88rem;
-      font-weight: 500;
-      color: rgba(255, 255, 255, 0.72);
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: var(--radius-md);
+      font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.65);
+      cursor: pointer; transition: all 0.2s; margin-bottom: 2px;
       text-decoration: none;
-      transition: all 0.2s;
     }
 
-    .sidebar-link:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: white;
+    .nav-item i { width: 18px; text-align: center; font-size: 14px; }
+
+    .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .nav-item.active { background: rgba(168,212,184,0.18); color: #fff; font-weight: 600; }
+    .nav-item.active i { color: var(--mint-deep); }
+
+    .nav-badge {
+      margin-left: auto; background: #c0392b;
+      color: #fff; font-size: 9px; font-weight: 700;
+      padding: 2px 7px; border-radius: 20px; min-width: 18px; text-align: center;
     }
 
-    .sidebar-link.active {
-      background: rgba(152, 251, 203, 0.15);
-      color: #98FBCB;
-      font-weight: 600;
-      border-right: 3px solid #98FBCB;
+    .nav-badge.gold { background: var(--gold); color: var(--green-deeper); }
+
+    .sidebar-footer {
+      padding: 14px 12px;
+      border-top: 1px solid rgba(255,255,255,0.08);
     }
 
-    .sidebar-link .icon {
-      font-size: 1rem;
+    .sidebar-user {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.06);
     }
 
-    .sidebar-divider {
-      border: none;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      margin: 0.75rem 1.25rem;
+    .sidebar-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--green-light), var(--teal));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0;
     }
 
-    /* Main Content */
-    .admin-content {
-      flex: 1;
-      padding: 2rem;
-      overflow-x: hidden;
+    .sidebar-user-info { flex: 1; overflow: hidden; }
+    .sidebar-user-name { font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sidebar-user-role { font-size: 10px; color: rgba(255,255,255,0.4); }
+
+    /* ── MAIN CONTENT ── */
+    .content {
+      margin-left: 240px;
+      min-height: 100vh;
+      padding: 24px;
+      max-width: 1400px;
     }
 
-    /* Admin page header */
-    .admin-page-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 1.75rem;
+    /* ── PAGE HEADER ── */
+    .page-header {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; flex-wrap: wrap; gap: 12px;
+      margin-bottom: 22px;
     }
 
-    .admin-page-title {
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: var(--text-dark);
-    }
+    .page-header h1 { font-size: 20px; font-weight: 700; color: var(--text-main); }
+    .page-header p  { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
 
-    .admin-page-sub {
-      font-size: 0.88rem;
-      color: var(--text-light);
-      margin-top: 0.2rem;
-    }
-
-    /* Stats Grid */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1.25rem;
-      margin-bottom: 1.75rem;
-    }
-
-    .kpi-card {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.5rem;
-      box-shadow: var(--shadow-sm);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .kpi-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: var(--primary-dark);
-    }
-
-    .kpi-value {
-      font-size: 2.2rem;
-      font-weight: 800;
-      color: var(--text-dark);
-      line-height: 1;
-      margin-bottom: 0.3rem;
-    }
-
-    .kpi-label {
-      font-size: 0.85rem;
-      color: var(--text-light);
-    }
-
-    /* Content Cards */
+    /* Card styles */
     .card {
-      background: white;
+      background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.5rem;
-      margin-bottom: 1.75rem;
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow-sm);
     }
 
     .card-title {
-      font-size: 1rem;
+      font-size: 14px;
       font-weight: 700;
-      color: var(--text-dark);
-      margin-bottom: 1.25rem;
+      color: var(--text-main);
+      margin-bottom: 16px;
     }
 
-    /* Tables */
+    /* Table styles */
     .table-wrapper {
       overflow-x: auto;
-      max-height: 280px;
+      max-height: 380px;
       overflow-y: auto;
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: var(--radius-md);
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.87rem;
+      font-size: 13px;
     }
 
     thead {
@@ -276,15 +260,16 @@ $stmt->close();
     }
 
     th {
-      padding: 0.9rem 1rem;
+      padding: 12px;
       text-align: left;
       font-weight: 700;
-      color: var(--text-dark);
+      color: var(--text-mid);
       border-bottom: 1px solid var(--border);
+      font-size: 12px;
     }
 
     td {
-      padding: 0.9rem 1rem;
+      padding: 12px;
       border-bottom: 1px solid var(--border);
     }
 
@@ -294,14 +279,14 @@ $stmt->close();
 
     /* Bar chart */
     .brgy-bar {
-      margin-bottom: 1rem;
+      margin-bottom: 16px;
     }
 
     .brgy-bar-header {
       display: flex;
       justify-content: space-between;
-      font-size: 0.83rem;
-      margin-bottom: 0.3rem;
+      font-size: 12px;
+      margin-bottom: 6px;
     }
 
     .brgy-bar-name {
@@ -311,48 +296,97 @@ $stmt->close();
 
     .brgy-bar-count {
       font-weight: 700;
-      color: var(--primary-darker);
+      color: var(--green);
     }
 
     .brgy-fill {
       height: 8px;
-      background: linear-gradient(90deg, var(--primary-dark), var(--primary-mid));
+      background: linear-gradient(90deg, var(--green), var(--teal));
       border-radius: 100px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge-gray { background: #e0e0e0; color: #333; }
+    .badge-blue { background: var(--blue-light); color: var(--blue-text); }
+    .badge-yellow { background: #fff3cd; color: #856404; }
+    .badge-green { background: var(--teal-light); color: var(--teal); }
+    .badge-red { background: var(--red-light); color: var(--red); }
+
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .content { margin-left: 0; }
+      .table-wrapper { max-height: 300px; }
     }
   </style>
 </head>
 
 <body>
 
-  <!-- NAVBAR -->
-  <nav class="navbar">
-    <a href="../../index.php" class="nav-logo">
-      <div class="nav-logo-icon">TS</div>
-      <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
+<!-- ════ SIDEBAR ════ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">TS</div>
+    <div>
+      <div class="logo-text">Talent<span>Scout</span> AI</div>
+      <div class="logo-sub">PESO NASUGBU, BATANGAS</div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Overview</div>
+    <a href="../../index.php" class="nav-item">
+      <i class="fa-solid fa-chart-pie"></i> Dashboard
     </a>
-    <ul class="nav-links">
-      <li><a href="../../index.php">Dashboard</a></li>
-      <li><a href="./" class="active">Analytics</a></li>
-      <li><a href="../employer-management/">Employers</a></li>
-      <li><a href="../employee-management/">Employees</a></li>
-      <li><a href="../application-tracking/">Applications</a></li>
-      <li><a href="../../logout.php">Logout</a></li>
-    </ul>
+
+    <div class="nav-section-label">Management</div>
+    <a href="../employer-management/" class="nav-item">
+      <i class="fa-solid fa-building"></i> Employers
+    </a>
+    <a href="../employee-management/" class="nav-item">
+      <i class="fa-solid fa-users"></i> Job Seekers
+      <?php if ($unverified_users > 0): ?>
+        <span class="nav-badge gold"><?= $unverified_users ?></span>
+      <?php endif; ?>
+    </a>
+    <a href="../application-tracking/" class="nav-item">
+      <i class="fa-solid fa-clipboard-list"></i> Applications
+    </a>
+
+    <div class="nav-section-label">Insights</div>
+    <a href="./" class="nav-item active">
+      <i class="fa-solid fa-chart-line"></i> Analytics
+    </a>
+
   </nav>
 
-  <!-- ADMIN WRAPPER -->
-  <div class="admin-wrapper" style="display:block;">
-
-    <!-- MAIN CONTENT -->
-    <main class="admin-content" style="padding:2rem;">
-
-      <!-- PAGE HEADER -->
-      <div class="admin-page-header">
-        <div>
-          <div class="admin-page-title">Analytics & Reports</div>
-          <div class="admin-page-sub">Platform insights and statistics • Updated just now</div>
-        </div>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">PA</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">PESO Admin</div>
+        <div class="sidebar-user-role">Administrator</div>
       </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ════ MAIN CONTENT ════ -->
+<main class="content">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1>Analytics & Reports</h1>
+      <p>Platform insights and statistics</p>
+    </div>
+  </div>
 
       <!-- CATEGORIES CARD -->
       <div class="card">
@@ -440,9 +474,7 @@ $stmt->close();
         <?php endforeach; ?>
       </div>
 
-    </main>
-
-  </div>
+</main>
 
 </body>
 

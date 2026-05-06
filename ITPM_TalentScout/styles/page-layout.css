@@ -1,8 +1,9 @@
 /* ===== HERO SECTION ===== */
 .hero {
   padding: 4rem 2.5rem;
-  background: linear-gradient(135deg, #eefff9 0%, white 100%);
+  background: linear-gradient(135deg, var(--mint) 0%, var(--cream) 100%);
   border-bottom: 1px solid var(--border);
+  margin-top: var(--nav-height);
 }
 
 .hero-inner {
@@ -353,7 +354,7 @@
   flex: 1;
   padding: 2rem;
   overflow-x: hidden;
-  background: #eefff9;
+  background: var(--bg-lighter);
 }
 
 .admin-page-header {
@@ -958,7 +959,13 @@
   animation: slideInUp 0.4s ease-out;
 }
 
+.tab-content {
+  display: none;
+  padding-top: 2rem;
+}
+
 .tab-content.active {
+  display: block;
   animation: fadeIn 0.3s ease-out;
 }
 

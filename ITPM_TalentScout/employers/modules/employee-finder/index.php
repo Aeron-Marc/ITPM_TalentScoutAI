@@ -393,11 +393,138 @@ $stmt->close();
       box-shadow: 0 2px 8px rgba(30, 158, 134, 0.08);
     }
 
+    /* ══ NAVBAR ══ */
+    .navbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2.5rem; height: 66px;
+      background: var(--sage);
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+      transition: all 0.4s;
+      animation: navSlide 0.7s var(--ease) both;
+    }
+
+    .navbar.scrolled {
+      background: var(--sage);
+      border-bottom-color: rgba(0,0,0,0.15);
+    }
+
+    @keyframes navSlide {
+      from { transform: translateY(-100%); opacity: 0; }
+      to   { transform: translateY(0);     opacity: 1; }
+    }
+
+    .nav-logo {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-family: 'Lora', serif; font-weight: 700; font-size: 1.12rem;
+      color: #fff;
+      transition: color 0.4s;
+    }
+
+    .navbar.scrolled .nav-logo { color: var(--charcoal); }
+
+    .nav-logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--sage), var(--sage-dark));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.7rem; font-weight: 700; color: #fff; letter-spacing: 0.05em;
+      box-shadow: 0 4px 12px rgba(90,138,104,0.35);
+    }
+
+    .nav-logo-text { display: inline; }
+    .nav-logo-text span { color: var(--mint-deep); transition: color 0.4s; }
+    .navbar.scrolled .nav-logo-text span { color: var(--sage); }
+
+    .nav-links { display: flex; list-style: none; gap: 0.2rem; margin: 0; padding: 0; }
+
+    .nav-links a {
+      padding: 0.2rem 0.75rem;
+      font-size: 0.84rem; font-weight: 500; color: rgba(255,255,255,0.8);
+      transition: color 0.2s, border-bottom 0.2s;
+      position: relative;
+      padding-bottom: 0.4rem;
+    }
+
+    .navbar.scrolled .nav-links a { color: rgba(255,255,255,0.8); }
+
+    .nav-links a:hover {
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .nav-links a.active {
+      color: #fff;
+      font-weight: 600;
+      border-bottom: 2.5px solid #fff;
+    }
+
+    .navbar.scrolled .nav-links a:hover {
+      color: #fff;
+    }
+
+    .navbar.scrolled .nav-links a.active {
+      color: #fff;
+      border-bottom-color: #fff;
+    }
+
+    .nav-actions { display: flex; align-items: center; gap: 0.65rem; }
+
+    .nav-user { font-size: 0.82rem; color: rgba(255,255,255,0.75); transition: color 0.4s; }
+    .navbar.scrolled .nav-user { color: var(--text-soft); }
+
+    .navbar .btn {
+      padding: 0.42rem 1.1rem; border-radius: var(--radius-pill);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.83rem; font-weight: 500; 
+      cursor: pointer; transition: all 0.2s; text-decoration: none;
+      display: inline-block;
+    }
+
+    .navbar .btn-outline {
+      border: 1.5px solid rgba(255,255,255,0.4); color: #fff;
+      background: transparent;
+    }
+
+    .navbar .btn-outline:hover {
+      background: rgba(255,255,255,0.15);
+      border-color: #fff;
+    }
+
+    .navbar.scrolled .btn-outline {
+      border-color: rgba(90,138,104,0.3);
+      color: var(--text-mid);
+    }
+
+    .navbar.scrolled .btn-outline:hover {
+      background: var(--mint);
+      border-color: var(--sage);
+      color: var(--sage-dark);
+    }
+
+    .navbar .btn-primary {
+      padding: 0.42rem 1.3rem;
+      background: linear-gradient(135deg, var(--mint-deep), var(--mint));
+      color: var(--charcoal); 
+      font-weight: 700; border: none;
+      box-shadow: 0 4px 14px rgba(90,138,104,0.32);
+    }
+
+    .navbar .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(90,138,104,0.4);
+    }
+
+    /* ══ PAGE WRAPPER ══ */
+    .page-wrapper { flex: 1 0 auto; padding-top: 66px; }
+
     /* Secondary Navigation / Tabs */
     .sub-navbar {
       background: white;
       border-bottom: 1px solid var(--border);
       padding: 0 2.5rem;
+      margin-top: 66px;
     }
     .sub-navbar-inner {
       max-width: 1200px;
