@@ -60,7 +60,7 @@ $is_new_conversation = false;
 // If employee_id is provided but not in conversations, it's a new conversation
 if ($selected_employee_id > 0 && count($conversations) > 0) {
   foreach ($conversations as $conv) {
-    if ($conv['employee_id'] === $selected_employee_id) {
+    if ($conv['employee_id'] == $selected_employee_id) {
       $selected_employee_name = $conv['display_name'];
       break;
     }
@@ -96,7 +96,7 @@ if ($selected_employee_id > 0) {
   LEFT JOIN employee e ON m.sender_id = e.employee_id
   LEFT JOIN application a ON m.application_id = a.application_id
   LEFT JOIN job_post j ON a.job_post_id = j.job_post_id
-  WHERE (m.sender_id = ? AND m.receiver_id = ? AND m.sender_type = 'employer') 
+  WHERE (m.sender_id = ? AND m.receiver_id = ? AND m.sender_type = 'employer')
   OR (m.sender_id = ? AND m.receiver_id = ? AND m.sender_type = 'employee')
   ORDER BY m.timestamp ASC");
   $stmt->bind_param("iiii", $employer_id, $selected_employee_id, $selected_employee_id, $employer_id);
@@ -121,7 +121,7 @@ if ($selected_employee_id > 0) {
   $stmt->execute();
   $result = $stmt->get_result();
   while ($row = $result->fetch_assoc()) {
-$applications_with_candidate[] = $row;
+    $applications_with_candidate[] = $row;
   }
   $stmt->close();
 }
@@ -186,7 +186,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $stmt->execute();
       $stmt->close();
       
-      $msg = "❌ Application Status Update: " . ($reject_message ?: "Thank you for your interest. We have decided to move forward with other candidates.");
+      $msg = "❌ Application Status Update: " . ($reject_message ? $reject_message : "Thank you for your interest. We have decided to move forward with other candidates.");
       $stmt = $conn->prepare("INSERT INTO message (sender_id, sender_type, receiver_id, receiver_type, message, application_id, timestamp) VALUES (?, 'employer', ?, 'employee', ?, ?, NOW())");
       $stmt->bind_param("iisi", $employer_id, $selected_employee_id, $msg, $application_id);
       $stmt->execute();
@@ -210,9 +210,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       header('Location: ' . $_SERVER['REQUEST_URI']);
       exit;
     }
-  }
-}
- 
+   }
+}   
+   
 // Fetch current interview status for selected application
 $current_interview = null;
 $application_hire_status = null;
@@ -245,9 +245,51 @@ if ($selected_application_id > 0) {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../../../styles/global.css">
-  <link rel="stylesheet" href="../../../styles/page-layout.css">
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --mint:        #e8f5ee;
+      --mint-mid:    #c8e6d4;
+      --mint-deep:   #a8d4b8;
+      --sage:        #5a8a68;
+      --sage-dark:   #3d6b50;
+      --sage-deeper: #2d5040;
+      --gold:        #c8a46a;
+      --gold-pale:   #f5ead8;
+      --gold-light:  #f0ddb8;
+      --cream:       #fdfaf5;
+      --cream-mid:   #f7f2ea;
+      --cream-warm:  #f0ead8;
+      --warm-tan:    #e8dfc8;
+      --charcoal:    #2c3028;
+      --text-mid:    #4a5244;
+      --text-soft:   #7a8270;
+      --text-pale:   #a8b0a0;
+      --white:       #ffffff;
+      --shadow-soft: 0 4px 24px rgba(60,80,50,0.08);
+      --shadow-med:  0 8px 40px rgba(60,80,50,0.12);
+      --shadow-lift: 0 20px 60px rgba(60,80,50,0.16);
+      --radius-xl:   28px;
+      --radius-lg:   18px;
+      --radius-md:   12px;
+      --radius-sm:   8px;
+      --radius-pill: 999px;
+      --ease:        cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--cream);
+      color: var(--charcoal);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
     /* ══ NAVBAR ══ */
     .navbar {
       position: fixed; top: 0; left: 0; right: 0; z-index: 200;
@@ -276,21 +318,19 @@ if ($selected_application_id > 0) {
       transition: color 0.4s;
     }
 
-    .navbar.scrolled .nav-logo { color: var(--charcoal); }
+    .navbar.scrolled .nav-logo { color: #fff; }
 
     .nav-logo-mark {
       width: 36px; height: 36px;
-      background: linear-gradient(135deg, var(--sage), var(--sage-dark));
+      background: rgba(255,255,255,0.25);
       border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
       font-family: 'Plus Jakarta Sans', sans-serif;
       font-size: 0.7rem; font-weight: 700; color: #fff; letter-spacing: 0.05em;
-      box-shadow: 0 4px 12px rgba(90,138,104,0.35);
     }
 
-    .nav-logo-text { display: inline; }
-    .nav-logo-text span { color: var(--mint-deep); transition: color 0.4s; }
-    .navbar.scrolled .nav-logo-text span { color: var(--sage); }
+    .nav-logo em { font-style: italic; color: rgba(255,255,255,0.8); transition: color 0.4s; }
+    .navbar.scrolled .nav-logo em { color: rgba(255,255,255,0.8); }
 
     .nav-links { display: flex; list-style: none; gap: 0.2rem; margin: 0; padding: 0; }
 
@@ -304,846 +344,588 @@ if ($selected_application_id > 0) {
 
     .navbar.scrolled .nav-links a { color: rgba(255,255,255,0.8); }
 
-    .nav-links a:hover {
-      color: #fff;
-      font-weight: 600;
-    }
+    .nav-links a:hover { color: #fff; font-weight: 600; }
 
-    .nav-links a.active {
-      color: #fff;
-      font-weight: 600;
-      border-bottom: 2.5px solid #fff;
-    }
+    .nav-links a.active { color: #fff; font-weight: 600; border-bottom: 2.5px solid #fff; }
 
-    .navbar.scrolled .nav-links a:hover {
-      color: #fff;
-    }
+    .navbar.scrolled .nav-links a:hover { color: #fff; }
+    .navbar.scrolled .nav-links a.active { color: #fff; border-bottom-color: #fff; }
 
-    .navbar.scrolled .nav-links a.active {
-      color: #fff;
-      border-bottom-color: #fff;
-    }
-
-    .nav-actions { display: flex; align-items: center; gap: 0.65rem; }
+    .nav-right { display: flex; align-items: center; gap: 0.65rem; }
 
     .nav-user { font-size: 0.82rem; color: rgba(255,255,255,0.75); transition: color 0.4s; }
-    .navbar.scrolled .nav-user { color: var(--text-soft); }
+    .navbar.scrolled .nav-user { color: rgba(255,255,255,0.75); }
 
-    .btn {
+    .btn-ghost {
       padding: 0.42rem 1.1rem; border-radius: var(--radius-pill);
+      border: 1.5px solid rgba(255,255,255,0.3); color: #fff;
       font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 0.83rem; font-weight: 500; border: none;
-      cursor: pointer; transition: all 0.2s; text-decoration: none;
-      display: inline-block;
+      font-size: 0.83rem; font-weight: 500; background: transparent;
+      cursor: pointer; transition: all 0.2s; display: inline-block;
     }
 
-    .btn-outline {
-      border: 1.5px solid rgba(255,255,255,0.4); color: #fff;
-      background: transparent;
+    .navbar.scrolled .btn-ghost { border-color: rgba(255,255,255,0.3); color: #fff; }
+    .btn-ghost:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    .navbar.scrolled .btn-ghost:hover { background: rgba(255,255,255,0.2); color: #fff; }
+
+    .btn-solid {
+      padding: 0.46rem 1.25rem; border-radius: var(--radius-pill);
+      background: rgba(255,255,255,0.2);
+      color: #fff; font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.83rem; font-weight: 700; border: 1.5px solid rgba(255,255,255,0.4);
+      cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem;
+      transition: all 0.25s var(--ease);
     }
 
-    .btn-outline:hover {
-      background: rgba(255,255,255,0.15);
-      border-color: #fff;
+    .btn-solid:hover { background: rgba(255,255,255,0.3); border-color: rgba(255,255,255,0.5); }
+
+    .hamburger {
+      display: none; flex-direction: column; gap: 5px;
+      cursor: pointer; padding: 6px; background: none; border: none;
     }
 
-    .navbar.scrolled .btn-outline {
-      border-color: rgba(90,138,104,0.3);
-      color: var(--text-mid);
+    .hamburger span {
+      display: block; width: 22px; height: 2px;
+      background: #fff; border-radius: 2px;
+      transition: all 0.3s var(--ease);
     }
 
-    .navbar.scrolled .btn-outline:hover {
-      background: var(--mint);
-      border-color: var(--sage);
-      color: var(--sage-dark);
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .mobile-nav {
+      position: fixed; top: 66px; left: 0; right: 0;
+      background: rgba(253,250,245,0.97);
+      backdrop-filter: blur(24px);
+      border-bottom: 1px solid rgba(90,138,104,0.1);
+      padding: 1.5rem 2rem; z-index: 190;
+      display: flex; flex-direction: column; gap: 0.3rem;
+      transform: translateY(-130%); opacity: 0;
+      transition: transform 0.4s var(--ease), opacity 0.3s;
     }
 
-    .btn-primary {
-      background: linear-gradient(135deg, var(--mint-deep), var(--mint));
-      color: var(--charcoal); font-weight: 700;
-      border: none;
-      box-shadow: 0 4px 14px rgba(90,138,104,0.32);
+    .mobile-nav.open { transform: translateY(0); opacity: 1; }
+
+    .mobile-nav a {
+      padding: 0.75rem 1rem; border-radius: var(--radius-md);
+      font-size: 0.95rem; font-weight: 500; color: var(--text-mid);
+      transition: background 0.2s, color 0.2s;
     }
 
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(90,138,104,0.4); }
+    .mobile-nav a:hover { background: var(--mint); color: var(--sage-dark); }
 
-    /* ===== STICKY FOOTER LAYOUT ===== */
-    html,
-    body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
+    .mobile-nav-actions {
+      display: flex; gap: 0.6rem; margin-top: 0.8rem;
+      padding-top: 1rem; border-top: 1px solid rgba(90,138,104,0.1);
     }
 
-    body {
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Main content area expands to fill available space */
-    .page-container,
-    main {
-      flex: 1 0 auto;
-    }
-
-    /* Footer stays at the bottom */
-    .footer {
-      flex-shrink: 0;
-    }
-
+    /* ══ PAGE CONTAINER ══ */
     .page-container {
-      max-width: 100%;
-      width: 100%;
+      max-width: 100%; width: 100%;
       margin: 0 auto;
       padding: 2.5rem;
-      display: grid;
-      grid-template-columns: 350px 1fr;
-      gap: 2rem;
-      min-height: calc(100vh - 120px);
-      height: 100%;
+      display: grid; grid-template-columns: 350px 1fr;
+      gap: 2rem; min-height: calc(100vh - 120px);
+      height: 100%; padding-top: calc(66px + 2.5rem);
     }
 
-    .page-header {
-      grid-column: 1 / -1;
-      margin-bottom: 1.5rem;
-    }
-
-    .page-header h1 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: var(--text-dark);
-      margin-bottom: 0.5rem;
-    }
-
-    .page-header p {
-      color: var(--text-light);
-      font-size: 0.95rem;
-    }
-
-    /* Sidebar */
+    /* ══ SIDEBAR ══ */
     .conversations-sidebar {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.5rem;
-      height: calc(100vh - 180px);
-      display: flex;
-      flex-direction: column;
-      box-shadow: var(--shadow-sm);
+      background: white; border: 1px solid rgba(90,138,104,0.13);
+      border-radius: var(--radius-lg); padding: 1.5rem;
+      height: calc(100vh - 180px); display: flex;
+      flex-direction: column; box-shadow: var(--shadow-soft);
     }
 
     .conversations-title {
-      font-weight: 700;
-      font-size: 1rem;
-      color: var(--text-dark);
-      margin-bottom: 1.25rem;
-      padding-bottom: 1rem;
-      border-bottom: 2px solid var(--border);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      flex-shrink: 0;
+      font-weight: 700; font-size: 1rem; color: var(--text-dark);
+      margin-bottom: 1.25rem; padding-bottom: 1rem;
+      border-bottom: 2px solid rgba(90,138,104,0.1);
+      text-transform: uppercase; letter-spacing: 1px; flex-shrink: 0;
     }
 
     .conversation-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      overflow-y: auto;
-      flex: 1;
-      padding-right: 0.5rem;
+      display: flex; flex-direction: column; gap: 0.5rem;
+      overflow-y: auto; flex: 1; padding-right: 0.5rem;
     }
 
-    .conversation-list::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .conversation-list::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 3px;
-    }
-
-    .conversation-list::-webkit-scrollbar-thumb {
-      background: #ccc;
-      border-radius: 3px;
-    }
-
-    .conversation-list::-webkit-scrollbar-thumb:hover {
-      background: #aaa;
-    }
+    .conversation-list::-webkit-scrollbar { width: 6px; }
+    .conversation-list::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
+    .conversation-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+    .conversation-list::-webkit-scrollbar-thumb:hover { background: #aaa; }
 
     .conversation-item {
-      padding: 1.25rem;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: all 0.25s ease;
-      border-left: 4px solid transparent;
-      background: transparent;
+      padding: 1.25rem; border-radius: var(--radius-sm);
+      cursor: pointer; transition: all 0.25s ease;
+      border-left: 4px solid transparent; background: transparent;
       flex-shrink: 0;
     }
 
-    .conversation-item:hover {
-      background: var(--bg-light);
-    }
-
+    .conversation-item:hover { background: var(--mint); }
     .conversation-item.active {
       background: linear-gradient(135deg, #e8fff5 0%, #f4fffb 100%);
-      border-left-color: var(--primary-dark);
+      border-left-color: var(--sage-dark);
     }
 
     .conversation-name {
-      font-weight: 600;
-      font-size: 1rem;
-      color: var(--text-dark);
-      margin-bottom: 0.35rem;
+      font-weight: 600; font-size: 1rem;
+      color: var(--charcoal); margin-bottom: 0.35rem;
     }
 
     .conversation-preview {
-      color: var(--text-light);
-      font-size: 0.9rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      color: var(--text-light); font-size: 0.9rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       margin-bottom: 0.4rem;
     }
 
-    .conversation-time {
-      color: var(--text-muted);
-      font-size: 0.85rem;
-    }
+    .conversation-time { color: var(--text-pale); font-size: 0.85rem; }
 
-    /* Chat Window */
+    /* ══ CHAT WINDOW ══ */
     .chat-window {
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: var(--shadow-sm);
-      width: 100%;
-      height: 100%;
+      background: white; border: 1px solid rgba(90,138,104,0.13);
+      border-radius: var(--radius-lg);
+      display: flex; flex-direction: column;
+      overflow: hidden; box-shadow: var(--shadow-soft);
+      width: 100%; height: 100%;
     }
 
     .chat-header {
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid rgba(90,138,104,0.1);
       padding: 1.5rem 2rem;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 1rem;
+      display: flex; flex-wrap: wrap; justify-content: space-between;
+      align-items: center; gap: 1rem;
       background: linear-gradient(135deg, #f8fffc 0%, #f0fffb 100%);
     }
 
-    .chat-info {
-      display: flex;
-      flex-direction: column;
-    }
+    .chat-info { display: flex; flex-direction: column; }
 
     .chat-title {
-      font-weight: 700;
-      font-size: 1.2rem;
-      color: var(--text-dark);
+      font-weight: 700; font-size: 1.2rem;
+      color: var(--charcoal); font-family: 'Lora', serif;
     }
 
-    .chat-status {
-      font-size: 0.9rem;
-      color: var(--text-light);
-      margin-top: 0.3rem;
-    }
+    .chat-status { font-size: 0.9rem; color: var(--text-soft); margin-top: 0.3rem; }
 
-    .chat-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
+    .chat-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 
     .action-btn {
-      background: white;
-      border: 1px solid var(--border);
-      padding: 0.5rem 1rem;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--text-dark);
-      transition: all 0.2s ease;
+      background: white; border: 1px solid rgba(90,138,104,0.2);
+      padding: 0.5rem 1rem; border-radius: var(--radius-sm);
+      cursor: pointer; font-size: 0.85rem; font-weight: 600;
+      color: var(--text-dark); transition: all 0.2s ease;
     }
 
-    .action-btn:hover {
-      background: var(--bg-light);
-      border-color: var(--primary-dark);
-      color: var(--primary-dark);
-    }
+    .action-btn:hover { background: var(--mint); border-color: var(--sage-dark); color: var(--sage-dark); }
 
-    .action-btn-interview {
-      background: #e3f2fd;
-      border-color: #1976d2;
-      color: #1976d2;
-    }
-    .action-btn-interview:hover {
-      background: #bbdefb;
-    }
+    .action-btn-interview { background: #e3f2fd; border-color: #1976d2; color: #1976d2; }
+    .action-btn-interview:hover { background: #bbdefb; }
 
-    .action-btn-hire {
-      background: #e8f5e9;
-      border-color: #388e3c;
-      color: #388e3c;
-    }
-    .action-btn-hire:hover {
-      background: #c8e6c9;
-    }
+    .action-btn-hire { background: #e8f5e9; border-color: #388e3c; color: #388e3c; }
+    .action-btn-hire:hover { background: #c8e6c9; }
 
-    .action-btn-reject {
-      background: #ffebee;
-      border-color: #d32f2f;
-      color: #d32f2f;
-    }
-    .action-btn-reject:hover {
-      background: #ffcdd2;
-    }
+    .action-btn-reject { background: #ffebee; border-color: #d32f2f; color: #d32f2f; }
+    .action-btn-reject:hover { background: #ffcdd2; }
 
     .interview-badge, .hire-badge {
-      padding: 0.4rem 0.8rem;
-      border-radius: var(--radius-sm);
-      font-size: 0.8rem;
-      font-weight: 600;
+      padding: 0.4rem 0.8rem; border-radius: var(--radius-sm);
+      font-size: 0.8rem; font-weight: 600;
     }
     .interview-badge.scheduled, .hire-badge.offered {
-      background: #fff3e0;
-      color: #e65100;
+      background: #fff3e0; color: #e65100;
     }
     .interview-badge.accepted, .hire-badge.accepted {
-      background: #e8f5e9;
-      color: #2e7d32;
+      background: #e8f5e9; color: #2e7d32;
     }
     .interview-badge.rejected, .hire-badge.rejected {
-      background: #ffebee;
-      color: #c62828;
+      background: #ffebee; color: #c62828;
     }
 
-    /* Modal Styles */
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      z-index: 1000;
-      justify-content: center;
-      align-items: center;
-    }
-    .modal.active {
-      display: flex;
-    }
-    .modal-content {
-      background: white;
-      border-radius: var(--radius);
-      width: 90%;
-      max-width: 450px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-    }
-    .modal-header {
-      padding: 1.25rem 1.5rem;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .modal-header h3 {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--text-dark);
-      margin: 0;
-    }
-    .modal-close {
-      font-size: 1.5rem;
-      color: var(--text-light);
-      cursor: pointer;
-    }
-    .modal-body {
-      padding: 1.5rem;
-    }
-    .form-group {
-      margin-bottom: 1rem;
-    }
-    .form-group label {
-      display: block;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--text-dark);
-      margin-bottom: 0.5rem;
-    }
-    .modal-input {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-size: 0.95rem;
-      font-family: inherit;
-      transition: all 0.2s ease;
-    }
-    .modal-input:focus {
-      outline: none;
-      border-color: var(--primary-dark);
-      box-shadow: 0 0 0 3px rgba(30,158,134,0.1);
-    }
-    .modal-note {
-      font-size: 0.85rem;
-      color: var(--text-light);
-      margin-top: 0.5rem;
-    }
-    .modal-warning {
-      color: #d32f2f;
-    }
-    .modal-footer {
-      padding: 1rem 1.5rem;
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: flex-end;
-      gap: 0.75rem;
-    }
-    .btn-cancel {
-      padding: 0.6rem 1.2rem;
-      border: 1px solid var(--border);
-      background: white;
-      border-radius: var(--radius-sm);
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--text-dark);
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .btn-cancel:hover {
-      background: var(--bg-light);
-    }
-    .btn-submit {
-      padding: 0.6rem 1.2rem;
-      border: none;
-      background: var(--primary-dark);
-      color: white;
-      border-radius: var(--radius-sm);
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .btn-submit:hover {
-      background: #157a68;
-    }
-    .btn-hire {
-      background: #388e3c;
-    }
-    .btn-hire:hover {
-      background: #2e7d32;
-    }
-    .btn-reject {
-      background: #d32f2f;
-    }
-    .btn-reject:hover {
-      background: #c62828;
-    }
-
-    /* Messages Area */
+    /* ══ MESSAGES AREA ══ */
     .messages-area {
-      flex: 1 1 auto;
-      padding: 2rem;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 1.25rem;
-      background: white;
-      width: 100%;
-      min-width: 0;
+      flex: 1 1 auto; padding: 2rem; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 1.25rem;
+      background: white; width: 100%; min-width: 0;
     }
 
     .message-group {
-      display: flex;
-      gap: 0.75rem;
+      display: flex; gap: 0.75rem;
       animation: slideInUp 0.3s ease-out;
-      flex-wrap: nowrap;
-      align-items: flex-end;
-      width: 100%;
-      margin-bottom: 0.5rem;
+      flex-wrap: nowrap; align-items: flex-end;
+      width: 100%; margin-bottom: 0.5rem;
     }
 
-    .message-group.own {
-      justify-content: flex-end;
-    }
-
-    .message-group.other {
-      justify-content: flex-start;
-    }
+    .message-group.own { justify-content: flex-end; }
+    .message-group.other { justify-content: flex-start; }
 
     .message-bubble {
-      padding: 1rem 1.35rem;
-      border-radius: 12px;
-      overflow-wrap: break-word;
-      word-break: break-word;
-      white-space: normal;
-      line-height: 1.6;
-      font-size: 1rem;
-      transition: all 0.2s ease;
-      display: inline-block;
-      min-width: 60px;
+      padding: 1rem 1.35rem; border-radius: 12px;
+      overflow-wrap: break-word; word-break: break-word;
+      white-space: normal; line-height: 1.6; font-size: 1rem;
+      transition: all 0.2s ease; display: inline-block; min-width: 60px;
     }
 
     .message-group.other .message-bubble {
-      background: var(--bg-light);
-      color: var(--text-dark);
-      border: 1px solid var(--border);
+      background: var(--cream-mid); color: var(--charcoal);
+      border: 1px solid rgba(90,138,104,0.1);
     }
 
     .message-group.own .message-bubble {
-      background: var(--primary-dark);
-      color: white;
-      box-shadow: 0 2px 8px rgba(30, 158, 134, 0.15);
+      background: var(--sage); color: white;
+      box-shadow: 0 2px 8px rgba(90,138,104,0.15);
     }
 
-    .message-time {
-      font-size: 0.85rem;
-      color: var(--text-light);
-      margin-top: 0.4rem;
-    }
+    .message-time { font-size: 0.85rem; color: var(--text-pale); margin-top: 0.4rem; }
 
-    .message-content {
-      display: flex;
-      flex-direction: column;
-      max-width: 75%;
-    }
+    .message-content { display: flex; flex-direction: column; max-width: 75%; }
 
-    /* Input Area */
+    /* ══ INPUT AREA ══ */
     .input-area {
-      border-top: 1px solid var(--border);
-      padding: 2rem;
-      background: white;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
+      border-top: 1px solid rgba(90,138,104,0.1);
+      padding: 2rem; background: white;
+      display: flex; flex-direction: column; gap: 1rem;
     }
 
     .message-input {
-      flex: 1;
-      padding: 1rem 1.25rem;
-      border: 1.5px solid var(--border);
+      flex: 1; padding: 1rem 1.25rem;
+      border: 1.5px solid rgba(90,138,104,0.2);
       border-radius: var(--radius-sm);
-      font-family: inherit;
-      font-size: 1rem;
-      color: var(--text-dark);
-      transition: all 0.2s ease;
-      background: white;
-      min-height: 50px;
-      resize: vertical;
+      font-family: inherit; font-size: 1rem;
+      color: var(--charcoal); transition: all 0.2s ease;
+      background: white; min-height: 50px; resize: vertical;
     }
 
     .message-input:focus {
-      outline: none;
-      border-color: var(--primary-dark);
-      box-shadow: 0 0 0 3px rgba(30, 158, 134, 0.1);
+      outline: none; border-color: var(--sage);
+      box-shadow: 0 0 0 3px rgba(90,138,104,0.1);
     }
 
-    .message-input::placeholder {
-      color: var(--text-light);
-    }
+    .message-input::placeholder { color: var(--text-soft); }
 
     .send-btn {
-      background: var(--primary-dark);
-      color: white;
-      border: none;
-      padding: 1rem 2rem;
-      border-radius: var(--radius-sm);
-      font-weight: 600;
-      cursor: pointer;
-      font-size: 1rem;
+      background: var(--sage); color: white; border: none;
+      padding: 1rem 2rem; border-radius: var(--radius-sm);
+      font-weight: 600; cursor: pointer; font-size: 1rem;
       transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      min-height: 45px;
+      display: flex; align-items: center; justify-content: center;
+      gap: 0.5rem; min-height: 45px;
     }
 
-    .send-btn:hover {
-      background: #157a68;
-      box-shadow: 0 4px 12px rgba(30, 158, 134, 0.15);
-      transform: translateY(-1px);
-    }
+    .send-btn:hover { background: var(--sage-dark); box-shadow: 0 4px 12px rgba(90,138,104,0.15); transform: translateY(-1px); }
+    .send-btn:active { transform: translateY(0); }
 
-    .send-btn:active {
-      transform: translateY(0);
-    }
-
-    /* Empty State */
+    /* ══ EMPTY STATE ══ */
     .empty-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      color: var(--text-light);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 100%; color: var(--text-soft);
       text-align: center;
     }
 
-    .empty-icon {
-      font-size: 3rem;
-      margin-bottom: 1rem;
-      opacity: 0.5;
+    .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+    .empty-text { font-size: 1rem; margin-bottom: 0.5rem; }
+    .empty-subtext { font-size: 0.85rem; opacity: 0.7; }
+
+    /* ══ MODAL ══ */
+    .modal {
+      display: none; position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); z-index: 1000;
+      justify-content: center; align-items: center;
+    }
+    .modal.active { display: flex; }
+
+    .modal-content {
+      background: white; border-radius: var(--radius-lg);
+      width: 90%; max-width: 450px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
     }
 
-    .empty-text {
-      font-size: 1rem;
-      margin-bottom: 0.5rem;
+    .modal-header {
+      padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(90,138,104,0.1);
+      display: flex; justify-content: space-between; align-items: center;
     }
 
-    .empty-subtext {
-      font-size: 0.85rem;
-      opacity: 0.7;
+    .modal-header h3 {
+      font-size: 1.1rem; font-weight: 700;
+      color: var(--charcoal); margin: 0; font-family: 'Lora', serif;
     }
+
+    .modal-close {
+      font-size: 1.5rem; color: var(--text-soft);
+      cursor: pointer; background: none; border: none;
+      width: 2.2rem; height: 2.2rem;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; transition: all 0.2s ease;
+    }
+
+    .modal-close:hover { background: #f0f0f0; color: var(--charcoal); }
+
+    .modal-body { padding: 1.5rem; }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-group label {
+      display: block; font-size: 0.9rem; font-weight: 600;
+      color: var(--charcoal); margin-bottom: 0.5rem;
+    }
+
+    .modal-input {
+      width: 100%; padding: 0.75rem;
+      border: 1.5px solid rgba(90,138,104,0.2);
+      border-radius: var(--radius-sm); font-size: 0.95rem;
+      font-family: inherit; transition: all 0.2s ease;
+    }
+
+    .modal-input:focus {
+      outline: none; border-color: var(--sage);
+      box-shadow: 0 0 0 3px rgba(90,138,104,0.1);
+    }
+
+    .modal-note { font-size: 0.85rem; color: var(--text-soft); margin-top: 0.5rem; }
+    .modal-warning { color: #d32f2f; }
+
+    .modal-footer {
+      padding: 1rem 1.5rem; border-top: 1px solid rgba(90,138,104,0.1);
+      display: flex; justify-content: flex-end; gap: 0.75rem;
+    }
+
+    .btn-cancel {
+      padding: 0.6rem 1.2rem; border: 1px solid rgba(90,138,104,0.2);
+      background: white; border-radius: var(--radius-sm);
+      font-size: 0.9rem; font-weight: 600;
+      color: var(--text-dark); cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-cancel:hover { background: var(--cream-mid); }
+
+    .btn-submit {
+      padding: 0.6rem 1.2rem; border: none;
+      background: var(--sage); color: white;
+      border-radius: var(--radius-sm); font-size: 0.9rem;
+      font-weight: 600; cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-submit:hover { background: var(--sage-dark); }
+    .btn-hire { background: #388e3c; }
+    .btn-hire:hover { background: #2e7d32; }
+    .btn-reject { background: #d32f2f; }
+    .btn-reject:hover { background: #c62828; }
 
     @keyframes slideInUp {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    .footer {
-      background: #0f2b26;
-      color: #d7efea;
-      padding: 2.75rem 2.5rem 1.5rem;
-      margin-top: 3rem;
-    }
+    /* ══ FOOTER ══ */
+    .footer { background: var(--charcoal); color: rgba(255,255,255,0.5); padding: 4.5rem 2.5rem 2rem; }
 
-    .footer-inner {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
+    .footer-inner { max-width: 1120px; margin: 0 auto; }
 
     .footer-top {
-      display: grid;
-      grid-template-columns: 1.6fr 1fr 1fr 1fr;
-      gap: 1.4rem;
-      margin-bottom: 1.5rem;
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem; padding-bottom: 3rem;
+      border-bottom: 1px solid rgba(255,255,255,0.07); margin-bottom: 2rem;
     }
 
-    .footer-brand h3,
+    .footer-brand h3 { font-family: 'Lora', serif; font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 0.75rem; }
+    .footer-brand p { font-size: 0.82rem; line-height: 1.72; color: rgba(255,255,255,0.4); }
+
     .footer-col h4 {
-      color: #f1fffc;
-      margin-bottom: 0.6rem;
+      font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.7);
+      text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1.1rem;
     }
 
-    .footer-brand p,
-    .footer-col a {
-      color: #b8d9d2;
-      font-size: 0.86rem;
-      line-height: 1.65;
-    }
-
-    .footer-col ul {
-      list-style: none;
-      display: grid;
-      gap: 0.35rem;
-    }
-
-    .footer-col a:hover {
-      color: white;
-    }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.55rem; }
+    .footer-col ul a { font-size: 0.83rem; color: rgba(255,255,255,0.38); transition: color 0.2s; }
+    .footer-col ul a:hover { color: var(--mint-deep); }
 
     .footer-bottom {
-      border-top: 1px solid rgba(215, 239, 234, 0.2);
-      padding-top: 0.9rem;
-      display: flex;
-      justify-content: space-between;
-      gap: 0.75rem;
-      font-size: 0.8rem;
-      color: #add2ca;
-      flex-wrap: wrap;
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.77rem; flex-wrap: wrap; gap: 0.5rem;
     }
 
+    /* ══ RESPONSIVE ══ */
     @media (max-width: 1024px) {
-      .page-container {
-        grid-template-columns: 260px 1fr;
-        gap: 1.5rem;
-        padding: 1.5rem;
-      }
+      .page-container { grid-template-columns: 260px 1fr; gap: 1.5rem; padding: 1.5rem; }
+      .message-content { max-width: 80%; }
+    }
 
-      .message-content {
-        max-width: 80%;
-      }
+    @media (max-width: 860px) {
+      .footer-top { grid-template-columns: 1fr 1fr; }
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
     }
 
     @media (max-width: 768px) {
-      .page-container {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-        padding: 1rem;
-      }
-
-      .conversations-sidebar {
-        position: relative;
-        top: 0;
-      }
-
-      .message-content {
-        max-width: 90%;
-      }
-
-      .footer-top {
-        grid-template-columns: 1fr;
-      }
+      .page-container { grid-template-columns: 1fr; gap: 1rem; padding: 1rem; }
+      .conversations-sidebar { position: relative; top: 0; }
+      .message-content { max-width: 90%; }
+      .footer-top { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-<!-- NAVBAR -->
-<nav class="navbar">
-  <a href="../../index.php" class="nav-logo">
-    <div class="nav-logo-icon">TS</div>
-    <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
-  </a>
-  <ul class="nav-links">
-    <li><a href="../../index.php">Home</a></li>
-    <li><a href="../post-jobs/">Post Jobs</a></li>
-    <li><a href="../employee-finder/">Find Talent</a></li>
-    <li><a href="../applicant-tracking/">Hiring Pipeline</a></li>
-    <li><a href="./" class="active">Messages</a></li>
-  </ul>
-  <div class="nav-actions">
-    <?php if (isset($_SESSION['employer_id'])): ?>
-      <span class="nav-user">Welcome, <?php echo htmlspecialchars($_SESSION['employer_name'] ?? 'Employer'); ?></span>
-      <a href="../../logout.php" class="btn btn-outline">Logout</a>
-    <?php else: ?>
-      <a href="../../login.php" class="btn btn-outline">Login</a>
-      <a href="../../signup.php" class="btn btn-primary">Get Started</a>
-    <?php endif; ?>
-  </div>
-</nav>
-
-<!-- CONTENT -->
-<div class="page-container">
-  <!-- Header -->
-  <div class="page-header">
-    <h1>Messages & Communications</h1>
-    <p>Connect with candidates via chat and SMS</p>
-  </div>
-
-  <!-- Conversations Sidebar -->
-  <div class="conversations-sidebar">
-    <div class="conversations-title">Conversations (<?php echo count($conversations); ?>)</div>
-    
-    <div class="conversation-list">
-      <?php if (count($conversations) > 0): ?>
-        <?php foreach ($conversations as $conv): ?>
-          <div class="conversation-item <?php echo ($conv['employee_id'] === $selected_employee_id) ? 'active' : ''; ?>" onclick="selectConversation(<?php echo $conv['employee_id']; ?>)">
-            <div class="conversation-name"><?php echo htmlspecialchars($conv['display_name']); ?></div>
-            <div class="conversation-preview">Click to view messages...</div>
-            <div class="conversation-time">Recent</div>
-          </div>
-        <?php endforeach; ?>
+  <!-- ══ NAVBAR ══ -->
+  <nav class="navbar" id="navbar">
+    <a href="../../index.php" class="nav-logo">
+      <div class="nav-logo-mark">TS</div>
+      <span>Talent<em>Scout</em> AI</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="../../index.php">Home</a></li>
+      <li><a href="../post-jobs/">Post Jobs</a></li>
+      <li><a href="../employee-finder/">Find Talent</a></li>
+      <li><a href="../applicant-tracking/">Hiring Pipeline</a></li>
+      <li><a href="./" class="active">Messages</a></li>
+    </ul>
+    <div class="nav-right">
+      <?php if (isset($_SESSION['employer_id'])): ?>
+        <span class="nav-user">Welcome, <?php echo htmlspecialchars($_SESSION['employer_name'] ?? 'Employer'); ?></span>
+        <a href="../../logout.php" class="btn-ghost">Logout</a>
       <?php else: ?>
-        <div style="color: var(--text-light); text-align: center; padding: 1rem; font-size: 0.85rem;">
-          No conversations yet
-        </div>
+        <a href="../../login.php" class="btn-ghost">Login</a>
+        <a href="../../signup.php" class="btn-solid">Get Started →</a>
+      <?php endif; ?>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Nav -->
+  <div class="mobile-nav" id="mobileNav">
+    <a href="../../index.php">🏠 Home</a>
+    <a href="../post-jobs/">📋 Post Jobs</a>
+    <a href="../employee-finder/">🔍 Find Talent</a>
+    <a href="../applicant-tracking/">📊 Hiring Pipeline</a>
+    <a href="./">💬 Messages</a>
+    <div class="mobile-nav-actions">
+      <?php if (isset($_SESSION['employer_id'])): ?>
+        <a href="../../logout.php" class="btn-ghost">Logout</a>
+      <?php else: ?>
+        <a href="../../login.php" class="btn-ghost">Login</a>
+        <a href="../../signup.php" class="btn-solid">Get Started →</a>
       <?php endif; ?>
     </div>
   </div>
 
-  <!-- Chat Window -->
-  <div class="chat-window">
-    <div class="chat-header">
-      <div class="chat-info">
-        <div class="chat-title"><?php echo htmlspecialchars($selected_employee_name); ?></div>
-        <div class="chat-status">Last message</div>
+  <div class="page-container">
+
+    <!-- Conversations Sidebar -->
+    <div class="conversations-sidebar">
+      <div class="conversations-title">Conversations (<?php echo count($conversations); ?>)</div>
+      <div class="conversation-list">
+        <?php if (count($conversations) > 0): ?>
+          <?php foreach ($conversations as $conv): ?>
+            <div class="conversation-item <?php echo ($conv['employee_id'] == $selected_employee_id) ? 'active' : ''; ?>" onclick="selectConversation(<?php echo $conv['employee_id']; ?>)">
+              <div class="conversation-name"><?php echo htmlspecialchars($conv['display_name']); ?></div>
+              <div class="conversation-preview">Click to view messages...</div>
+              <div class="conversation-time">Recent</div>
+            </div>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <div style="color: var(--text-light); text-align: center; padding: 1rem; font-size: 0.85rem;">
+            No conversations yet
+          </div>
+        <?php endif; ?>
       </div>
-      <div class="chat-actions">
-        <?php if (!empty($applications_with_candidate) && $selected_application_id > 0): ?>
-          <?php if (!$current_interview || $current_interview['status'] === 'cancelled'): ?>
-            <button type="button" class="action-btn action-btn-interview" onclick="openModal('scheduleModal')" title="Schedule Interview">📅 Schedule Interview</button>
-          <?php else: ?>
-            <?php if ($current_interview['status'] === 'scheduled'): ?>
-              <span class="interview-badge scheduled">Interview Scheduled</span>
-            <?php elseif ($current_interview['status'] === 'accepted'): ?>
-              <span class="interview-badge accepted">Interview Accepted</span>
-            <?php elseif ($current_interview['status'] === 'rejected'): ?>
-              <span class="interview-badge rejected">Interview Declined</span>
+    </div>
+
+    <!-- Chat Window -->
+    <div class="chat-window">
+      <div class="chat-header">
+        <div class="chat-info">
+          <div class="chat-title"><?php echo htmlspecialchars($selected_employee_name); ?></div>
+          <div class="chat-status">Last message</div>
+        </div>
+        <div class="chat-actions">
+          <?php if (!empty($applications_with_candidate) && $selected_application_id > 0): ?>
+            <?php if (!$current_interview || $current_interview['status'] === 'cancelled'): ?>
+              <button type="button" class="action-btn action-btn-interview" onclick="openModal('scheduleModal')" title="Schedule Interview">📅 Schedule Interview</button>
+            <?php else: ?>
+              <?php if ($current_interview['status'] === 'scheduled'): ?>
+                <span class="interview-badge scheduled">Interview Scheduled</span>
+              <?php elseif ($current_interview['status'] === 'accepted'): ?>
+                <span class="interview-badge accepted">Interview Accepted</span>
+              <?php elseif ($current_interview['status'] === 'rejected'): ?>
+                <span class="interview-badge rejected">Interview Declined</span>
+              <?php endif; ?>
+            <?php endif; ?>
+           
+            <?php if ($application_hire_status && $application_hire_status['hire_status'] === 'none'): ?>
+              <button type="button" class="action-btn action-btn-hire" onclick="openModal('hireModal')" title="Offer Hire">🎉 Offer Hire</button>
+            <?php elseif ($application_hire_status && $application_hire_status['hire_status'] === 'offered'): ?>
+              <span class="hire-badge offered">Hire Offer Sent</span>
+            <?php elseif ($application_hire_status && $application_hire_status['hire_status'] === 'accepted'): ?>
+              <span class="hire-badge accepted">Hired! 🎉</span>
+            <?php elseif ($application_hire_status && $application_hire_status['hire_status'] === 'rejected'): ?>
+              <span class="hire-badge rejected">Offer Declined</span>
+            <?php endif; ?>
+           
+            <?php if ($application_hire_status && $application_hire_status['hire_status'] === 'none'): ?>
+              <button type="button" class="action-btn action-btn-reject" onclick="openModal('rejectModal')" title="Reject Application">✕ Reject</button>
             <?php endif; ?>
           <?php endif; ?>
-          
-          <?php if ($application_hire_status && $application_hire_status['hire_status'] === 'none'): ?>
-            <button type="button" class="action-btn action-btn-hire" onclick="openModal('hireModal')" title="Offer Hire">🎯 Offer Hire</button>
-          <?php elseif ($application_hire_status && $application_hire_status['hire_status'] === 'offered'): ?>
-            <span class="hire-badge offered">Hire Offer Sent</span>
-          <?php elseif ($application_hire_status && $application_hire_status['hire_status'] === 'accepted'): ?>
-            <span class="hire-badge accepted">Hired! 🎉</span>
-          <?php elseif ($application_hire_status && $application_hire_status['hire_status'] === 'rejected'): ?>
-            <span class="hire-badge rejected">Offer Declined</span>
-          <?php endif; ?>
-          
-          <?php if ($application_hire_status && $application_hire_status['hire_status'] === 'none'): ?>
-            <button type="button" class="action-btn action-btn-reject" onclick="openModal('rejectModal')" title="Reject Application">✕ Reject</button>
-          <?php endif; ?>
+        </div>
+      </div>
+
+      <div class="messages-area">
+        <?php if (count($messages) > 0): ?>
+          <?php foreach ($messages as $msg): ?>
+            <div class="message-group <?php echo ($msg['sender_type'] === 'employer') ? 'own' : 'other'; ?>">
+              <div class="message-content">
+                <div class="message-bubble">
+                  <?php echo htmlspecialchars($msg['message']); ?>
+                  <?php if ($msg['application_id'] > 0 && !empty($msg['job_title'])): ?>
+                    <div style="background: rgba(0,0,0,0.08); padding: 0.75rem; margin-top: 0.75rem; border-radius: 6px; font-size: 0.95rem; margin-left: -1.35rem; margin-right: -1.35rem; margin-bottom: -1rem; border-left: 3px solid rgba(0,0,0,0.2);">
+                      <strong style="color: rgba(0,0,0,0.7);">📋 About:</strong> <span style="color: rgba(0,0,0,0.75);"><?php echo htmlspecialchars($msg['job_title']); ?></span>
+                    </div>
+                  <?php endif; ?>
+                </div>
+                <div class="message-time"><?php echo date('g:i A', strtotime($msg['timestamp'])); ?></div>
+              </div>
+            </div>
+          <?php endforeach; ?>
+        <?php elseif ($selected_employee_id > 0): ?>
+          <div class="empty-state">
+            <div class="empty-icon">💬</div>
+            <div class="empty-text">No messages yet</div>
+            <div class="empty-subtext">Start a conversation with this candidate</div>
+          </div>
+        <?php else: ?>
+          <div class="empty-state">
+            <div class="empty-icon">📬</div>
+            <div class="empty-text">No Conversations</div>
+            <div class="empty-subtext">Select or start a conversation to get started</div>
+          </div>
         <?php endif; ?>
       </div>
-    </div>
 
-    <div class="messages-area">
-      <?php if (count($messages) > 0): ?>
-        <?php foreach ($messages as $msg): ?>
-          <div class="message-group <?php echo ($msg['sender_type'] === 'employer') ? 'own' : 'other'; ?>">
-            <div class="message-content">
-              <div class="message-bubble">
-                <?php echo htmlspecialchars($msg['message']); ?>
-                <?php if ($msg['application_id'] > 0 && !empty($msg['job_title'])): ?>
-                  <div style="background: rgba(0,0,0,0.08); padding: 0.75rem; margin-top: 0.75rem; border-radius: 6px; font-size: 0.95rem; margin-left: -1.35rem; margin-right: -1.35rem; margin-bottom: -1rem; border-left: 3px solid rgba(0,0,0,0.2);">
-                    <strong style="color: rgba(0,0,0,0.7);">📋 About:</strong> <span style="color: rgba(0,0,0,0.75);"><?php echo htmlspecialchars($msg['job_title']); ?></span>
-                  </div>
-                <?php endif; ?>
-              </div>
-              <div class="message-time"><?php echo date('g:i A', strtotime($msg['timestamp'])); ?></div>
-            </div>
+      <div class="input-area">
+        <form method="POST" style="display: flex; flex-direction: column; gap: 1rem; width: 100%;">
+          <input type="hidden" name="action" value="send_message">
+          <input type="hidden" name="receiver_id" value="<?php echo $selected_employee_id; ?>">
+         
+          <?php if (!empty($applications_with_candidate)): ?>
+            <select name="application_id" id="appSelect" onchange="changeApplication(this.value)" style="padding: 1rem; border: 1.5px solid rgba(90,138,104,0.2); border-radius: var(--radius-sm); font-size: 1rem; background: white; cursor: pointer; transition: all 0.2s ease;">
+              <option value="0">-- Related to specific application --</option>
+              <?php foreach ($applications_with_candidate as $app): ?>
+                <option value="<?php echo $app['application_id']; ?>" <?php echo ($selected_application_id == $app['application_id']) ? 'selected' : ''; ?>>
+                  <?php echo htmlspecialchars($app['job_title']); ?> (<?php echo $app['status']; ?>)
+                </option>
+              <?php endforeach; ?>
+            </select>
+          <?php endif; ?>
+         
+          <div style="display: flex; gap: 1rem; align-items: flex-end;">
+            <input type="text" name="message" class="message-input" placeholder="Type your message..." id="messageInput" required style="flex: 1; margin: 0;">
+            <button type="submit" class="send-btn" <?php echo ($selected_employee_id > 0) ? '' : 'disabled'; ?>>Send</button>
           </div>
-        <?php endforeach; ?>
-      <?php elseif ($selected_employee_id > 0): ?>
-        <div class="empty-state">
-          <div class="empty-icon">💬</div>
-          <div class="empty-text">No messages yet</div>
-          <div class="empty-subtext">Start a conversation with this candidate</div>
-        </div>
-      <?php else: ?>
-        <div class="empty-state">
-          <div class="empty-icon">📬</div>
-          <div class="empty-text">No Conversations</div>
-          <div class="empty-subtext">Select or start a conversation to get started</div>
-        </div>
-      <?php endif; ?>
-    </div>
-
-    <div class="input-area">
-      <form method="POST" style="display: flex; flex-direction: column; gap: 1rem; width: 100%;">
-        <input type="hidden" name="action" value="send_message">
-        <input type="hidden" name="receiver_id" value="<?php echo $selected_employee_id; ?>">
-        
-        <?php if (!empty($applications_with_candidate)): ?>
-          <select name="application_id" id="appSelect" onchange="changeApplication(this.value)" style="padding: 1rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 1rem; background: white; cursor: pointer; transition: all 0.2s ease;">
-            <option value="0">-- Relate to specific application --</option>
-            <?php foreach ($applications_with_candidate as $app): ?>
-              <option value="<?php echo $app['application_id']; ?>" <?php echo ($selected_application_id === $app['application_id']) ? 'selected' : ''; ?>>
-                <?php echo htmlspecialchars($app['job_title']); ?> (<?php echo $app['status']; ?>)
-              </option>
-            <?php endforeach; ?>
-          </select>
-        <?php endif; ?>
-        
-        <div style="display: flex; gap: 1rem; align-items: flex-end;">
-          <input type="text" name="message" class="message-input" placeholder="Type your message..." id="messageInput" required style="flex: 1; margin: 0;">
-          <button type="submit" class="send-btn" <?php echo ($selected_employee_id > 0) ? '' : 'disabled'; ?>>Send</button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -1183,7 +965,7 @@ if ($selected_application_id > 0) {
   <div id="hireModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>🎯 Offer Hire</h3>
+        <h3>🎉 Offer Hire</h3>
         <span class="modal-close" onclick="closeModal('hireModal')">&times;</span>
       </div>
       <form method="POST">
@@ -1228,161 +1010,127 @@ if ($selected_application_id > 0) {
       </form>
     </div>
   </div>
-</div>
 
-<!-- FOOTER -->
-<footer class="footer">
-  <div class="footer-inner">
-    <div class="footer-top">
-      <div class="footer-brand">
-        <h3>TalentScout AI</h3>
-        <p>Smart AI-powered recruitment platform for PESO Nasugbu, Batangas. Connecting employers with qualified local talent.</p>
+  <!-- ══ FOOTER ══ -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <h3>🌿 TalentScout AI</h3>
+          <p>Smart AI-powered recruitment platform for PESO Nasugbu, Batangas. Connecting employers with qualified local talent.</p>
+        </div>
+        <div class="footer-col">
+          <h4>For Job Seekers</h4>
+          <ul>
+            <li><a href="../../employees/">Browse Jobs</a></li>
+            <li><a href="../../employees/modules/ai-matching/">AI Matching</a></li>
+            <li><a href="../../employees/modules/skill-gap-analysis/">Skill Gap Analysis</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>For Employers</h4>
+          <ul>
+            <li><a href="../../index.php">Home</a></li>
+            <li><a href="../post-jobs/">Post Jobs</a></li>
+            <li><a href="../employee-finder/">Find Talent</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>PESO Nasugbu</h4>
+          <ul>
+            <li><a href="#">Contact Us</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+          </ul>
+        </div>
       </div>
-      <div class="footer-col">
-        <h4>For Job Seekers</h4>
-        <ul>
-          <li><a href="../../employees/">Browse Jobs</a></li>
-          <li><a href="../../employees/modules/ai-matching/">AI Matching</a></li>
-          <li><a href="../../employees/modules/skill-gap-analysis/">Skill Gap Analysis</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>For Employers</h4>
-        <ul>
-          <li><a href="../../index.php">Home</a></li>
-          <li><a href="../post-jobs/">Post Jobs</a></li>
-          <li><a href="../employee-finder/">Find Talent</a></li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h4>PESO Nasugbu</h4>
-        <ul>
-          <li><a href="#">Contact Us</a></li>
-          <li><a href="#">Privacy Policy</a></li>
-          <li><a href="#">Terms of Service</a></li>
-        </ul>
+      <div class="footer-bottom">
+        <span>© 2026 TalentScout AI – PESO Nasugbu, Batangas</span>
+        <span>Stay Connected with Your Candidates</span>
       </div>
     </div>
-    <div class="footer-bottom">
-      <span>© 2026 TalentScout AI – PESO Nasugbu, Batangas</span>
-      <span>Stay Connected with Your Candidates</span>
-    </div>
-  </div>
-</footer>
+  </footer>
 
-<script>
-  function selectConversation(element) {
-    // Remove active class from all conversations
-    document.querySelectorAll('.conversation-item').forEach(item => {
-      item.classList.remove('active');
-    });
-    
-    // Add active class to selected conversation
-    element.classList.add('active');
-    
-    // Get the name and update chat header
-    const name = element.querySelector('.conversation-name').textContent;
-    document.querySelector('.chat-title').textContent = name;
-    
-    // Animate message clear and load
+  <script>
+    // Hamburger menu
+    const ham = document.getElementById('hamburger');
+    const mNav = document.getElementById('mobileNav');
+
+    if (ham) {
+      ham.addEventListener('click', () => {
+        ham.classList.toggle('open');
+        mNav.classList.toggle('open');
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!ham.contains(e.target) && !mNav.contains(e.target)) {
+          ham.classList.remove('open');
+          mNav.classList.remove('open');
+        }
+      });
+    }
+
+    // Navbar scroll
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 60) {
+        navbar.classList.add('scrolled');
+        navbar.style.boxShadow = '0 4px 24px rgba(60,80,50,0.1)';
+      } else {
+        navbar.classList.remove('scrolled');
+        navbar.style.boxShadow = 'none';
+      }
+    }, { passive: true });
+
+    // Select conversation
+    function selectConversation(employeeId) {
+      window.location.href = '?employee_id=' + employeeId;
+    }
+
+    // Modal functions
+    function openModal(modalId) {
+      document.getElementById(modalId).classList.add('active');
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      if (event.target.classList.contains('modal')) {
+        event.target.classList.remove('active');
+      }
+    }
+
+    // Change application
+    function changeApplication(appId) {
+      const url = new URL(window.location.href);
+      if (appId > 0) {
+        url.searchParams.set('application_id', appId);
+      } else {
+        url.searchParams.delete('application_id');
+      }
+      window.location.href = url.toString();
+    }
+
+    // Send message with Enter key
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+      messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          this.closest('form').submit();
+        }
+      });
+    }
+
+    // Scroll messages to bottom
     const messagesArea = document.querySelector('.messages-area');
-    messagesArea.style.opacity = '0.5';
-    
-    setTimeout(() => {
-      messagesArea.style.opacity = '1';
-    }, 200);
-  }
-
-  function sendMessage() {
-    const input = document.getElementById('messageInput');
-    const messageText = input.value.trim();
-    
-    if (messageText === '') return;
-    
-    // Create new message bubble
-    const messagesArea = document.querySelector('.messages-area');
-    const newMessage = document.createElement('div');
-    newMessage.className = 'message-group own';
-    
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    
-    newMessage.innerHTML = `
-      <div class="message-content">
-        <div class="message-bubble">${messageText}</div>
-        <div class="message-time">${timeStr}</div>
-      </div>
-    `;
-    
-    messagesArea.appendChild(newMessage);
-    
-    // Scroll to bottom
-    messagesArea.scrollTop = messagesArea.scrollHeight;
-    
-    // Clear input
-    input.value = '';
-    input.focus();
-  }
-
-  // Allow Enter key to send message
-  document.getElementById('messageInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-      sendMessage();
+    if (messagesArea) {
+      messagesArea.scrollTop = messagesArea.scrollHeight;
     }
-  });
-
-  // Enhance button feedback
-  document.querySelectorAll('.action-btn, .send-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      this.style.transform = 'scale(0.95)';
-      setTimeout(() => {
-        this.style.transform = '';
-      }, 100);
-    });
-  });
-
-  // Enhance conversation hover effects
-  document.querySelectorAll('.conversation-item').forEach(item => {
-    item.addEventListener('mouseenter', function() {
-      this.style.transform = 'translateX(4px)';
-    });
-    item.addEventListener('mouseleave', function() {
-      this.style.transform = '';
-    });
-  });
-
-  // Function to select a conversation
-  function selectConversation(employeeId) {
-    window.location.href = '?employee_id=' + employeeId;
-  }
-
-  // Modal functions
-  function openModal(modalId) {
-    document.getElementById(modalId).classList.add('active');
-  }
-
-  function closeModal(modalId) {
-    document.getElementById(modalId).classList.remove('active');
-  }
-
-  // Close modal when clicking outside
-  window.onclick = function(event) {
-    if (event.target.classList.contains('modal')) {
-      event.target.classList.remove('active');
-    }
-  }
-
-  // Change application
-  function changeApplication(appId) {
-    const url = new URL(window.location.href);
-    if (appId > 0) {
-      url.searchParams.set('application_id', appId);
-    } else {
-      url.searchParams.delete('application_id');
-    }
-    window.location.href = url.toString();
-  }
-</script>
+  </script>
 
 </body>
 </html>

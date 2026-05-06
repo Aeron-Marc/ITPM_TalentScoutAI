@@ -323,6 +323,35 @@ $stmt->close();
       box-sizing: border-box;
     }
 
+    :root {
+      --mint: #e8f5ee;
+      --mint-mid: #c8e6d4;
+      --mint-deep: #a8d4b8;
+      --sage: #5a8a68;
+      --sage-dark: #3d6b50;
+      --sage-deeper: #2d5040;
+      --gold: #c8a46a;
+      --gold-pale: #f5ead8;
+      --gold-light: #f0ddb8;
+      --cream: #fdfaf5;
+      --cream-mid: #f7f2ea;
+      --cream-warm: #f0ead8;
+      --warm-tan: #e8dfc8;
+      --charcoal: #2c3028;
+      --text-mid: #4a5244;
+      --text-soft: #7a8270;
+      --text-pale: #a8b0a0;
+      --white: #ffffff;
+      --shadow-soft: 0 4px 24px rgba(60, 80, 50, 0.08);
+      --shadow-med: 0 8px 40px rgba(60, 80, 50, 0.12);
+      --radius-xl: 28px;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+      --radius-pill: 999px;
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
     html,
     body {
       height: 100%;
@@ -333,7 +362,7 @@ $stmt->close();
     body {
       display: flex;
       flex-direction: column;
-      background: #f7f9f8;
+      background: var(--cream);
       font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
@@ -390,7 +419,7 @@ $stmt->close();
     .nav-logo-mark {
       width: 36px;
       height: 36px;
-      background: linear-gradient(135deg, var(--sage), var(--sage-dark));
+      background: rgba(255, 255, 255, 0.25);
       border-radius: 10px;
       display: flex;
       align-items: center;
@@ -400,20 +429,16 @@ $stmt->close();
       font-weight: 700;
       color: #fff;
       letter-spacing: 0.05em;
-      box-shadow: 0 4px 12px rgba(90, 138, 104, 0.35);
     }
 
-    .nav-logo-text {
-      display: inline;
-    }
-
-    .nav-logo-text span {
-      color: var(--mint-deep);
+    .nav-logo em {
+      font-style: italic;
+      color: rgba(255, 255, 255, 0.8);
       transition: color 0.4s;
     }
 
-    .navbar.scrolled .nav-logo-text span {
-      color: var(--sage);
+    .navbar.scrolled .nav-logo em {
+      color: rgba(255, 255, 255, 0.8);
     }
 
     .nav-links {
@@ -477,7 +502,7 @@ $stmt->close();
     .btn-ghost {
       padding: 0.42rem 1.1rem;
       border-radius: var(--radius-pill);
-      border: 1.5px solid rgba(255, 255, 255, 0.4);
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
       color: #fff;
       font-family: 'Plus Jakarta Sans', sans-serif;
       font-size: 0.83rem;
@@ -485,43 +510,43 @@ $stmt->close();
       background: transparent;
       cursor: pointer;
       transition: all 0.2s;
-      text-decoration: none;
+      display: inline-block;
+    }
+
+    .navbar.scrolled .btn-ghost {
+      border-color: rgba(255, 255, 255, 0.3);
+      color: #fff;
     }
 
     .btn-ghost:hover {
       background: rgba(255, 255, 255, 0.15);
-      border-color: #fff;
-    }
-
-    .navbar.scrolled .btn-ghost {
-      border-color: rgba(90, 138, 104, 0.3);
-      color: var(--text-mid);
+      color: #fff;
     }
 
     .navbar.scrolled .btn-ghost:hover {
-      background: var(--mint);
-      border-color: var(--sage);
-      color: var(--sage-dark);
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
     }
 
     .btn-solid {
-      padding: 0.42rem 1.3rem;
+      padding: 0.46rem 1.25rem;
       border-radius: var(--radius-pill);
-      background: linear-gradient(135deg, var(--mint-deep), var(--mint));
-      color: var(--charcoal);
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
       font-family: 'Plus Jakarta Sans', sans-serif;
       font-size: 0.83rem;
       font-weight: 700;
-      border: none;
+      border: 1.5px solid rgba(255, 255, 255, 0.4);
       cursor: pointer;
-      transition: all 0.2s;
-      text-decoration: none;
-      box-shadow: 0 4px 14px rgba(90, 138, 104, 0.32);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: all 0.25s var(--ease);
     }
 
     .btn-solid:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 22px rgba(90, 138, 104, 0.4);
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
     }
 
     .location-warning-popup {
@@ -1366,22 +1391,24 @@ $stmt->close();
     }
 
     .btn-modal-submit {
-      background: linear-gradient(135deg, var(--sage, #5a8a68), var(--sage-dark, #3d7a55));
-      color: white;
-      border: none;
-      padding: 0.6rem 1.5rem;
-      border-radius: 9px;
-      font-size: 0.875rem;
+      padding: 0.46rem 1.25rem;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.83rem;
       font-weight: 700;
+      border: 1.5px solid rgba(255, 255, 255, 0.4);
       cursor: pointer;
-      font-family: inherit;
-      transition: all 0.2s;
-      box-shadow: 0 3px 10px rgba(90, 138, 104, 0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: all 0.25s var(--ease);
     }
 
     .btn-modal-submit:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(90, 138, 104, 0.38);
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.5);
     }
 
     .btn-modal-draft {
@@ -1437,6 +1464,85 @@ $stmt->close();
     .btn-modal-publish:hover {
       background: rgba(90, 138, 104, 0.08);
       transform: translateY(-1px);
+    }
+
+    /* Hamburger */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 6px;
+      background: none;
+      border: none;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: #fff;
+      border-radius: 2px;
+      transition: all 0.3s var(--ease);
+    }
+
+    .hamburger.open span:nth-child(1) {
+      transform: translateY(7px) rotate(45deg);
+    }
+
+    .hamburger.open span:nth-child(2) {
+      opacity: 0;
+      transform: scaleX(0);
+    }
+
+    .hamburger.open span:nth-child(3) {
+      transform: translateY(-7px) rotate(-45deg);
+    }
+
+    /* Mobile Nav */
+    .mobile-nav {
+      position: fixed;
+      top: 66px;
+      left: 0;
+      right: 0;
+      background: rgba(253, 250, 245, 0.97);
+      backdrop-filter: blur(24px);
+      border-bottom: 1px solid rgba(90, 138, 104, 0.1);
+      padding: 1.5rem 2rem;
+      z-index: 190;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      transform: translateY(-130%);
+      opacity: 0;
+      transition: transform 0.4s var(--ease), opacity 0.3s;
+    }
+
+    .mobile-nav.open {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .mobile-nav a {
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--text-mid);
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .mobile-nav a:hover {
+      background: var(--mint);
+      color: var(--sage-dark);
+    }
+
+    .mobile-nav-actions {
+      display: flex;
+      gap: 0.6rem;
+      margin-top: 0.8rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(90, 138, 104, 0.1);
     }
 
     /* ══ ALERTS ══ */
@@ -1503,7 +1609,7 @@ $stmt->close();
   <nav class="navbar">
     <a href="../../index.php" class="nav-logo">
       <div class="nav-logo-mark">TS</div>
-      <span class="nav-logo-text">Talent<span>Scout</span> AI</span>
+      <span>Talent<em>Scout</em> AI</span>
     </a>
     <ul class="nav-links">
       <li><a href="../../index.php">Home</a></li>
@@ -1512,16 +1618,36 @@ $stmt->close();
       <li><a href="../applicant-tracking/">Hiring Pipeline</a></li>
       <li><a href="../chat-sms/">Messages</a></li>
     </ul>
-    <div class="nav-actions">
+    <div class="nav-right">
       <?php if (isset($_SESSION['employer_id'])): ?>
         <span class="nav-user">Welcome, <?php echo htmlspecialchars($_SESSION['employer_name'] ?? 'Employer'); ?></span>
-        <a href="../../logout.php" class="btn btn-outline">Logout</a>
+        <a href="../../logout.php" class="btn-ghost">Logout</a>
       <?php else: ?>
-        <a href="../../login.php" class="btn btn-outline">Login</a>
-        <a href="../../signup.php" class="btn btn-primary">Get Started</a>
+        <a href="../../login.php" class="btn-ghost">Login</a>
+        <a href="../../signup.php" class="btn-solid">Get Started →</a>
       <?php endif; ?>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </nav>
+
+  <!-- Mobile Nav -->
+  <div class="mobile-nav" id="mobileNav">
+    <a href="../../index.php">🏠 Home</a>
+    <a href="./">📋 Post Jobs</a>
+    <a href="../employee-finder/">🔍 Find Talent</a>
+    <a href="../applicant-tracking/">📊 Hiring Pipeline</a>
+    <a href="../chat-sms/">💬 Messages</a>
+    <div class="mobile-nav-actions">
+      <?php if (isset($_SESSION['employer_id'])): ?>
+        <a href="../../logout.php" class="btn-ghost">Logout</a>
+      <?php else: ?>
+        <a href="../../login.php" class="btn-ghost">Login</a>
+        <a href="../../signup.php" class="btn-solid">Get Started →</a>
+      <?php endif; ?>
+    </div>
+  </div>
 
   <div class="page-wrapper">
 
@@ -1588,7 +1714,7 @@ $stmt->close();
 
         <!-- NEW JOB BUTTON -->
         <div style="margin-bottom: 1.5rem;">
-          <button class="btn-modal-trigger" onclick="openModal('jobModal')">
+          <button class="btn-create" onclick="openModal('jobModal')">
             + Create New Job Posting
           </button>
         </div>
@@ -1668,8 +1794,8 @@ $stmt->close();
                 </div>
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn" style="background: #6c757d; color: white; border: none; padding: 0.7rem 1.5rem; border-radius: var(--radius-sm); cursor: pointer;" onclick="closeModal('jobModal')">Cancel</button>
-                <button type="submit" class="submit-btn">Post Job</button>
+                <button type="button" class="btn-modal-cancel" onclick="closeModal('jobModal')">Cancel</button>
+                <button type="submit" class="btn-modal-submit">Post Job</button>
               </div>
             </form>
           </div>
@@ -1806,62 +1932,8 @@ $stmt->close();
           </div>
         <?php endif; ?>
 
-        <!-- POSTED JOBS TABLE -->
         <div>
-          <div class="jobs-list">
-            <div class="jobs-list-header">Your Active Job Postings (<?php echo count($jobs); ?> total)</div>
-
-            <?php if (count($jobs) > 0): ?>
-              <?php foreach ($jobs as $job):
-                $job_status = $job['job_status'] ?? 'active';
-                $is_closed = ($job_status === 'closed');
-              ?>
-                <div class="job-card">
-                  <div>
-                    <div class="job-title"><?php echo htmlspecialchars($job['title']); ?></div>
-                    <div class="job-meta">
-                      📍 <?php echo htmlspecialchars($job['location']); ?> •
-                      💼 <?php echo htmlspecialchars($job['work_type']); ?> •
-                      ₱ <?php echo htmlspecialchars($job['salary']); ?>
-                    </div>
-                  </div>
-                  <div style="text-align: center;">
-                    <div style="font-size: 1.25rem; font-weight: 700; color: var(--primary-dark);">
-                      <?php echo isset($job_counts[$job['job_post_id']]) ? $job_counts[$job['job_post_id']] : 0; ?>
-                    </div>
-                    <div style="font-size: 0.75rem; color: var(--text-light);">Applications</div>
-                  </div>
-                  <div style="text-align: center;">
-                    <?php if ($is_closed): ?>
-                      <div style="background: #f8d7da; color: #721c24; padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">CLOSED</div>
-                    <?php else: ?>
-                      <div style="background: #d4edda; color: #155724; padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700;">ACTIVE</div>
-                    <?php endif; ?>
-                  </div>
-                  <div class="job-card-actions">
-                    <button class="btn-small" style="background: white; border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;" onclick="openEditModal(<?php echo $job['job_post_id']; ?>, '<?php echo htmlspecialchars(addslashes($job['title'])); ?>', '<?php echo htmlspecialchars(addslashes($job['job_category'] ?? '')); ?>', '<?php echo htmlspecialchars(addslashes($job['description'])); ?>', '<?php echo htmlspecialchars(addslashes($job['salary'])); ?>', '<?php echo htmlspecialchars(addslashes($job['location'])); ?>', '<?php echo htmlspecialchars(addslashes($job['work_type'])); ?>', '<?php echo htmlspecialchars(addslashes($job['skills'])); ?>', '<?php echo $job['application_deadline'] ?? ''; ?>')">Edit</button>
-                    <?php if (!$is_closed): ?>
-                      <form id="closeForm_<?php echo $job['job_post_id']; ?>" method="POST" style="display:none;">
-                        <input type="hidden" name="action" value="close_job">
-                        <input type="hidden" name="job_id" value="<?php echo $job['job_post_id']; ?>">
-                      </form>
-                      <button type="button" class="btn-small" style="background: white; border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600;" onclick="openCloseConfirm(<?php echo $job['job_post_id']; ?>)">Close</button>
-                    <?php else: ?>
-                      <form id="deleteForm_<?php echo $job['job_post_id']; ?>" method="POST" style="display:none;">
-                        <input type="hidden" name="action" value="delete_job">
-                        <input type="hidden" name="job_id" value="<?php echo $job['job_post_id']; ?>">
-                      </form>
-                      <button type="button" class="btn-small" style="background: #f8d7da; border: 1px solid #f5c6cb; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600; color: #721c24;" onclick="openDeleteConfirm(<?php echo $job['job_post_id']; ?>)">Delete</button>
-                    <?php endif; ?>
-                  </div>
-                </div>
-              <?php endforeach; ?>
-            <?php else: ?>
-              <div class="job-card" style="text-align: center; color: var(--text-light); padding: 2rem; grid-column: 1 / -1;">
-                <p>No job postings yet. Click "Create New Job Posting" to get started.</p>
-              </div>
-            <?php endif; ?>
-          </div>
+          <div class="jobs-list-header">Your Job Postings (<?php echo count($jobs); ?> total)</div>
 
           <!-- Job Cards -->
           <div class="jobs-list">

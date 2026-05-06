@@ -90,122 +90,111 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <title>Employer Login | TalentScout AI</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --sage:        #3d6b50;
-      --sage-light:  #5a8a68;
-      --sage-pale:   #d4e6d6;
-      --sage-deep:   #1e3a2e;
-      --sand:        #f5f0e8;
-      --sand-dark:   #ece5d5;
-      --cream:       #faf8f3;
-      --charcoal:    #2a2a22;
-      --warm-mid:    #5a5448;
-      --warm-light:  #9a9288;
-      --gold:        #c8a96e;
-      --gold-pale:   #f0e4c8;
-      --radius-xl:   24px;
-      --radius-lg:   16px;
-      --radius-md:   10px;
+      --mint:        #e8f5ee;
+      --mint-mid:    #c8e6d4;
+      --mint-deep:   #a8d4b8;
+      --sage:        #5a8a68;
+      --sage-dark:   #3d6b50;
+      --sage-deeper: #2d5040;
+      --gold:        #c8a46a;
+      --gold-pale:   #f5ead8;
+      --gold-light:  #f0ddb8;
+      --cream:       #fdfaf5;
+      --cream-mid:   #f7f2ea;
+      --cream-warm:  #f0ead8;
+      --warm-tan:    #e8dfc8;
+      --charcoal:    #2c3028;
+      --text-mid:    #4a5244;
+      --text-soft:   #7a8270;
+      --text-pale:   #a8b0a0;
+      --white:       #ffffff;
+      --shadow-soft: 0 4px 24px rgba(60,80,50,0.08);
+      --shadow-med:  0 8px 40px rgba(60,80,50,0.12);
+      --radius-xl:   28px;
+      --radius-lg:   18px;
+      --radius-md:   12px;
+      --radius-sm:   8px;
       --radius-pill: 999px;
-      --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+      --ease:        cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     html { scroll-behavior: smooth; }
 
     body {
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       background: var(--cream);
       color: var(--charcoal);
       min-height: 100vh;
       overflow-x: hidden;
     }
 
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 9999;
-      opacity: 0.03;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-    }
-
     a { text-decoration: none; color: inherit; }
 
-    /* ────────── NAVBAR ────────── */
+    /* ══ NAVBAR ══ */
     .navbar {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 3rem;
-      height: 64px;
-      background: rgba(250, 248, 243, 0.88);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(139, 128, 112, 0.12);
-      animation: slideDown 0.6s var(--ease-out) both;
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2.5rem; height: 66px;
+      background: var(--sage);
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+      transition: all 0.4s;
+      animation: navSlide 0.7s var(--ease) both;
     }
 
-    @keyframes slideDown {
+    .navbar.scrolled {
+      background: var(--sage);
+      border-bottom-color: rgba(0,0,0,0.15);
+    }
+
+    @keyframes navSlide {
       from { transform: translateY(-100%); opacity: 0; }
-      to   { transform: translateY(0); opacity: 1; }
+      to   { transform: translateY(0);     opacity: 1; }
     }
 
     .nav-logo {
       display: flex; align-items: center; gap: 0.6rem;
-      font-family: 'Playfair Display', serif;
-      font-weight: 700;
-      font-size: 1.15rem;
-      color: var(--charcoal);
-      letter-spacing: -0.01em;
+      font-family: 'Lora', serif; font-weight: 700; font-size: 1.12rem;
+      color: #fff;
+      transition: color 0.4s;
     }
 
     .nav-logo-mark {
-      width: 34px; height: 34px;
-      background: var(--sage-deep);
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,0.25);
       border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: #fff;
-      letter-spacing: 0.04em;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.7rem; font-weight: 700; color: #fff; letter-spacing: 0.05em;
     }
 
-    .nav-logo em { font-style: italic; color: var(--sage); }
+    .nav-logo em { font-style: italic; color: rgba(255,255,255,0.8); }
 
     .nav-right {
-      display: flex; align-items: center; gap: 0.7rem;
+      display: flex; align-items: center; gap: 0.65rem;
     }
 
-    .btn-nav-ghost {
-      padding: 0.4rem 1rem;
-      border-radius: var(--radius-pill);
-      border: 1px solid var(--warm-light);
-      color: var(--warm-mid);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.83rem;
-      font-weight: 500;
-      background: transparent;
-      cursor: pointer;
-      transition: border-color 0.2s, background 0.2s;
+    .btn-ghost {
+      padding: 0.42rem 1.1rem; border-radius: var(--radius-pill);
+      border: 1.5px solid rgba(255,255,255,0.3); color: #fff;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.83rem; font-weight: 500; background: transparent;
+      cursor: pointer; transition: all 0.2s; display: inline-block;
     }
 
-    .btn-nav-ghost:hover { background: var(--sand); border-color: var(--warm-mid); }
+    .btn-ghost:hover { background: rgba(255,255,255,0.15); color: #fff; }
 
     /* ────────── AUTH PAGE ────────── */
     .auth-wrap {
       min-height: 100vh;
-      padding-top: 64px;
+      padding-top: 66px;
       display: grid;
       place-items: center;
-      background: linear-gradient(180deg, var(--sand) 0%, var(--cream) 100%);
+      background: linear-gradient(180deg, var(--cream-mid) 0%, var(--cream) 100%);
       position: relative;
       overflow: hidden;
     }
@@ -216,7 +205,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       top: -100px; right: -100px;
       width: 400px; height: 400px;
       border-radius: 50%;
-      background: radial-gradient(circle, var(--sage-pale) 0%, transparent 70%);
+      background: radial-gradient(circle, var(--mint) 0%, transparent 70%);
       pointer-events: none;
     }
 
@@ -237,10 +226,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       grid-template-columns: 1fr 1.05fr;
       border-radius: var(--radius-xl);
       overflow: hidden;
-      box-shadow: 0 12px 48px rgba(42,42,34,0.1), 0 2px 8px rgba(42,42,34,0.06);
+      box-shadow: var(--shadow-med), 0 2px 8px rgba(60,80,50,0.06);
       position: relative;
       z-index: 1;
-      animation: fadeUp 0.7s var(--ease-out) both;
+      animation: fadeUp 0.7s var(--ease) both;
     }
 
     @keyframes fadeUp {
@@ -250,7 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     .auth-info {
       padding: 3rem 2.5rem;
-      background: linear-gradient(135deg, var(--sage-deep), var(--sage));
+      background: linear-gradient(135deg, var(--sage-deeper), var(--sage));
       color: #fff;
       display: flex;
       flex-direction: column;
@@ -275,7 +264,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       bottom: -60px; left: -40px;
       width: 180px; height: 180px;
       border-radius: 50%;
-      background: rgba(200,169,110,0.1);
+      background: rgba(200,164,106,0.1);
       pointer-events: none;
     }
 
@@ -295,9 +284,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     .auth-info h1 {
-      font-family: 'Playfair Display', serif;
+      font-family: 'Lora', serif;
       font-size: 1.9rem;
-      font-weight: 900;
+      font-weight: 700;
       line-height: 1.2;
       margin-bottom: 0.75rem;
       letter-spacing: -0.02em;
@@ -349,7 +338,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      font-family: 'Playfair Display', serif;
+      font-family: 'Lora', serif;
       font-weight: 700;
       font-size: 1rem;
       color: var(--charcoal);
@@ -358,26 +347,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     .auth-card-logo-icon {
       width: 30px; height: 30px;
-      background: var(--sage-pale);
+      background: var(--mint);
       border-radius: 8px;
       display: flex; align-items: center; justify-content: center;
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       font-size: 0.65rem;
       font-weight: 700;
-      color: var(--sage-deep);
+      color: var(--sage);
     }
 
     .auth-title {
-      font-family: 'Playfair Display', serif;
+      font-family: 'Lora', serif;
       font-size: 1.5rem;
-      font-weight: 900;
+      font-weight: 700;
       color: var(--charcoal);
       margin-bottom: 0.35rem;
       letter-spacing: -0.02em;
     }
 
     .auth-subtitle {
-      color: var(--warm-light);
+      color: var(--text-soft);
       margin-bottom: 1.75rem;
       font-size: 0.88rem;
       line-height: 1.5;
@@ -393,18 +382,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       display: block;
       font-size: 0.8rem;
       font-weight: 600;
-      color: var(--warm-mid);
+      color: var(--text-mid);
       margin-bottom: 0.4rem;
       letter-spacing: 0.01em;
     }
 
     .field input {
       width: 100%;
-      border: 1.5px solid var(--sand-dark);
+      border: 1.5px solid var(--cream-warm);
       border-radius: var(--radius-lg);
       padding: 0.7rem 0.9rem;
       font-size: 0.88rem;
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       color: var(--charcoal);
       outline: none;
       transition: border-color 0.2s, box-shadow 0.2s;
@@ -412,12 +401,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     .field input:focus {
-      border-color: var(--sage-light);
-      box-shadow: 0 0 0 3px var(--sage-pale);
+      border-color: var(--sage);
+      box-shadow: 0 0 0 3px var(--mint);
       background: #fff;
     }
 
-    .field input::placeholder { color: var(--warm-light); }
+    .field input::placeholder { color: var(--text-pale); }
 
     .form-row {
       display: flex;
@@ -426,7 +415,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       gap: 0.8rem;
       flex-wrap: wrap;
       font-size: 0.82rem;
-      color: var(--warm-light);
+      color: var(--text-soft);
     }
 
     .check {
@@ -438,7 +427,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     .check input[type="checkbox"] {
       width: 16px; height: 16px;
-      accent-color: var(--sage-deep);
+      accent-color: var(--sage-dark);
       cursor: pointer;
     }
 
@@ -448,7 +437,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       transition: color 0.15s;
     }
 
-    .form-row a:hover { color: var(--sage-deep); }
+    .form-row a:hover { color: var(--sage-dark); }
 
     .btn-auth {
       width: 100%;
@@ -456,39 +445,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       padding: 0.8rem 1.2rem;
       font-size: 0.9rem;
       border-radius: var(--radius-lg);
-      background: var(--sage-deep);
+      background: var(--sage);
       color: #fff;
-      font-family: 'DM Sans', sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       font-weight: 700;
       border: none;
       cursor: pointer;
       transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-      box-shadow: 0 4px 14px rgba(30, 62, 46, 0.28);
+      box-shadow: 0 4px 14px rgba(60,80,50,0.28);
       margin-top: 0.25rem;
       display: flex;
       align-items: center;
     }
 
     .btn-auth:hover {
-      background: var(--sage);
+      background: var(--sage-dark);
       transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(30, 62, 46, 0.35);
+      box-shadow: 0 6px 20px rgba(60,80,50,0.35);
     }
 
     .auth-alt {
       margin-top: 1.25rem;
       font-size: 0.85rem;
-      color: var(--warm-light);
+      color: var(--text-soft);
       text-align: center;
     }
 
     .auth-alt a {
-      color: var(--sage-deep);
+      color: var(--sage);
       font-weight: 700;
       transition: color 0.15s;
     }
 
-    .auth-alt a:hover { color: var(--sage); }
+    .auth-alt a:hover { color: var(--sage-dark); }
 
     .auth-message {
       margin-top: 0.9rem;
@@ -505,14 +494,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     .auth-message.success {
-      background: var(--sage-pale);
-      color: var(--sage-deep);
-      border: 1px solid var(--sage-light);
+      background: var(--mint);
+      color: var(--sage-dark);
+      border: 1px solid var(--mint-mid);
     }
 
     @media (max-width: 900px) {
       .navbar { padding: 0 1.5rem; }
-      
+
       .auth-grid {
         grid-template-columns: 1fr;
         max-width: 520px;
@@ -522,7 +511,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       .auth-card { padding: 2rem 1.75rem; }
 
       .auth-wrap {
-        padding: calc(64px + 2rem) 1rem 2rem;
+        padding: calc(66px + 2rem) 1rem 2rem;
       }
     }
 
