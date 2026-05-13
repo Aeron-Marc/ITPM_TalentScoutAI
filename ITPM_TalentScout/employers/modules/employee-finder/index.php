@@ -1,6 +1,7 @@
 <?php 
 session_start();
 require_once('../../../database/db.php');
+require_once('../../../employees/modules/ai-matching/skill-normalizer.php');
 
 if (!isset($_SESSION['employer_id'])) {
   header('Location: ../../login.php');
@@ -11,6 +12,7 @@ $employer_status = $_SESSION['employer_status'] ?? 'pending';
 $isVerified = $employer_status === 'active';
 
 $conn = getConnection();
+$normalizer = new SkillNormalizer();
 $employer_id = (int)$_SESSION['employer_id'];
 
 $search_query = trim($_GET['search'] ?? '');
@@ -31,10 +33,15 @@ if (!empty($search_query)) {
   $types .= "ssss";
 }
 
+// Normalize filter skill if provided
+$normalized_filter_skill = '';
 if (!empty($filter_skill)) {
-  $where_conditions[] = "EXISTS (SELECT 1 FROM resume_skills rs JOIN resumes r2 ON rs.resume_id = r2.resume_id WHERE r2.employee_id = e.employee_id AND rs.skill_name = ?)";
-  $params[] = $filter_skill;
-  $types .= "s";
+  $normalized_filter_skill = $normalizer->getCanonicalForm($filter_skill, $conn);
+  $where_conditions[] = "EXISTS (SELECT 1 FROM resume_skills rs JOIN resumes r2 ON rs.resume_id = r2.resume_id WHERE r2.employee_id = e.employee_id AND (rs.skill_name = ? OR LOWER(rs.skill_name) LIKE LOWER(?)))";
+  $params[] = $normalized_filter_skill;
+  $skill_like = "%{$normalized_filter_skill}%";
+  $params[] = $skill_like;
+  $types .= "ss";
 }
 
 $where_clause = implode(" AND ", $where_conditions);
@@ -71,10 +78,12 @@ foreach ($employees as &$emp) {
     $result = $stmt->get_result();
     $skills = [];
     while ($row = $result->fetch_assoc()) {
-      $skills[] = $row['skill_name'];
+      // Normalize skills for display
+      $normalized = $normalizer->getCanonicalForm($row['skill_name'], $conn);
+      $skills[] = $normalized;
     }
     $stmt->close();
-    $emp['skills'] = $skills;
+    $emp['skills'] = array_unique($skills);
     
     $stmt = $conn->prepare("SELECT job_title, company_name FROM employee_experience WHERE resume_id = ? ORDER BY start_date DESC LIMIT 3");
     $stmt->bind_param("i", $emp['resume_id']);

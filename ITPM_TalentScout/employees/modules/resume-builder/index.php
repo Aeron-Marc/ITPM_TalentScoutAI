@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/../../../database/db.php';
+require_once __DIR__ . '/../ai-matching/skill-normalizer.php';
 
 function rbJsonResponse($payload, $statusCode = 200)
 {
@@ -144,6 +145,7 @@ if (!is_array($jsonBodyForAction)) {
 $apiAction = $_POST['api_action'] ?? $_GET['api_action'] ?? ($jsonBodyForAction['api_action'] ?? '');
 if ($apiAction === 'save' || $apiAction === 'load') {
   $conn = getConnection();
+  $normalizer = new SkillNormalizer();
   $inTransaction = false;
 
   try {
@@ -354,7 +356,10 @@ if ($apiAction === 'save' || $apiAction === 'load') {
           continue;
         }
 
-        $insertSkillStmt->bind_param('is', $resumeId, $skillName);
+        // Normalize skill before saving
+        $normalizedSkill = $normalizer->getCanonicalForm($skillName, $conn);
+
+        $insertSkillStmt->bind_param('is', $resumeId, $normalizedSkill);
         $insertSkillStmt->execute();
       }
 
@@ -1514,22 +1519,9 @@ if ($apiAction === 'save' || $apiAction === 'load') {
             <div class="group-head">
               <h3>Skills</h3>
             </div>
-            <div class="skill-input-wrap">
-              <label>
-                Add a Skill
-                <input
-                  id="skillInput"
-                  type="text"
-                  placeholder="Type a skill and press Add" />
-              </label>
-              <button type="button" class="skill-add-btn" id="addSkillBtn">
-                Add
-              </button>
-            </div>
             <div class="skills-pills-wrap" id="skillFieldsContainer"></div>
             <p class="helper">
-              Type each skill and click "Add". Skills appear as removable
-              pills below.
+              Your skills from your profile are displayed above as removable pills.
             </p>
           </div>
 
@@ -2474,32 +2466,7 @@ if ($apiAction === 'save' || $apiAction === 'load') {
         updatePreview();
       });
 
-    document
-      .getElementById("addSkillBtn")
-      .addEventListener("click", function(e) {
-        e.preventDefault();
-        const input = document.getElementById("skillInput");
-        const skillValue = input.value.trim();
 
-        if (!skillValue) {
-          input.focus();
-          return;
-        }
-
-        createSkillEntry(skillValue);
-        input.value = "";
-        input.focus();
-        updatePreview();
-      });
-
-    document
-      .getElementById("skillInput")
-      .addEventListener("keypress", function(e) {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          document.getElementById("addSkillBtn").click();
-        }
-      });
 
     baseFields.photoFile.addEventListener("change", function() {
       const file =

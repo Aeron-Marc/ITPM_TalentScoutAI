@@ -854,6 +854,9 @@ $hire_up     = $hires_this_month     >= $hires_last_month;
     <a href="./modules/application-tracking/" class="nav-item">
       <i class="fa-solid fa-clipboard-list"></i> Applications
     </a>
+    <a href="./modules/skill-management/" class="nav-item">
+      <i class="fa-solid fa-book-open"></i> Skill Management
+    </a>
 
     <div class="nav-section-label">Insights</div>
     <a href="./modules/analytics/" class="nav-item">

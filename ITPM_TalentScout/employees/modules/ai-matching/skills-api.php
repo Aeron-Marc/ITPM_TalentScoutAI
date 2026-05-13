@@ -49,6 +49,15 @@ try {
         case 'normalize_all':
             handleNormalizeAll();
             break;
+        case 'check_match':
+            handleCheckMatch();
+            break;
+        case 'get_category':
+            handleGetCategory();
+            break;
+        case 'get_synonyms':
+            handleGetSynonyms();
+            break;
         default:
             http_response_code(400);
             echo json_encode(['error' => 'Invalid action']);
@@ -62,9 +71,10 @@ closeConnection($conn);
 
 /**
  * Suggest skills based on partial input (autocomplete)
+ * Now includes database-backed skill categories and synonyms
  */
 function handleSuggest() {
-    global $normalizer;
+    global $normalizer, $conn;
     
     $input = trim($_GET['q'] ?? '');
     if (strlen($input) < 2) {
@@ -72,8 +82,84 @@ function handleSuggest() {
         return;
     }
     
-    $suggestions = $normalizer->suggestSkills($input);
-    echo json_encode(['suggestions' => array_slice($suggestions, 0, 10)]);
+    $suggestions = [];
+    $seen = [];
+    
+    // Get canonical skill names from database that match the input
+    $query = "
+        SELECT DISTINCT 
+            c.canonical_name as skill,
+            c.category_name,
+            'category' as source
+        FROM skill_categories c
+        WHERE LOWER(c.canonical_name) LIKE LOWER(?) OR LOWER(c.category_name) LIKE LOWER(?)
+        ORDER BY c.canonical_name
+        LIMIT 10
+    ";
+    
+    $like_input = '%' . $input . '%';
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param('ss', $like_input, $like_input);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    while ($row = $result->fetch_assoc()) {
+        $skill = $row['skill'];
+        if (!isset($seen[$skill])) {
+            $suggestions[] = [
+                'text' => $skill,
+                'category' => $row['category_name'],
+                'type' => 'category'
+            ];
+            $seen[$skill] = true;
+        }
+    }
+    
+    // Also get synonyms that match the input
+    if (count($suggestions) < 10) {
+        $query = "
+            SELECT DISTINCT 
+                s.synonym as skill,
+                c.canonical_name,
+                c.category_name,
+                'synonym' as source
+            FROM skill_synonyms s
+            JOIN skill_categories c ON s.category_id = c.category_id
+            WHERE LOWER(s.synonym) LIKE LOWER(?)
+            ORDER BY s.synonym
+            LIMIT " . (10 - count($suggestions)) . "
+        ";
+        
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param('s', $like_input);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        while ($row = $result->fetch_assoc()) {
+            $skill = $row['skill'];
+            if (!isset($seen[$skill])) {
+                $suggestions[] = [
+                    'text' => $skill,
+                    'canonical' => $row['canonical_name'],
+                    'category' => $row['category_name'],
+                    'type' => 'synonym'
+                ];
+                $seen[$skill] = true;
+            }
+        }
+    }
+    
+    // Format suggestions for display
+    $formatted = [];
+    foreach ($suggestions as $sugg) {
+        if ($sugg['type'] === 'synonym') {
+            $formatted[] = $sugg['text'] . ' → ' . $sugg['canonical'];
+        } else {
+            $formatted[] = $sugg['text'];
+        }
+    }
+    
+    echo json_encode(['suggestions' => array_slice($formatted, 0, 10)]);
 }
 
 /**
@@ -372,5 +458,78 @@ function handleNormalizeAll() {
         http_response_code(500);
         echo json_encode(['error' => 'Normalization failed: ' . $e->getMessage()]);
     }
+}
+
+/**
+ * Check if two skills match (considering synonyms)
+ */
+function handleCheckMatch() {
+    global $normalizer, $conn;
+    
+    $skill1 = trim($_GET['skill1'] ?? '');
+    $skill2 = trim($_GET['skill2'] ?? '');
+    
+    if (empty($skill1) || empty($skill2)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Missing skill parameters']);
+        return;
+    }
+    
+    $result = $normalizer->checkSkillMatch($skill1, $skill2, $conn);
+    echo json_encode($result);
+}
+
+/**
+ * Get the category for a skill
+ */
+function handleGetCategory() {
+    global $normalizer, $conn;
+    
+    $skill = trim($_GET['skill'] ?? '');
+    
+    if (empty($skill)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Missing skill parameter']);
+        return;
+    }
+    
+    $category = $normalizer->findSkillCategory($skill, $conn);
+    
+    if ($category) {
+        echo json_encode([
+            'found' => true,
+            'category' => $category
+        ]);
+    } else {
+        echo json_encode([
+            'found' => false,
+            'message' => 'Skill category not found in database'
+        ]);
+    }
+}
+
+/**
+ * Get all synonyms for a skill
+ */
+function handleGetSynonyms() {
+    global $normalizer, $conn;
+    
+    $skill = trim($_GET['skill'] ?? '');
+    
+    if (empty($skill)) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Missing skill parameter']);
+        return;
+    }
+    
+    $synonyms = $normalizer->getSkillSynonyms($skill, $conn);
+    $category = $normalizer->findSkillCategory($skill, $conn);
+    
+    echo json_encode([
+        'skill' => $skill,
+        'category' => $category,
+        'synonyms' => $synonyms,
+        'synonym_count' => count($synonyms)
+    ]);
 }
 ?>

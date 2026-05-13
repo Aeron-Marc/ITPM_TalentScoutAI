@@ -1440,5 +1440,146 @@ class SkillNormalizer {
         
         return array_unique($suggestions);
     }
+
+    /**
+     * Find which category a skill belongs to (via synonym matching)
+     * Returns category info or null
+     */
+    public function findSkillCategory($skill, $conn) {
+        $skill_normalized = strtolower(trim($skill));
+        
+        // Check canonical names first
+        $sql = "SELECT category_id, category_name, canonical_name FROM skill_categories 
+                WHERE LOWER(canonical_name) = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param('s', $skill_normalized);
+        $stmt->execute();
+        
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            return [
+                'category_id' => $row['category_id'],
+                'category_name' => $row['category_name'],
+                'canonical_name' => $row['canonical_name'],
+                'matched_by' => 'canonical'
+            ];
+        }
+        
+        // Check synonyms
+        $sql = "SELECT c.category_id, c.category_name, c.canonical_name 
+                FROM skill_categories c 
+                JOIN skill_synonyms s ON c.category_id = s.category_id 
+                WHERE LOWER(s.synonym) = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param('s', $skill_normalized);
+        $stmt->execute();
+        
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            return [
+                'category_id' => $row['category_id'],
+                'category_name' => $row['category_name'],
+                'canonical_name' => $row['canonical_name'],
+                'matched_by' => 'synonym'
+            ];
+        }
+        
+        return null;
+    }
+
+    /**
+     * Check if two skills match (considering synonyms)
+     * Returns match details with score and type
+     */
+    public function checkSkillMatch($skill1, $skill2, $conn) {
+        $skill1_lower = strtolower(trim($skill1));
+        $skill2_lower = strtolower(trim($skill2));
+        
+        // Exact match
+        if ($skill1_lower === $skill2_lower) {
+            return [
+                'match' => true,
+                'match_type' => 'exact',
+                'score' => 100,
+                'skill1' => $skill1,
+                'skill2' => $skill2
+            ];
+        }
+        
+        // Get category for each skill
+        $cat1 = $this->findSkillCategory($skill1, $conn);
+        $cat2 = $this->findSkillCategory($skill2, $conn);
+        
+        // Both found in same category = synonym match
+        if ($cat1 && $cat2 && $cat1['category_id'] === $cat2['category_id']) {
+            return [
+                'match' => true,
+                'match_type' => 'synonym',
+                'score' => 70,
+                'skill1' => $skill1,
+                'skill2' => $skill2,
+                'category' => $cat1['category_name'],
+                'canonical' => $cat1['canonical_name']
+            ];
+        }
+        
+        // Check partial/Levenshtein match
+        $lev = levenshtein($skill1_lower, $skill2_lower);
+        if ($lev > 0 && $lev <= 3) {
+            return [
+                'match' => true,
+                'match_type' => 'partial',
+                'score' => 50,
+                'skill1' => $skill1,
+                'skill2' => $skill2,
+                'distance' => $lev
+            ];
+        }
+        
+        return [
+            'match' => false,
+            'match_type' => 'none',
+            'score' => 0,
+            'skill1' => $skill1,
+            'skill2' => $skill2
+        ];
+    }
+
+    /**
+     * Get canonical form of a skill (from database or fallback to normalization)
+     */
+    public function getCanonicalForm($skill, $conn) {
+        $category = $this->findSkillCategory($skill, $conn);
+        if ($category) {
+            return $category['canonical_name'];
+        }
+        
+        // Fallback to built-in normalization
+        return $this->normalize($skill);
+    }
+
+    /**
+     * Get all synonyms for a skill
+     */
+    public function getSkillSynonyms($skill, $conn) {
+        $category = $this->findSkillCategory($skill, $conn);
+        
+        if (!$category) {
+            return [];
+        }
+        
+        $sql = "SELECT synonym FROM skill_synonyms WHERE category_id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param('i', $category['category_id']);
+        $stmt->execute();
+        
+        $result = $stmt->get_result();
+        $synonyms = [];
+        while ($row = $result->fetch_assoc()) {
+            $synonyms[] = $row['synonym'];
+        }
+        
+        return $synonyms;
+    }
 }
 ?>

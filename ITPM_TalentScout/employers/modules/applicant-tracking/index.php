@@ -1,6 +1,7 @@
 <?php 
 session_start();
 require_once('../../../database/db.php');
+require_once('../../../employees/modules/ai-matching/skill-normalizer.php');
 
 // Check if employer is logged in
 if (!isset($_SESSION['employer_id'])) {
@@ -13,6 +14,7 @@ $isVerified = $employer_status === 'active';
 
 // Get database connection
 $conn = getConnection();
+$normalizer = new SkillNormalizer();
 $employer_id = (int)$_SESSION['employer_id'];
 
 // Fetch all applications for this employer's jobs
@@ -50,6 +52,48 @@ while ($row = $result->fetch_assoc()) {
   } else {
     $row['display_status'] = $row['status'];
   }
+  
+  // Normalize candidate skills
+  if (!empty($row['candidate_skills'])) {
+    $candidate_skills_arr = array_map('trim', explode(',', $row['candidate_skills']));
+    $normalized_candidate_skills = [];
+    foreach ($candidate_skills_arr as $skill) {
+      $normalized = $normalizer->getCanonicalForm($skill, $conn);
+      $normalized_candidate_skills[] = $normalized;
+    }
+    $row['candidate_skills'] = implode(', ', array_unique($normalized_candidate_skills));
+  }
+  
+  // Calculate skill match with synonym support
+  if (!empty($row['job_skills']) && !empty($row['candidate_skills'])) {
+    $job_skills = array_map('trim', explode(',', $row['job_skills']));
+    $cand_skills = array_map('trim', explode(',', $row['candidate_skills']));
+    $match_count = 0;
+    
+    foreach ($job_skills as $job_skill) {
+      $norm_job = strtolower($normalizer->getCanonicalForm($job_skill, $conn));
+      foreach ($cand_skills as $cand_skill) {
+        $norm_cand = strtolower($normalizer->getCanonicalForm($cand_skill, $conn));
+        
+        // Check exact match or synonym match
+        if ($norm_job === $norm_cand) {
+          $match_count++;
+          break;
+        }
+        
+        $synonym_check = $normalizer->checkSkillMatch($norm_job, $norm_cand, $conn);
+        if ($synonym_check['match']) {
+          $match_count++;
+          break;
+        }
+      }
+    }
+    
+    $row['skill_match_percent'] = count($job_skills) > 0 ? round(($match_count / count($job_skills)) * 100) : 0;
+  } else {
+    $row['skill_match_percent'] = 0;
+  }
+  
   $applications[] = $row;
 }
 $stmt->close();

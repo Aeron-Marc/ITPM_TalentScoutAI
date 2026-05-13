@@ -1,9 +1,11 @@
 <?php
 session_start();
 require_once __DIR__ . '/../../../database/db.php';
+require_once __DIR__ . '/../ai-matching/skill-normalizer.php';
 
 // Initialize database connection
 $conn = getConnection();
+$normalizer = new SkillNormalizer();
 
 // Check if user is logged in
 // if (!isset($_SESSION['employee_id'])) {
@@ -29,17 +31,18 @@ $employee_skills_stmt->bind_param("i", $employee_id);
 $employee_skills_stmt->execute();
 $employee_skills_result = $employee_skills_stmt->get_result();
 
-// Build employee skills array
+// Build employee skills array - NORMALIZED
 $employee_skills = array();
 while ($skill = $employee_skills_result->fetch_assoc()) {
-    $employee_skills[] = strtolower(trim($skill['skill_name']));
+    $normalized = $normalizer->getCanonicalForm($skill['skill_name'], $conn);
+    $employee_skills[] = strtolower(trim($normalized));
 }
 
 // Get all job postings to analyze market demand for skills
 $jobs_query = "SELECT skills FROM job_post WHERE skills IS NOT NULL AND skills != ''";
 $jobs_result = $conn->query($jobs_query);
 
-// Parse job posting skills and count frequency
+// Parse job posting skills and count frequency - NORMALIZED
 $market_skills = array();
 $total_jobs = 0;
 
@@ -47,7 +50,10 @@ while ($job = $jobs_result->fetch_assoc()) {
     $total_jobs++;
     $job_skills = explode(',', $job['skills']);
     foreach ($job_skills as $skill) {
-        $skill_clean = strtolower(trim($skill));
+        $skill_clean = trim($skill);
+        // Normalize the skill
+        $normalized = $normalizer->getCanonicalForm($skill_clean, $conn);
+        $skill_clean = strtolower($normalized);
         if (!empty($skill_clean)) {
             if (!isset($market_skills[$skill_clean])) {
                 $market_skills[$skill_clean] = 0;

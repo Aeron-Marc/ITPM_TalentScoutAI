@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once('../../../database/db.php');
+require_once('../../../employees/modules/ai-matching/skill-normalizer.php');
 
 if (!isset($_SESSION['employer_id'])) {
   header('Location: ../../login.php');
@@ -11,6 +12,7 @@ $employer_status = $_SESSION['employer_status'] ?? 'pending';
 $isVerified = $employer_status === 'active';
 
 $conn = getConnection();
+$normalizer = new SkillNormalizer();
 $employer_id = (int)$_SESSION['employer_id'];
 
 $success_message = '';
@@ -74,6 +76,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $skills     = trim($_POST['required_skills']        ?? '');
     $deadline   = trim($_POST['application_deadline']   ?? '');
     $job_status = $is_draft ? 'draft' : 'active';
+
+    // Normalize skills before saving
+    if (!empty($skills)) {
+      $skills_arr = array_map('trim', explode(',', $skills));
+      $normalized_skills = [];
+      foreach ($skills_arr as $skill) {
+        $normalized = $normalizer->getCanonicalForm($skill, $conn);
+        $normalized_skills[] = $normalized;
+      }
+      $skills = implode(', ', array_unique($normalized_skills));
+    }
 
     // Drafts only need a title; active posts need everything
     $valid = $is_draft
@@ -203,6 +216,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $deadline    = trim($_POST['edit_application_deadline']  ?? '');
     // If save_as_draft flag is set, keep/set draft; else keep current status (don't change)
     $force_draft = isset($_POST['edit_save_as_draft']) && $_POST['edit_save_as_draft'] === '1';
+
+    // Normalize skills before saving
+    if (!empty($skills)) {
+      $skills_arr = array_map('trim', explode(',', $skills));
+      $normalized_skills = [];
+      foreach ($skills_arr as $skill) {
+        $normalized = $normalizer->getCanonicalForm($skill, $conn);
+        $normalized_skills[] = $normalized;
+      }
+      $skills = implode(', ', array_unique($normalized_skills));
+    }
 
     if ($job_id > 0 && $title) {
       if ($force_draft) {
@@ -1295,6 +1319,115 @@ $stmt->close();
       margin-bottom: 0;
     }
 
+    /* Skill Input Styles */
+    .skill-input-wrapper {
+      margin-bottom: 1.1rem;
+    }
+
+    .skill-input-container {
+      position: relative;
+      margin-bottom: 0.6rem;
+    }
+
+    .skill-input {
+      width: 100%;
+      padding: 0.6rem 0.85rem;
+      border: 1.5px solid rgba(90, 138, 104, 0.2);
+      border-radius: 9px;
+      font-size: 0.875rem;
+      font-family: inherit;
+      color: var(--text-dark);
+      background: white;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .skill-input:focus {
+      outline: none;
+      border-color: var(--sage, #5a8a68);
+      box-shadow: 0 0 0 3px rgba(90, 138, 104, 0.1);
+    }
+
+    .skill-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1.5px solid rgba(90, 138, 104, 0.2);
+      border-top: none;
+      border-radius: 0 0 9px 9px;
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .skill-suggestions.active {
+      display: block;
+    }
+
+    .skill-suggestion-item {
+      padding: 0.6rem 0.85rem;
+      border-bottom: 1px solid rgba(90, 138, 104, 0.1);
+      font-size: 0.875rem;
+      color: var(--text-dark);
+      cursor: pointer;
+      transition: background 0.15s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .skill-suggestion-item:last-child {
+      border-bottom: none;
+    }
+
+    .skill-suggestion-item:hover {
+      background: rgba(90, 138, 104, 0.06);
+    }
+
+    .skill-suggestion-hint {
+      font-size: 0.75rem;
+      color: var(--text-soft);
+      margin-left: 0.5rem;
+    }
+
+    .skill-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .skill-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 0.8rem;
+      background: rgba(90, 138, 104, 0.12);
+      border: 1px solid rgba(90, 138, 104, 0.3);
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--sage-dark);
+    }
+
+    .skill-pill-remove {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: var(--sage-dark);
+      padding: 0;
+      line-height: 1;
+      transition: opacity 0.2s;
+    }
+
+    .skill-pill-remove:hover {
+      opacity: 0.7;
+    }
+
     /* Draft helper note */
     .draft-note {
       background: #fffbea;
@@ -1880,7 +2013,15 @@ $stmt->close();
                 </div>
                 <div class="form-group">
                   <label class="form-label">Required Skills *</label>
-                  <input type="text" name="required_skills" class="input" required placeholder="e.g. HTML, CSS, JavaScript, PHP">
+                  <div class="skill-input-wrapper">
+                    <div class="skill-pills" id="createSkillPills"></div>
+                    <div class="skill-input-container">
+                      <input type="text" class="skill-input" id="createSkillInput" placeholder="Type a skill and press Enter (e.g., web developer, database administrator)...">
+                      <div class="skill-suggestions" id="createSkillSuggestions"></div>
+                    </div>
+                  </div>
+                  <!-- Hidden input to store the comma-separated skills for form submission -->
+                  <input type="hidden" name="required_skills" id="createRequiredSkills">
                 </div>
               </div>
               <div class="modal-footer">
@@ -1956,7 +2097,15 @@ $stmt->close();
                 </div>
                 <div class="form-group">
                   <label class="form-label">Required Skills *</label>
-                  <input type="text" name="edit_required_skills" id="edit_required_skills" class="input" required>
+                  <div class="skill-input-wrapper">
+                    <div class="skill-pills" id="editSkillPills"></div>
+                    <div class="skill-input-container">
+                      <input type="text" class="skill-input" id="editSkillInput" placeholder="Type a skill and press Enter...">
+                      <div class="skill-suggestions" id="editSkillSuggestions"></div>
+                    </div>
+                  </div>
+                  <!-- Hidden input to store the comma-separated skills for form submission -->
+                  <input type="hidden" name="edit_required_skills" id="editRequiredSkills">
                 </div>
               </div>
               <div class="modal-footer">
@@ -2844,11 +2993,23 @@ $stmt->close();
 
       /* ─── Edit form submission ─── */
       function submitEditAsDraft() {
+        const skillsValue = document.getElementById('editRequiredSkills').value.trim();
+        if (!skillsValue) {
+          alert('Please add at least one required skill.');
+          document.getElementById('editSkillInput').focus();
+          return;
+        }
         document.getElementById('edit_save_as_draft_flag').value = '1';
         document.getElementById('editJobForm').submit();
       }
 
       function submitEditAsActive() {
+        const skillsValue = document.getElementById('editRequiredSkills').value.trim();
+        if (!skillsValue) {
+          alert('Please add at least one required skill.');
+          document.getElementById('editSkillInput').focus();
+          return;
+        }
         document.getElementById('edit_save_as_draft_flag').value = '0';
         document.getElementById('editJobForm').submit();
       }
@@ -2882,8 +3043,17 @@ $stmt->close();
         document.getElementById('edit_salary_range').value = salary;
         document.getElementById('edit_location').value = location;
         document.getElementById('edit_job_type').value = workType;
-        document.getElementById('edit_required_skills').value = skills;
         document.getElementById('edit_application_deadline').value = deadline;
+
+        // Load skills into edit modal pills
+        document.getElementById('editSkillPills').innerHTML = '';
+        if (skills && skills.trim()) {
+          const skillArray = skills.split(',').map(s => s.trim()).filter(s => s);
+          skillArray.forEach(skill => addSkillPill('edit', skill));
+          document.getElementById('editRequiredSkills').value = skills;
+        } else {
+          document.getElementById('editRequiredSkills').value = '';
+        }
 
         const isDraft = (status === 'draft');
         document.getElementById('edit_draft_note').style.display = isDraft ? '' : 'none';
@@ -2968,6 +3138,15 @@ $stmt->close();
             const latValue = elements.lat ? elements.lat.value.trim() : '';
             const lngValue = elements.lng ? elements.lng.value.trim() : '';
             const locationValue = elements.input ? elements.input.value.trim() : '';
+            const skillsValue = document.getElementById('createRequiredSkills').value.trim();
+
+            // Validate skills are present
+            if (!skillsValue) {
+              event.preventDefault();
+              alert('Please add at least one required skill.');
+              document.getElementById('createSkillInput').focus();
+              return;
+            }
 
             if (!latValue || !lngValue) {
               event.preventDefault();
@@ -3007,6 +3186,174 @@ $stmt->close();
           }, 3000);
         }
       });
+
+      /* ─── Skill Input Handling ─── */
+      let createSkillsTimeout;
+      let editSkillsTimeout;
+
+      function initSkillInputs() {
+        // Create modal skill input
+        const createInput = document.getElementById('createSkillInput');
+        if (createInput) {
+          createInput.addEventListener('input', function() {
+            clearTimeout(createSkillsTimeout);
+            const query = this.value.trim();
+            
+            if (query.length < 2) {
+              document.getElementById('createSkillSuggestions').classList.remove('active');
+              return;
+            }
+            
+            createSkillsTimeout = setTimeout(() => {
+              fetchSkillSuggestions(query, 'create');
+            }, 300);
+          });
+          
+          createInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              addSkillFromInput('create');
+            }
+          });
+        }
+
+        // Edit modal skill input
+        const editInput = document.getElementById('editSkillInput');
+        if (editInput) {
+          editInput.addEventListener('input', function() {
+            clearTimeout(editSkillsTimeout);
+            const query = this.value.trim();
+            
+            if (query.length < 2) {
+              document.getElementById('editSkillSuggestions').classList.remove('active');
+              return;
+            }
+            
+            editSkillsTimeout = setTimeout(() => {
+              fetchSkillSuggestions(query, 'edit');
+            }, 300);
+          });
+          
+          editInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              addSkillFromInput('edit');
+            }
+          });
+        }
+
+        // Close suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+          if (!e.target.closest('.skill-input-container')) {
+            document.getElementById('createSkillSuggestions').classList.remove('active');
+            document.getElementById('editSkillSuggestions').classList.remove('active');
+          }
+        });
+      }
+
+      function fetchSkillSuggestions(query, modalType) {
+        fetch(`./skills-api.php?action=suggest&q=${encodeURIComponent(query)}`)
+          .then(res => res.json())
+          .then(data => {
+            const suggestionsDiv = document.getElementById(`${modalType}SkillSuggestions`);
+            
+            if (data.suggestions && data.suggestions.length > 0) {
+              suggestionsDiv.innerHTML = data.suggestions
+                .map(skill => {
+                  const isNormalized = skill.includes(' → ');
+                  const displayText = isNormalized 
+                    ? skill.split(' → ')[0].trim() 
+                    : skill;
+                  const normalizedTo = isNormalized 
+                    ? skill.split(' → ')[1].trim()
+                    : null;
+                  
+                  let html = `<div class="skill-suggestion-item" onclick="selectSkillSuggestion('${displayText}', '${modalType}')">
+                    <span>${displayText}</span>`;
+                  
+                  if (normalizedTo) {
+                    html += `<span class="skill-suggestion-hint">→ ${normalizedTo}</span>`;
+                  }
+                  
+                  html += `</div>`;
+                  return html;
+                })
+                .join('');
+              suggestionsDiv.classList.add('active');
+            } else {
+              suggestionsDiv.classList.remove('active');
+            }
+          })
+          .catch(err => console.error('Skill suggestion error:', err));
+      }
+
+      function selectSkillSuggestion(skill, modalType) {
+        document.getElementById(`${modalType}SkillInput`).value = '';
+        document.getElementById(`${modalType}SkillSuggestions`).classList.remove('active');
+        addSkillPill(modalType, skill);
+        updateSkillsHiddenInput(modalType);
+      }
+
+      function addSkillFromInput(modalType) {
+        const input = document.getElementById(`${modalType}SkillInput`);
+        const skill = input.value.trim();
+        
+        if (!skill || skill.length < 2) {
+          return;
+        }
+        
+        // Normalize the skill
+        fetch(`./skills-api.php?action=normalize&skill=${encodeURIComponent(skill)}`)
+          .then(res => res.json())
+          .then(data => {
+            addSkillPill(modalType, data.normalized);
+            input.value = '';
+            document.getElementById(`${modalType}SkillSuggestions`).classList.remove('active');
+            updateSkillsHiddenInput(modalType);
+          })
+          .catch(err => {
+            console.error('Skill normalization error:', err);
+            addSkillPill(modalType, skill);
+            input.value = '';
+            updateSkillsHiddenInput(modalType);
+          });
+      }
+
+      function addSkillPill(modalType, skill) {
+        const skillsContainer = document.getElementById(`${modalType}SkillPills`);
+        
+        // Check if skill already exists
+        const existingPills = Array.from(skillsContainer.querySelectorAll('.skill-pill'));
+        if (existingPills.some(pill => pill.textContent.trim().startsWith(skill))) {
+          return;
+        }
+        
+        const pill = document.createElement('div');
+        pill.className = 'skill-pill';
+        pill.innerHTML = `
+          <span>${skill}</span>
+          <button type="button" class="skill-pill-remove" onclick="removeSkillPill(this, '${modalType}')">×</button>
+        `;
+        
+        skillsContainer.appendChild(pill);
+      }
+
+      function removeSkillPill(btn, modalType) {
+        btn.closest('.skill-pill').remove();
+        updateSkillsHiddenInput(modalType);
+      }
+
+      function updateSkillsHiddenInput(modalType) {
+        const skillPills = document.getElementById(`${modalType}SkillPills`);
+        const skills = Array.from(skillPills.querySelectorAll('.skill-pill'))
+          .map(pill => pill.textContent.trim().replace('×', '').trim())
+          .join(', ');
+        
+        document.getElementById(`${modalType}RequiredSkills`).value = skills;
+      }
+
+      // Initialize skill inputs when page loads
+      initSkillInputs();
 
       /* ─── Navbar scroll detection ─── */
       const navbar = document.querySelector('.navbar');

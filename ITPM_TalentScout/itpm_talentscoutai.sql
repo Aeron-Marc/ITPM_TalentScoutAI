@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 05, 2026 at 07:33 AM
+-- Generation Time: May 13, 2026 at 05:35 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -33,6 +33,13 @@ CREATE TABLE `admin` (
   `password` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `admin`
+--
+
+INSERT INTO `admin` (`admin_id`, `username`, `password`) VALUES
+(1, 'admin', 'admin123');
+
 -- --------------------------------------------------------
 
 --
@@ -60,8 +67,8 @@ CREATE TABLE `application` (
 INSERT INTO `application` (`application_id`, `job_post_id`, `employee_id`, `status`, `employer_feedback`, `application_date`, `hire_status`, `hire_offer_message`, `hire_offer_date`, `hire_response_date`, `is_anonymous`) VALUES
 (1, 6, 9, 'Pending', NULL, '2026-04-30', 'none', NULL, NULL, NULL, 0),
 (2, 7, 9, 'Pending', NULL, '2026-04-30', 'none', NULL, NULL, NULL, 0),
-(3, 2, 9, 'Pending', NULL, '2026-04-30', 'none', NULL, NULL, NULL, 0),
-(4, 1, 9, 'Pending', NULL, '2026-04-30', 'none', NULL, NULL, NULL, 0),
+(3, 2, 9, 'Interview Scheduled', NULL, '2026-04-30', 'accepted', '', '2026-05-06 18:54:20', '2026-05-06 18:54:28', 0),
+(4, 1, 9, 'Pending', NULL, '2026-04-30', 'offered', '', '2026-05-06 20:18:34', NULL, 0),
 (5, 5, 9, 'Pending', NULL, '2026-04-30', 'none', NULL, NULL, NULL, 0),
 (6, 4, 9, 'Pending', NULL, '2026-04-30', 'none', NULL, NULL, NULL, 0),
 (7, 7, 10, 'Pending', NULL, '2026-05-03', 'none', NULL, NULL, NULL, 0),
@@ -84,7 +91,41 @@ INSERT INTO `application` (`application_id`, `job_post_id`, `employee_id`, `stat
 (24, 4, 5, 'Pending', NULL, '2026-05-05', 'none', NULL, NULL, NULL, 0),
 (25, 6, 5, 'Pending', NULL, '2026-05-05', 'none', NULL, NULL, NULL, 0),
 (26, 11, 5, 'Pending', NULL, '2026-05-05', 'none', NULL, NULL, NULL, 0),
-(27, 11, 6, 'Pending', NULL, '2026-05-05', 'none', NULL, NULL, NULL, 0);
+(27, 11, 6, 'Pending', NULL, '2026-05-05', 'none', NULL, NULL, NULL, 0),
+(28, 3, 5, 'Pending', NULL, '2026-05-05', 'none', NULL, NULL, NULL, 0),
+(29, 2, 5, 'Pending', NULL, '2026-05-05', 'none', NULL, NULL, NULL, 0),
+(30, 12, 12, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(31, 34, 14, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(32, 33, 15, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(33, 26, 16, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(34, 22, 17, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(35, 2, 18, 'Interview Scheduled', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(36, 34, 19, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(37, 21, 20, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(38, 29, 21, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(39, 30, 22, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(40, 24, 23, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(41, 38, 24, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(42, 25, 25, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(43, 37, 26, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(44, 35, 27, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(45, 16, 29, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(46, 26, 32, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(47, 31, 36, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(48, 27, 37, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(49, 29, 38, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(50, 22, 40, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(51, 23, 42, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(52, 34, 44, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(53, 35, 45, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(54, 27, 47, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(55, 24, 48, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(56, 29, 49, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(57, 10, 6, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 1),
+(58, 28, 6, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(59, 10, 9, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(60, 38, 6, 'Pending', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0),
+(61, 42, 5, 'Interview Scheduled', NULL, '2026-05-06', 'none', NULL, NULL, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -116,7 +157,51 @@ INSERT INTO `employee` (`employee_id`, `first_name`, `last_name`, `email`, `pass
 (7, 'Andre', 'Cahola', 'andre@gmail.com', '$2y$10$4mAnaPAI2qPLiX1gtMdIdOjKv42Er2rTf14Rrw0AUSsI5MiV8osuq', 'Wawa', 1),
 (8, 'Felman', 'Elepango', 'felman@gmail.com', '$2y$10$0ujQAXuY1NtbYNJ2x4M.PeVIj1.E0i3jFO4aHwDUy7Ud30NPj.cp2', 'Bucana', 1),
 (9, 'Aeron', 'Salanguit', 'saeronmarc@gmail.com', '$2y$10$kdzTpn/kGtxoZi9dvqYlm.7rp4KANmdnJWD.1St/TiH2CNXq3kF0C', 'Wawa', 1),
-(10, 'Taga', 'Don', 'tagadon@sakalye.com', '$2y$10$V3IRgrJyTn9fYrQVMATLmujYlNKwCp.z.C408K.CR5Pm9iiuerE4C', 'Wawa', 1);
+(10, 'Taga', 'Don', 'tagadon@sakalye.com', '$2y$10$V3IRgrJyTn9fYrQVMATLmujYlNKwCp.z.C408K.CR5Pm9iiuerE4C', 'Wawa', 1),
+(11, 'Mia', 'Castillo', 'miacastillo@gmail.com', '$2y$10$8oaZv8sx9OFUX.wMh0Qm/uHPtLBtt7ynn3o3QJapksabs9U3KaDcu', 'Kaylaway', 1),
+(12, 'Ralph', 'Navarro', 'ralphnavarro@gmail.com', '$2y$10$db6CD4F8tTDBiZxelVFd3eZVfCI/bBkoXoCOjcTPYnWMezjgXaE.q', 'Wawa', 1),
+(13, 'Joy', 'Aquino', 'joyaquino@gmail.com', '$2y$10$b4pb98/KBnbBe1hm.mMF.OKaQS9wuvmDL3qZzNPJI/SXGT1Uimm7e', 'Bucana', 1),
+(14, 'John', 'Dela Cruz', 'johndelacruz@gmail.com', '$2y$10$Lh.3ahMnu8LATnItkqWjwe.XR.EfFdmoTBIeVo6vKYGBlClF8b4da', 'Kaylaway', 1),
+(15, 'Maria', 'Santos', 'mariasantos@gmail.com', '$2y$10$qqHvFmVK6GnrFzbQiq7I7Oq9kFYhSfzzPJRX7hdMRnGdT6gAeNH2S', 'Wawa', 1),
+(16, 'Jose', 'Ramos', 'joseramos@gmail.com', '$2y$10$FVX0Wb8X2NAyVZiBVT86z.R.Al6jtnO4kXWHyu4wcEIhXG7mUS.0m', 'Bucana', 1),
+(17, 'Anna', 'Reyes', 'annareyes@gmaiil.com', '$2y$10$Ej3v6C.5SyRhN7TPbXcCZudH/9l7v.B6cYyCNTu0Ea6XiwkwRpB/u', 'Poblacion', 1),
+(18, 'Mark', 'Garcia', 'markgarcia@gmail.com', '$2y$10$0AqZhoMoUc3Qlb5R3T/wHOjRpAuTHh0wz2PHk8qFz/CVDsfsYfrsq', 'Kaylaway', 1),
+(19, 'Paula', 'Cruz', 'paulacruz@gmail.com', '$2y$10$0yv9gFl.TSgacoj0QDhMhunW59uIndRKsMj0kYTFMuf/wc0524TDm', 'Wawa', 1),
+(20, 'Kevin', 'Torres', 'kevintorres@gmail.com', '$2y$10$iP0qJ7aYFVNr8McTbte0yub8YRBvsqk2O216Tu6gfmlIH40D9NBma', 'Bucana', 1),
+(21, 'Jessica', 'Lim', 'jessicalim@gmail.com', '$2y$10$hTkQzT1r87ASSbKfsBbgLuzi0D73ncsyoklSQWiAO1GMoNQaZ/.XO', 'Poblacion', 1),
+(22, 'Miguel', 'Fernandez', 'miguelfernandez@gmail.com', '$2y$10$cwy3ux2Y5faq3wNPnjvfhOyX4wlymWp1BPH9zimjcC0VYNo4X3kgm', 'Other', 1),
+(23, 'Clara', 'Dizon', 'claradizon@gmail.com', '$2y$10$zYYi0YzN3B/HhNY4EaRJRO8EVe2WUBjKbeteqAGyuicGZTCYpLLsK', 'Bucana', 1),
+(24, 'Daniel', 'Soriano', 'danielsoriano@gmail.com', '$2y$10$2RYnY2UKyo9eEVCPfmotTOnIFaPPVsnfs7ylI/kAOucTy41SRjJa6', 'Bucana', 1),
+(25, 'Elena', 'Morales', 'elenamorales@gmail.com', '$2y$10$vxxh24oGobmJYUr4unUSWOdAyIr4imhqShnGbeDMGbB0v82.r7Rqa', 'Wawa', 1),
+(26, 'Chris', 'Valdez', 'chrisvaldez@gmail.com', '$2y$10$TaJuAUY50.VRn7KzxyDJNuPg0H.rPzQhVStCgNkz.rHOj9pm4pzgq', 'Bucana', 1),
+(27, 'Nicole', 'Bautista', 'nicolebaustista@gmail.com', '$2y$10$HpLOLVIvBD7qsNyo8R0eBeFrmsx.RTwhSyzHZdx10J37UJ9khDDNC', 'Wawa', 1),
+(28, 'Rachel', 'Mendoza', 'rachelmendoza@gmail.com', '$2y$10$6ittjLgIZFk1Omxf.TA6C.8g77K8Lj7/1Gb4pZhmj0UdOrfag7q1q', 'Wawa', 1),
+(29, 'Paul', 'Santiago', 'paulsantiago@gmail.com', '$2y$10$R13aAwjfBopwuLf18j.SP.7sF47jtlfCvIrhnD9KrV4748og7zsYe', 'Wawa', 1),
+(30, 'Julia', 'Lucas', 'julialucas@gmail.com', '$2y$10$D0PT73sIZ2xmng3yWN8sGON2g2hcxzXyiH0GfMX.04ERIHCzvf3dq', 'Bucana', 1),
+(31, 'Brian', 'Flores', 'brianflores@gmail.com', '$2y$10$.NMdayngp5mWOQD2kst25unJKZkfsZnRnUiyZsbsPQq.c2gMx.0Oe', 'Poblacion', 1),
+(32, 'Sophia', 'Martin', 'sophiamartin@gmail.com', '$2y$10$L.OwXPOWu0I8fWsKaf0D..U6Rhz3QLQOjaLTD1K3DSXEI.2GQwLhO', 'Wawa', 1),
+(33, 'Eric', 'Dela Cruz', 'ericdelacruz@gmail.com', '$2y$10$TgBuIKl5mftI4vlzyVQp0O/Lyk/yiz3ox3IRvR77mndBmIjKOyEBO', 'Bucana', 1),
+(34, 'Althea', 'Reyes', 'altheareyes@gmail.com', '$2y$10$P04rmaY6HYotbvuw.lvGiuAX.NQcpe0BlsOf85gAVvGOMU/tSngi.', 'Kaylaway', 1),
+(35, 'Jerome', 'Dela Cruz', 'jeromedelacruz@gmail.com', '$2y$10$X0Ht.mbkTPflHwOVXJ52I.fl0NLcIRMyod0oqFAcORWoMs9kt8SJe', 'Wawa', 1),
+(36, 'Camille', 'Garcia', 'camillegarcia@gmail.com', '$2y$10$tE.3QSkO2aqe0QJ1r.3gyu2kKcxgS9q3JvQ2yTloINfz/SwGW8one', 'Kaylaway', 1),
+(37, 'Nathaniel', 'Lim', 'nathaniellim@gmail.com', '$2y$10$np6PDiqON8/SoYRGcbenIOboFqHmtg.Gwu5i7ViWsReE2JBeA4GGC', 'Kaylaway', 1),
+(38, 'Mia', 'Cortez', 'miacortez@gmail.com', '$2y$10$VWErDly3IwvzS8Enb2Dk.eFRPbOLKW.TboUZRlQ/.sflGZPsk0Vli', 'Other', 1),
+(39, 'Romeo', 'Vargas', 'romeovargas@gmail.com', '$2y$10$tfHGIPjIqUS/cSwYEnXlseFAyvToT3FnTpieWAnX33q8p5iNLHhgS', 'Wawa', 1),
+(40, 'Isabel', 'Martinez', 'isabelmartinez@gmail.com', '$2y$10$ZzdBe0znYA2BxKXEj3wjC.LI3mbN1pKJjVVxLB7gHEUmgMsDiCGk6', 'Wawa', 1),
+(41, 'Zach', 'Hernandez', 'zachhernandez@gmail.com', '$2y$10$VOcnPsqvH/DHtEgpfr8KAeB0XktrJnx4eayyVEWP7Chqdm1RUcqSu', 'Bucana', 1),
+(42, 'Kimberly', 'Santos', 'kimberlysantos@gmail.com', '$2y$10$1T0N2w/3phTGfE2D.2Yu4.WgKfKX7EfAa8XRfmJHvI36VKKqRsBDK', 'Kaylaway', 1),
+(43, 'Tony', 'Padilla', 'tonypadilla@gmail.com', '$2y$10$cCSDV5F/Ax3HCraZEe/XnukJLxih08wEXIM6t9guZ.p2X5LNMIk1C', 'Wawa', 1),
+(44, 'Rebecca', 'Lim', 'rebeccalim@gmail.com', '$2y$10$WlqcjJ2anu./lSv/FJsLgOWD1emyDmc2fKlsJ1vOOsDDvtazVAjhO', 'Poblacion', 1),
+(45, 'Alan', 'Miranda', 'alanmiranda@gmail.com', '$2y$10$PmCUztExFcO9vIUVZeWUzuODeDyXdXu59hmIuKhsnpEFxlK/GlAhy', 'Kaylaway', 1),
+(46, 'Jennifer', 'Diaz', 'jenniferdiaz@gmail.com', '$2y$10$CU0e9mYFhMiKpUGUs3raw.BYaQHJaGGaAIhAdvo5ft/y0kMmHkwty', 'Poblacion', 1),
+(47, 'Sean', 'Villanueva', 'seanvillanueva@gmail.com', '$2y$10$NE5DbVIq9wYA.TGsRNV/eeaxrZv/L1FztLmajNJJSKczK3Aqlysm.', 'Wawa', 1),
+(48, 'Jake', 'Rivera', 'jakerivera@gmail.com', '$2y$10$VXhZ1hhrfDt2ebRdBJXSIOMw52tMr8jM0Hw4kMFVg6pe.B2HDLfcS', 'Wawa', 1),
+(49, 'Michelle', 'Luna', 'michelleluna@gmail.com', '$2y$10$KKKw6u7SDgc.1h9OYwcCs.WZXfaS.7bn3MuT92qXTbZIJXPa7xLeO', 'Kaylaway', 1),
+(50, 'Vincent', 'Reyes', 'vincentreyes@gmail.com', '$2y$10$EjcLwuyWUOhbhiKibrb9h.oEfRh5sMC9wWVZ8nZSgQo.NV8kl5fOa', 'Poblacion', 1),
+(51, 'Patrick', 'Lopez', 'patricklopez@gmail.com', '$2y$10$BvDbk9v9UhG/nX7GJMm3p.YDSo83kmK4/5wDD2HcYhqFYbr0aaizW', 'Bucana', 1),
+(52, 'Grace', 'Ramos', 'graceramos@gmail.com', '$2y$10$GTrRnWG32c3Ta2QgrNx3vOzICdpgpPUCbngKp3ChhtA.57YVH4dp2', 'Kaylaway', 1),
+(53, 'Eric', 'Dela Pena', 'ericdelapena@gmail.com', '$2y$10$E2Z4QmXhcF86qecyW5BG0Oh7w/FPp7EYC7BhG09ivJV5JIEDYfTC.', 'Wawa', 1),
+(54, 'Marc', 'Mallari', 'marc@email.com', '$2y$10$FWBg9I2F9AIrw.jQr0d/AuyQo/e1xFu4b0i9C8o.y1KXujU8CgwFi', 'Kaylaway', 1);
 
 -- --------------------------------------------------------
 
@@ -299,22 +384,42 @@ CREATE TABLE `employer` (
   `mayor_permit` varchar(255) DEFAULT NULL,
   `bir_registration` varchar(255) DEFAULT NULL,
   `dole_registration` varchar(255) DEFAULT NULL,
-  `created_at` timestamp DEFAULT CURRENT_TIMESTAMP
+  `created_at` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `employer`
 --
 
-INSERT INTO `employer` (`employer_id`, `company_name`, `email`, `password`, `address`, `status`) VALUES
-(1, 'BayanTech Solutions', 'hr@bayantech.ph', '123456', 'Quezon City', 'active'),
-(2, 'Lakbay Digital Corp', 'jobs@lakbay.ph', '123456', 'Makati City', 'active'),
-(3, 'AniHarvest Inc.', 'careers@aniharvest.ph', '123456', 'Batangas', 'active'),
-(4, 'BuildPro Construction', 'apply@buildpro.ph', '123456', 'Cebu City', 'active'),
-(5, 'SariSari Systems', 'hr@sarisari.ph', '123456', 'Davao City', 'active'),
-(6, 'a', 'a', 'a', 'a', 'a'),
-(7, 'Bawal Tamad', 'tagadon@sakalye.com', '$2y$10$xlz.Jijk5OXRBsPOwH7mJu5m2Ngpijzp6CxS7hQmVZZjPrA4QPwsq', 'Genggeng St.', 'active'),
-(8, 'Bawal Tamad', 'tagadoon@sakalye.com', '$2y$10$1mJf7BI2cVfdrK5PmVS3MOutxLChett8b/pCmooTKYVmsFqz745m.', 'Genggeng St.', 'active');
+INSERT INTO `employer` (`employer_id`, `company_name`, `email`, `password`, `address`, `status`, `business_reg_cert`, `mayor_permit`, `bir_registration`, `dole_registration`, `created_at`) VALUES
+(1, 'BayanTech Solutions', 'hr@bayantech.ph', '123456', 'Quezon City', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(2, 'Lakbay Digital Corp', 'jobs@lakbay.ph', '123456', 'Makati City', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(3, 'AniHarvest Inc.', 'careers@aniharvest.ph', '123456', 'Batangas', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(4, 'BuildPro Construction', 'apply@buildpro.ph', '123456', 'Cebu City', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(5, 'SariSari Systems', 'hr@sarisari.ph', '123456', 'Davao City', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(6, 'a', 'a', 'a', 'a', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(7, 'Bawal Tamad', 'tagadon@sakalye.com', '$2y$10$xlz.Jijk5OXRBsPOwH7mJu5m2Ngpijzp6CxS7hQmVZZjPrA4QPwsq', 'Genggeng St.', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(8, 'Bawal Tamad', 'tagadoon@sakalye.com', '$2y$10$1mJf7BI2cVfdrK5PmVS3MOutxLChett8b/pCmooTKYVmsFqz745m.', 'Genggeng St.', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(9, 'Calayo Coastal Villas Inc.', 'calayocoastalvilla@gmail.com', '$2y$10$ShBcnTgOal3GH8y/w7gjjOqqT1kGO3qJUzt2DeSdDi/rAk70NZHi.', 'Calayo Beach, Nasugbu, Batangas', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(10, 'Nasugbu Tech Solutions Inc.', 'nasugbutechsolutions@gmail.com', '$2y$10$fv3G2aO3KTxZty50Kj4k6epZOeOVE02bRXPmxh5DwEacjjfRtQwd6', 'Banilad, Nasugbu, Batangas', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(11, 'Batangas Digital Innovators Co.', 'batangasdigitalinnovators@gmail.com', '$2y$10$Pp9YHia84nCBhot.NXFQ9.keZQ202Q0HZ6Zuf0YoBwaj/sTcJsgmS', 'Poblacion, Nasugbu, Batangas', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(12, 'Coastal IT Hub Inc.', 'coastalithub@gmail.com', '$2y$10$rr.AGC/XrlHlRSJdrfQ4QOZqkzpTqDE72ZS3XXTXMs0fSlwTERAVi', 'coastalithub@gmail.com', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(13, 'SouthTech Solutions Corp.', 'outhtechsolutions@gmail.com', '$2y$10$0kqbf5aYpkQSmTTw76/xhOl95NjByHjOc8P9/XUdLZz3im3begFgi', 'Lumbangan, Nasugbu, Batangas', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(14, 'Nasugbu Web Creators Co.', 'nasugbuwebcreators@gmail.com', '$2y$10$WLeYcnn9ZerGeO4DpnDWpuWN8wz39nw56oiDNyG9YOJCsru/3k7Nm', 'Wawa, Nasugbu, Batangas', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(15, 'SmartCode IT Services', 'smartcodeit@gmail.com', '$2y$10$wGSst1/lqWPw4n6ixC6v6eebykhosouleeOOAcd6iJ80oqqDNZn7K', 'Kaylaway, Nasugbu, Batangas', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(16, 'Seaside Grill Nasugbu', 'seasidegrill@gmail.com', '$2y$10$Ihr9SQDFpjqfuSE.T1MzU.iXk12kD1IG5n21vDTw13j8xcTE8eaqy', 'Bucana, Nasugbu, Batangas', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(17, 'Bayview Seafood Restaurant', 'bayviewseafood@gmail.com', '$2y$10$dY6xu4ImyMhGDVOatWMNqO5hnELIGwxtNKeUZDfRAi9OJLwP9QbLu', 'Wawa, Nasugbu, Batangas', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(18, 'Lomi House Nasugbu', 'lomihouse@gmail.com', '$2y$10$35G91u3KWvsCFz.T3UYIjOfzPOvfjJDhSazo0R5ueBoVrmutm1uBa', 'Barangay 9, Nasugbu, Batangas', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(19, 'Coastal Cravings Café', 'coastalcravings@gmail.com', '$2y$10$k/O59y6KRjxh9OFTWR2Xsuz28t2YD2BwyE7qqqqpKOCTwB9gcpSA2', 'Calayo, Nasugbu, Batangas', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(20, 'Sunset Dine & Grill', 'sunsetdine@gmail.com', '$2y$10$3XaJzSlvI9GaIQXLI97rIOtq5n2i/r8OR.MsXLDoV0.C8Agnt/8BW', 'Natipuan, Nasugbu, Batangas', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(21, 'Ocean Taste Restaurant', 'oceantaste@gmail.com', '$2y$10$67BkG5Udkb87VAsaqpYhn.m/wursHmA9PFjaqJO6momp.rRQ0xvjy', 'Kaylaway, Nasugbu, Batangas', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(22, 'Nasugbu Builders & Construction', 'nasugbubuilders@gmail.com', '$2y$10$2ZCxtikRRbdOWX/vcNP9hu55tPxGVJZStVV0.53JH8apZwkV3YzvK', 'Lumbangan, Nasugbu, Batangas', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(23, 'Batangas Prime Builders Inc.', 'primebuilders@gmail.com', '$2y$10$mHmsZRpBKStMiNMMsd9T3eny.YMf9JGqoU2765z0HafUqvuFYx02y', 'Banilad, Nasugbu, Batangas', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(24, 'South Coast Construction Corp.', 'southcoast@gmail.com', '$2y$10$W76dOXQJEk1OKKQGQ.Rv1eKLCEGNX0OcfOGqp1nprw/llracZah6y', 'Bucana, Nasugbu, Batangas', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(25, 'Golden Hammer Builders', 'goldenhammer@gmail.com', '$2y$10$pQBoVtX9y3Yyvl14MoEwou9jJBQwChhqX.Rj2H.VYerc/SI2aw/gC', 'Pantalan, Nasugbu, Batangas', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(26, 'Coastal Infrastructure Dev. Co.', 'coastalinfra@gmail.com', '$2y$10$3ywhjH0W944/HL6DzZzzreoVACUlwL.pK55am4RtrLvQ.v408ifd6', 'Natipuan, Nasugbu, Batangas', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(27, 'Nasugbu Prime Healthcare Center', 'nasugbuprimehealth@gmail.com', '$2y$10$SgLDtpJ7D0I.T2y.sQroOuM25sUTIj9j3zLVskeCmCIf2/O4owAdW', 'Barangay Pantalan, Nasugbu, Batangas', 'active', NULL, NULL, NULL, NULL, '2026-05-06 18:10:02'),
+(28, 'Taho Company', 'taho@gmail.com', '$2y$10$D/HjvebYAZdYe2lA9jTi5OpiWINKQAwzau7.YMPXrclnR9O02y1xC', 'Nasugbu', 'active', 'uploads/employer_documents/employer_28_business_reg_cert.png', 'uploads/employer_documents/employer_28_mayor_permit.pdf', NULL, NULL, '2026-05-06 18:20:48');
 
 -- --------------------------------------------------------
 
@@ -407,7 +512,10 @@ INSERT INTO `interviews` (`interview_id`, `application_id`, `employer_id`, `empl
 (3, 15, 8, 5, '2026-05-29 15:16:00', 'aa', 'scheduled', '2026-05-05 00:23:12', '2026-05-05 00:23:12'),
 (4, 15, 8, 5, '2026-05-29 15:16:00', 'aa', 'scheduled', '2026-05-05 00:23:15', '2026-05-05 00:23:15'),
 (5, 15, 8, 10, '2026-05-20 12:26:00', 'aaa', 'accepted', '2026-05-05 00:23:31', '2026-05-05 00:23:36'),
-(6, 19, 8, 5, '2026-05-27 05:39:00', 'Punta ka boi', 'accepted', '2026-05-05 03:39:11', '2026-05-05 03:39:22');
+(6, 19, 8, 5, '2026-05-27 05:39:00', 'Punta ka boi', 'accepted', '2026-05-05 03:39:11', '2026-05-05 03:39:22'),
+(7, 35, 2, 18, '2026-05-21 17:53:00', 'Punta ka', 'scheduled', '2026-05-06 18:53:39', '2026-05-06 18:53:39'),
+(8, 3, 2, 9, '2026-05-14 14:53:00', 'Lets go', 'accepted', '2026-05-06 18:53:56', '2026-05-06 18:54:03'),
+(9, 61, 1, 5, '2026-05-21 08:04:00', 'Punta ka', 'accepted', '2026-05-07 00:03:58', '2026-05-07 00:04:28');
 
 -- --------------------------------------------------------
 
@@ -436,7 +544,7 @@ CREATE TABLE `job_post` (
 --
 
 INSERT INTO `job_post` (`job_post_id`, `employer_id`, `title`, `description`, `salary`, `location`, `work_type`, `application_deadline`, `skills`, `experience_level`, `job_category`, `job_post_created`, `job_status`) VALUES
-(1, 1, 'Junior Java Developer', 'Develop and maintain Java applications', '25000-30000', 'Quezon City', 'Full-time', '2026-06-02', 'HTML, CSS, JavaScript', 'Entry level', 'Technology', '2026-05-03 20:19:24', 'active'),
+(1, 1, 'Junior Java Developer', 'Develop and maintain Java applications', '25000-30000', 'Quezon City', 'Full-time', '2026-06-02', 'HTML, CSS, JavaScript', 'Entry level', 'Education', '2026-05-06 18:23:39', 'closed'),
 (2, 2, 'UI/UX Designer', 'Design user-friendly interfaces', '3000-4000', 'Makati City', 'Full-time', '2026-06-02', 'Java, Html', 'Mid level', 'Healthcare', '2026-05-03 20:19:24', 'active'),
 (3, 3, 'Data Analyst', 'Analyze agricultural data trends', '28000.00', 'Batangas', 'Hybrid', '2026-06-02', 'HTML, CSS', '', '', '2026-05-03 20:19:24', 'active'),
 (4, 4, 'Project Coordinator', 'Assist in construction project management', '27000.00', 'Cebu City', 'On-site', '2026-06-02', 'wala lang', '', '', '2026-05-03 20:19:24', 'active'),
@@ -446,7 +554,38 @@ INSERT INTO `job_post` (`job_post_id`, `employer_id`, `title`, `description`, `s
 (8, 8, 'aa', 'aa', '2,000', 'bucana', 'Part-time', '2026-06-02', 'javascript, java', '', 'Technology', '2026-05-04 22:03:19', 'closed'),
 (9, 8, 'aa', 'aa', '2,000', 'wawa', 'Part-time', '2026-05-27', 'javascript, java', '', 'Healthcare', '2026-05-04 22:03:25', 'closed'),
 (10, 8, 'aa', 'aa', '2,000', 'wawa', 'Part-time', '2026-05-31', 'javascript, java', '', 'IT', '2026-05-04 22:09:09', 'active'),
-(11, 8, 'aaaaaaaaaaaaa', 'aaa', '2,000', 'bucana', 'Part-time', '2026-05-28', 'javascript, java', '', 'Healthcare', '2026-05-04 22:28:34', 'active');
+(11, 8, 'aaaaaaaaaaaaa', 'aaa', '2,000 - 5000', 'bucana', 'Part-time', '2026-05-28', 'javascript, java', '', 'Healthcare', '2026-05-05 05:49:48', 'active'),
+(12, 9, 'Front Desk Receptionist', 'Responsible for welcoming guests, handling check-ins and check-outs, answering inquiries, and providing excellent customer service in a resort environment.', '₱12,000 - ₱15,000', 'Calayo, Nasugbu, Batangas', 'Full-time', '2026-06-30', 'Communication Skills, Customer Service, Basic Computer Skills, English Proficiency', '', 'Food', '2026-05-06 11:55:58', 'active'),
+(13, 9, 'Housekeeping Staff', 'Maintains cleanliness of rooms and resort facilities.', '₱11,000 - ₱14,000', 'Calayo, Nasugbu, Batangas', 'Full-time', '2026-06-26', 'Cleaning Skills, Attention to Detail, Time Management', '', 'Food', '2026-05-06 12:07:56', 'active'),
+(14, 9, 'Lifeguard', 'Ensures safety of guests in swimming areas.', '₱13,000 - ₱16,000', 'Calayo Elementary School, Calayo, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-05-09', 'Swimming, Alertness, First Aid', '', 'Food', '2026-05-06 12:11:54', 'active'),
+(15, 10, 'Software Developer', 'Develops and maintains applications. Responsible for writing clean, scalable code, debugging software, and collaborating with cross-functional teams to deliver high-quality systems. Participates in code reviews and technical documentation.', '₱25,000 - ₱40,000', 'Tagaytay-Nasugbu Road, Banilad, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-07-07', 'Java, PHP, MySQL', '', 'IT', '2026-05-06 12:18:31', 'active'),
+(16, 10, 'IT Support Technician', 'Troubleshoots hardware and software issues. Installs and configures computer systems, diagnoses network problems, and provides timely technical assistance to end-users. Logs issues and maintains IT inventory.', '₱18,000 - ₱25,000', 'Tagaytay-Nasugbu Road, Banilad, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-07-10', 'Networking, Troubleshooting', '', 'IT', '2026-05-06 12:20:32', 'active'),
+(17, 10, 'Web Designer', 'Designs website UI/UX. Creates wireframes, prototypes, and visual assets. Ensures responsive design across devices and works closely with developers to implement front-end interfaces. Stays updated on design trends.', '₱20,000 - ₱30,000', 'Tagaytay-Nasugbu Road, Banilad, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-05-22', 'HTML, CSS, JavaScript', '', 'IT', '2026-05-06 12:22:04', 'active'),
+(18, 11, 'Front-End Developer', 'Builds interactive web interfaces using modern frameworks. Translates design mockups into functional components, optimizes application speed, and ensures cross-browser compatibility. Collaborates with back-end developers for API integration.', '₱22,000 - ₱35,000', 'C. Alvarez Street, Barangay 4, Bucana, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-07-21', 'HTML, CSS, React', '', 'IT', '2026-05-06 12:29:31', 'active'),
+(19, 11, 'Back-End Developer', 'Handles server-side logic, database management, and API development. Writes efficient PHP and MySQL queries, secures data, and ensures system stability. Works with front-end teams to deliver complete solutions.', '₱25,000 - ₱38,000', 'C. Alvarez Street, Barangay 4, Bucana, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-07-11', 'PHP, MySQL, APIs', '', 'IT', '2026-05-06 12:30:44', 'active'),
+(20, 12, 'Network Administrator', 'Maintains and monitors local network systems. Configures routers, switches, and firewalls. Troubleshoots connectivity issues, performs regular backups, and implements security protocols to prevent unauthorized access.', '₱20,000 - ₱30,000', 'Batangas University Nasugbu Campus, R. Martinez Street, Barangay 10, Bucana, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-08-10', 'Networking, Cisco Basics', '', 'IT', '2026-05-06 12:34:21', 'active'),
+(21, 12, 'System Analyst', 'Analyzes current systems and recommends improvements. Gathers user requirements, documents workflows, and designs technical solutions. Bridges communication between clients, management, and development teams.', '₱25,000 - ₱35,000', 'Barangay 10, Bucana, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-07-15', 'Analysis, Documentation', '', 'IT', '2026-05-06 12:35:53', 'active'),
+(22, 12, 'Data Encoder', 'Inputs, updates, and manages company data accurately. Verifies information for errors, maintains databases, and generates basic reports. Follows data privacy guidelines and meets daily encoding targets.', '₱15,000 - ₱20,000', 'Barangay 10, Bucana, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-07-09', 'Typing, Accuracy', '', 'IT', '2026-05-06 12:37:34', 'active'),
+(23, 13, 'Mobile App Developer', 'Develops Android and iOS applications. Writes clean code using Java, Kotlin, or Flutter. Implements UI components, integrates third-party libraries, and tests apps for performance and memory usage before release.', '₱28,000 - ₱45,000', 'Tagaytay-Nasugbu Road, Lumbangan, Cogonan, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-09-15', 'Java, Kotlin, Flutter', '', 'IT', '2026-05-06 12:40:08', 'active'),
+(24, 13, 'IT Project Manager', 'Manages IT projects from planning to completion. Assigns tasks, tracks progress using Agile or Waterfall methods, communicates with stakeholders, and ensures on-time delivery within budget. Handles risk assessment.', '₱30,000 - ₱50,000', 'Tagaytay-Nasugbu Road, Lumbangan, Cogonan, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-07-23', 'Leadership, Planning', '', 'IT', '2026-05-06 12:41:12', 'active'),
+(25, 14, 'WordPress Develope', 'Builds and customizes WordPress websites. Installs themes and plugins, modifies PHP templates, optimizes site speed, and performs basic SEO setup. Provides maintenance and security updates for client sites.', '₱20,000 - ₱30,000', 'Barangay 2, Wawa, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-05-28', 'WordPress, PHP', '', 'IT', '2026-05-06 12:45:33', 'active'),
+(26, 14, 'Graphic Designer', 'Creates digital designs for branding, social media, and marketing materials. Uses Photoshop and Illustrator to produce logos, banners, and infographics. Follows brand guidelines and revises designs based on feedback.', '₱18,000 - ₱28,000', 'Wawa, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-06-23', 'Photoshop, Illustrator', '', 'IT', '2026-05-06 12:46:33', 'active'),
+(27, 15, 'Junior Programmer', 'Assists senior developers in coding, testing, and debugging. Writes basic Java and C++ programs, fixes simple bugs, and documents code changes. Learns company development practices and grows technical skills.', '₱18,000 - ₱25,000', 'Tagaytay-Nasugbu Road, Phirst Park Homes Batulao, Kaylaway, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-07-15', 'Java, C++, Debugging', '', 'IT', '2026-05-06 12:48:47', 'active'),
+(28, 16, 'Waiter', 'Serves food and beverages to customers. Takes orders accurately, delivers dishes promptly, and ensures tables are clean and set properly. Assists guests with menu questions and special requests.', '₱10,000 - ₱13,000', 'R. Martinez Street, Barangay 10, Bucana, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-05-21', 'Customer Service, Communication', '', 'Food', '2026-05-06 12:52:04', 'active'),
+(29, 17, 'Kitchen Staff', 'Assists cooks in food preparation. Washes and chops vegetables, prepares ingredients, and keeps kitchen tools organized. Follows hygiene standards and helps with basic cooking tasks when needed.', '₱11,000 - ₱15,000', 'Wawa, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-05-23', 'Food Prep, Teamwork', '', 'Food', '2026-05-06 12:54:28', 'active'),
+(30, 18, 'Cashier', 'Processes customer orders using a POS system. Accepts payments, gives correct change, and prints receipts. Answers phone orders and coordinates with the kitchen for takeout and delivery requests.', '₱11,000 - ₱14,000', 'P. Roxas Street, Olaguivel Subdivision, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-08-03', 'POS, Math Skills', '', 'Food', '2026-05-06 12:57:30', 'active'),
+(31, 19, 'Barista', 'Prepares and serves coffee, tea, and other beverages. Operates espresso machines, froths milk, and creates latte art. Takes customer orders, suggests menu items, and keeps the café counter clean.', '₱11,000 - ₱14,000', 'Calayo Elementary School, Calayo, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-06-11', 'Coffee Making, Customer Service', '', 'Food', '2026-05-06 13:00:04', 'active'),
+(32, 20, 'Grill Cook', 'Grills meat, seafood, and vegetables to perfection. Controls grill temperature, marinates ingredients, and ensures food is cooked thoroughly. Follows safety procedures to avoid burns and fire hazards.', '₱14,000 - ₱18,000', 'Nasugbu Road, Natipuan, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-05-22', 'Grilling, Food Safety', '', 'Food', '2026-05-06 13:02:21', 'active'),
+(33, 20, 'Dishwasher', 'Washes plates, pots, pans, and utensils by hand or machine. Ensures all kitchenware is sanitized and ready for next use. Disposes of kitchen waste and keeps the dishwashing area organized.', '₱9,000 - ₱11,000', 'Nasugbu Road, Natipuan, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-05-30', 'Cleaning, Time Managemen', '', 'Food', '2026-05-06 13:06:45', 'active'),
+(34, 21, 'Kitchen Helper', 'Assists in basic food preparation such as cleaning fish, chopping vegetables, and portioning ingredients. Keeps the kitchen clean and organizes storage areas. Follows chef\'s instructions and hygiene rules.', '₱10,000 - ₱12,000', 'Tagaytay-Nasugbu Road, Phirst Park Homes Batulao, Kaylaway, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-05-20', 'Food Prep, Hygiene', '', 'Food', '2026-05-06 13:09:00', 'active'),
+(35, 22, 'Civil Engineer', 'Oversees construction projects from planning to completion. Creates blueprints using AutoCAD, calculates material quantities, and ensures structural safety. Supervises workers and coordinates with contractors.', '₱20,000 - ₱30,000', 'Tagaytay-Nasugbu Road, Lumbangan, Cogonan, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-05-16', 'AutoCAD, Planning', '', 'Construction', '2026-05-06 13:11:03', 'active'),
+(36, 23, 'Mason', 'Builds walls, foundations, and other structures using bricks, concrete blocks, and stones. Mixes mortar, levels surfaces, and follows blueprint measurements. Repairs existing masonry work when needed.', '₱13,000 - ₱17,000', 'Tagaytay-Nasugbu Road, Banilad, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-05-25', 'Bricklaying, Measuring', '', 'Construction', '2026-05-06 13:19:06', 'active'),
+(37, 24, 'Safety Officer', 'Enforces health and safety regulations on site. Conducts safety orientations, inspects equipment, and investigates accidents. Maintains safety records and stops unsafe work practices immediately.', '18,000 - ₱25,000', 'Barangay 10, Bucana, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-06-13', 'Safety Protocols, Communication', '', 'Construction', '2026-05-06 13:21:37', 'active'),
+(38, 25, 'Foreman', 'Leads a crew of 5-10 workers on project sites. Assigns daily tasks, checks quality of work, and ensures materials are available. Reports directly to the site supervisor and enforces discipline.', '₱18,000 - ₱25,000', 'Pantalan, Nasugbu, Batangas', 'Full-time', '2026-05-14', 'Leadership, Problem Solving', '', 'Construction', '2026-05-06 13:33:46', 'active'),
+(39, 2, 'a', 'aa', '2,000', 'Shechem Laboratory and Polymedical Center, 10, C. Alvarez Street, Barangay 4, Talangan, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Full-time', '2026-05-13', 'javascript, java', '', 'IT', '2026-05-06 20:19:49', 'closed'),
+(40, 2, 'aaaaaaaaaaaaa', '', '', '', '', '0000-00-00', '', '', '', '2026-05-06 20:27:05', 'draft'),
+(41, 2, 'Test', 'Test', '2000-3000', 'St. Francis Xavier Street, Barangay 2, Talangan, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Part-time', '2026-05-13', 'javascript, java', '', 'Finance', '2026-05-06 20:41:44', 'active'),
+(42, 1, 'VP Sara', 'libro', '20,000 - 30,000', 'Barangay 3, Wawa, Nasugbu, Batangas, Calabarzon, 4231, Philippines', 'Part-time', '2026-05-08', 'PHP, HTML', '', 'Education', '2026-05-06 20:42:53', 'active');
 
 -- --------------------------------------------------------
 
@@ -510,7 +649,16 @@ INSERT INTO `message` (`message_id`, `sender_id`, `sender_type`, `receiver_id`, 
 (38, 8, 'employer', 5, 'employee', '📅 Interview scheduled for May 27, 2026 5:39 AM. Punta ka boi', 19, '2026-05-05 11:39:11'),
 (39, 5, 'employee', 8, 'employer', '✅ I accept the scheduled interview for May 27, 2026 5:39 AM. Thank you!', 19, '2026-05-05 11:39:22'),
 (40, 8, 'employer', 5, 'employee', '🎉 JOB OFFER! Congratulations! See u boi', 19, '2026-05-05 11:40:03'),
-(41, 5, 'employee', 8, 'employer', '🎉 I ACCEPT THE JOB OFFER! Thank you so much for this opportunity. I look forward to joining Bawal Tamad!', 19, '2026-05-05 11:40:24');
+(41, 5, 'employee', 8, 'employer', '🎉 I ACCEPT THE JOB OFFER! Thank you so much for this opportunity. I look forward to joining Bawal Tamad!', 19, '2026-05-05 11:40:24'),
+(42, 2, 'employer', 9, 'employee', 'yow', 0, '2026-05-06 18:47:10'),
+(43, 2, 'employer', 18, 'employee', '📅 Interview scheduled for May 21, 2026 5:53 PM. Punta ka', 35, '2026-05-06 18:53:39'),
+(44, 2, 'employer', 9, 'employee', '📅 Interview scheduled for May 14, 2026 2:53 PM. Lets go', 3, '2026-05-06 18:53:56'),
+(45, 9, 'employee', 2, 'employer', '✅ I accept the scheduled interview for May 14, 2026 2:53 PM. Thank you!', 3, '2026-05-06 18:54:03'),
+(46, 2, 'employer', 9, 'employee', '🎉 JOB OFFER! Congratulations! We are pleased to offer you the position. Please respond to this offer.', 3, '2026-05-06 18:54:20'),
+(47, 9, 'employee', 2, 'employer', '🎉 I ACCEPT THE JOB OFFER! Thank you so much for this opportunity. I look forward to joining Lakbay Digital Corp!', 3, '2026-05-06 18:54:28'),
+(48, 1, 'employer', 9, 'employee', '🎉 JOB OFFER! Congratulations! We are pleased to offer you the position. Please respond to this offer.', 4, '2026-05-06 20:18:34'),
+(49, 1, 'employer', 5, 'employee', '📅 Interview scheduled for May 21, 2026 8:04 AM. Punta ka', 61, '2026-05-07 00:03:58'),
+(50, 5, 'employee', 1, 'employer', '✅ I accept the scheduled interview for May 21, 2026 8:04 AM. Thank you!', 61, '2026-05-07 00:04:28');
 
 -- --------------------------------------------------------
 
@@ -602,6 +750,73 @@ INSERT INTO `resume_skills` (`skill_id`, `resume_id`, `skill_name`) VALUES
 (60, 10, 'Web Development'),
 (61, 10, 'JavaScript'),
 (62, 10, 'Java');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `skill_categories`
+--
+
+CREATE TABLE `skill_categories` (
+  `category_id` int(11) NOT NULL,
+  `category_name` varchar(255) NOT NULL,
+  `canonical_name` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `skill_categories`
+--
+
+INSERT INTO `skill_categories` (`category_id`, `category_name`, `canonical_name`, `created_at`, `updated_at`) VALUES
+(1, 'Web Development Roles', 'web developer', '2026-05-13 15:14:29', '2026-05-13 15:14:29'),
+(2, 'Frontend Development', 'frontend developer', '2026-05-13 15:14:29', '2026-05-13 15:14:29'),
+(3, 'Backend Development', 'backend developer', '2026-05-13 15:14:29', '2026-05-13 15:25:02'),
+(4, 'Full Stack Development', 'full stack developer', '2026-05-13 15:14:29', '2026-05-13 15:14:29'),
+(5, 'Data Analysis', 'data analyst', '2026-05-13 15:14:29', '2026-05-13 15:14:29'),
+(6, 'Data Science', 'data scientist', '2026-05-13 15:14:29', '2026-05-13 15:14:29'),
+(7, 'DevOps', 'devops engineer', '2026-05-13 15:14:29', '2026-05-13 15:14:29'),
+(8, 'Project Management', 'project manager', '2026-05-13 15:14:29', '2026-05-13 15:14:29'),
+(9, 'UI/UX Design', 'ui/ux designer', '2026-05-13 15:14:29', '2026-05-13 15:14:29');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `skill_synonyms`
+--
+
+CREATE TABLE `skill_synonyms` (
+  `synonym_id` int(11) NOT NULL,
+  `category_id` int(11) NOT NULL,
+  `synonym` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `skill_synonyms`
+--
+
+INSERT INTO `skill_synonyms` (`synonym_id`, `category_id`, `synonym`) VALUES
+(1, 1, 'web programmer'),
+(2, 1, 'web designer'),
+(3, 1, 'website developer'),
+(4, 2, 'front-end developer'),
+(5, 2, 'ui developer'),
+(6, 3, 'back-end developer'),
+(7, 3, 'server-side developer'),
+(8, 4, 'fullstack developer'),
+(9, 4, 'full-stack developer'),
+(10, 5, 'data analysis'),
+(11, 5, 'analytics analyst'),
+(12, 6, 'data science'),
+(13, 7, 'devops'),
+(14, 7, 'site reliability engineer'),
+(15, 8, 'program manager'),
+(16, 8, 'project management'),
+(17, 9, 'ui designer'),
+(18, 9, 'ux designer'),
+(19, 9, 'ui/ux designer'),
+(20, 9, 'interface designer');
 
 --
 -- Indexes for dumped tables
@@ -719,6 +934,21 @@ ALTER TABLE `resume_skills`
   ADD KEY `resume_id` (`resume_id`);
 
 --
+-- Indexes for table `skill_categories`
+--
+ALTER TABLE `skill_categories`
+  ADD PRIMARY KEY (`category_id`),
+  ADD UNIQUE KEY `canonical_name` (`canonical_name`);
+
+--
+-- Indexes for table `skill_synonyms`
+--
+ALTER TABLE `skill_synonyms`
+  ADD PRIMARY KEY (`synonym_id`),
+  ADD UNIQUE KEY `synonym` (`synonym`),
+  ADD KEY `category_id` (`category_id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -726,13 +956,13 @@ ALTER TABLE `resume_skills`
 -- AUTO_INCREMENT for table `application`
 --
 ALTER TABLE `application`
-  MODIFY `application_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `application_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
 
 --
 -- AUTO_INCREMENT for table `employee`
 --
 ALTER TABLE `employee`
-  MODIFY `employee_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `employee_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT for table `employee_additional_info`
@@ -756,13 +986,13 @@ ALTER TABLE `employee_experience`
 -- AUTO_INCREMENT for table `employee_skill`
 --
 ALTER TABLE `employee_skill`
-  MODIFY `employee_skill_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
+  MODIFY `employee_skill_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
 
 --
 -- AUTO_INCREMENT for table `employer`
 --
 ALTER TABLE `employer`
-  MODIFY `employer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `employer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `experience_bullets`
@@ -780,19 +1010,19 @@ ALTER TABLE `interview`
 -- AUTO_INCREMENT for table `interviews`
 --
 ALTER TABLE `interviews`
-  MODIFY `interview_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `interview_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `job_post`
 --
 ALTER TABLE `job_post`
-  MODIFY `job_post_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `job_post_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 
 --
 -- AUTO_INCREMENT for table `message`
 --
 ALTER TABLE `message`
-  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
+  MODIFY `message_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
 
 --
 -- AUTO_INCREMENT for table `report`
@@ -811,6 +1041,18 @@ ALTER TABLE `resumes`
 --
 ALTER TABLE `resume_skills`
   MODIFY `skill_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+
+--
+-- AUTO_INCREMENT for table `skill_categories`
+--
+ALTER TABLE `skill_categories`
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
+-- AUTO_INCREMENT for table `skill_synonyms`
+--
+ALTER TABLE `skill_synonyms`
+  MODIFY `synonym_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- Constraints for dumped tables
@@ -882,6 +1124,12 @@ ALTER TABLE `resumes`
 --
 ALTER TABLE `resume_skills`
   ADD CONSTRAINT `resume_skills_ibfk_1` FOREIGN KEY (`resume_id`) REFERENCES `resumes` (`resume_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `skill_synonyms`
+--
+ALTER TABLE `skill_synonyms`
+  ADD CONSTRAINT `skill_synonyms_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `skill_categories` (`category_id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

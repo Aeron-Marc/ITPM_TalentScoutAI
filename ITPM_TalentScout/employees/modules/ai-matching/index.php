@@ -1477,7 +1477,26 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
             .then(data => {
               if (data.suggestions && data.suggestions.length > 0) {
                 skillSuggestions.innerHTML = data.suggestions
-                  .map(skill => `<div class="suggestion-item" onclick="selectSkill('${skill}')" style="padding: 0.6rem 0.75rem; cursor: pointer; border-bottom: 1px solid var(--sand-dark); font-size: 0.9rem; color: var(--charcoal); transition: background 0.15s;" onmouseover="this.style.background='var(--sand)'" onmouseout="this.style.background='transparent'">${skill}</div>`)
+                  .map(skill => {
+                    // Check if suggestion shows normalization (has arrow)
+                    const isNormalized = skill.includes(' → ');
+                    const displayText = isNormalized 
+                      ? skill.split(' → ')[0].trim() 
+                      : skill;
+                    const normalizedTo = isNormalized 
+                      ? skill.split(' → ')[1].trim()
+                      : null;
+                    
+                    let html = `<div class="suggestion-item" onclick="selectSkill('${displayText}')" style="padding: 0.6rem 0.75rem; cursor: pointer; border-bottom: 1px solid var(--sand-dark); font-size: 0.9rem; color: var(--charcoal); transition: background 0.15s; display: flex; justify-content: space-between; align-items: center;" onmouseover="this.style.background='var(--sand)'" onmouseout="this.style.background='transparent'">
+                      <span>${displayText}</span>`;
+                    
+                    if (normalizedTo) {
+                      html += `<span style="font-size: 0.8rem; color: var(--warm-light); margin-left: 0.5rem;">→ ${normalizedTo}</span>`;
+                    }
+                    
+                    html += `</div>`;
+                    return html;
+                  })
                   .join('');
                 skillSuggestions.style.display = 'block';
               } else {
@@ -1536,11 +1555,14 @@ $profile_score = round(($skills_score * 0.5) + ($experience_score * 0.5));
             skillInput.value = '';
             skillSuggestions.style.display = 'none';
             
-            // Add to skills list
+            // Add to skills list with the NORMALIZED skill name
             addSkillChip(data.skill);
             
-            // Show success message
-            showNotification('Skill added!', 'success');
+            // Show success message with normalization info if it changed
+            const message = data.skill.toLowerCase() !== skill.toLowerCase() 
+              ? `Skill added as "${data.skill}"` 
+              : 'Skill added!';
+            showNotification(message, 'success');
             
             // Reload page to update matches
             setTimeout(() => location.reload(), 1500);

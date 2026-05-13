@@ -74,7 +74,7 @@ class MatchEngine {
     }
 
     /**
-     * Calculate skill match percentage
+     * Calculate skill match percentage (with synonym matching support)
      */
     private function calculateSkillMatch($employee_skills, $job_skills_str) {
         if (empty($job_skills_str)) {
@@ -82,8 +82,8 @@ class MatchEngine {
         }
 
         // Parse job skills
-        $job_skills = array_map('trim', explode(',', $job_skills_str));
-        $job_skills = array_map([$this, 'normalizeSkill'], $job_skills);
+        $job_skills_raw = array_map('trim', explode(',', $job_skills_str));
+        $job_skills = array_map([$this, 'normalizeSkill'], $job_skills_raw);
         $job_skills = array_filter($job_skills); // Remove empty strings
         
         if (empty($job_skills)) {
@@ -91,23 +91,42 @@ class MatchEngine {
         }
 
         $matches = 0;
-        foreach ($job_skills as $job_skill) {
+        $match_count = 0;
+        
+        foreach ($job_skills as $index => $job_skill) {
+            $job_skill_raw = $job_skills_raw[$index];
+            $matched = false;
+            
             foreach ($employee_skills as $emp_skill) {
-                // Exact match
+                // Exact match (100%)
                 if ($emp_skill === $job_skill) {
                     $matches++;
+                    $matched = true;
                     break;
                 }
-                // Partial match (e.g., "javascript" contains "script")
-                if (strlen($job_skill) > 3 && strpos($emp_skill, $job_skill) !== false) {
+                
+                // Synonym match (70%) - check database
+                $synonym_match = $this->normalizer->checkSkillMatch($emp_skill, $job_skill, $this->conn);
+                if ($synonym_match['match'] && $synonym_match['match_type'] === 'synonym') {
                     $matches += 0.7;
+                    $matched = true;
+                    break;
+                }
+                
+                // Partial match (50%) - substring matching
+                if (strlen($job_skill) > 3 && strpos($emp_skill, $job_skill) !== false) {
+                    $matches += 0.5;
+                    $matched = true;
                     break;
                 }
                 if (strlen($emp_skill) > 3 && strpos($job_skill, $emp_skill) !== false) {
                     $matches += 0.5;
+                    $matched = true;
                     break;
                 }
             }
+            
+            $match_count++;
         }
 
         return round(($matches / count($job_skills)) * 100);
@@ -255,7 +274,7 @@ class MatchEngine {
     }
 
     /**
-     * Get matched skills between employee and job
+     * Get matched skills between employee and job (with synonym support)
      */
     private function getMatchedSkills($employee_skills, $job_skills_str) {
         if (empty($job_skills_str)) {
@@ -267,11 +286,29 @@ class MatchEngine {
         
         foreach ($job_skills as $job_skill) {
             $normalized_job = $this->normalizeSkill($job_skill);
+            $found = false;
+            
             foreach ($employee_skills as $emp_skill) {
-                if ($emp_skill === $normalized_job || 
-                    strpos($emp_skill, $normalized_job) !== false ||
+                // Exact match
+                if ($emp_skill === $normalized_job) {
+                    $matched[] = trim($job_skill);
+                    $found = true;
+                    break;
+                }
+                
+                // Synonym match
+                $synonym_check = $this->normalizer->checkSkillMatch($emp_skill, $normalized_job, $this->conn);
+                if ($synonym_check['match']) {
+                    $matched[] = trim($job_skill);
+                    $found = true;
+                    break;
+                }
+                
+                // Partial match
+                if (strpos($emp_skill, $normalized_job) !== false ||
                     strpos($normalized_job, $emp_skill) !== false) {
                     $matched[] = trim($job_skill);
+                    $found = true;
                     break;
                 }
             }
@@ -281,7 +318,7 @@ class MatchEngine {
     }
 
     /**
-     * Get missing skills for the job
+     * Get missing skills for the job (with synonym support)
      */
     private function getMissingSkills($employee_skills, $job_skills_str) {
         if (empty($job_skills_str)) {
@@ -296,8 +333,21 @@ class MatchEngine {
             $has_skill = false;
             
             foreach ($employee_skills as $emp_skill) {
-                if ($emp_skill === $normalized_job || 
-                    strpos($emp_skill, $normalized_job) !== false ||
+                // Exact match
+                if ($emp_skill === $normalized_job) {
+                    $has_skill = true;
+                    break;
+                }
+                
+                // Synonym match
+                $synonym_check = $this->normalizer->checkSkillMatch($emp_skill, $normalized_job, $this->conn);
+                if ($synonym_check['match']) {
+                    $has_skill = true;
+                    break;
+                }
+                
+                // Partial match
+                if (strpos($emp_skill, $normalized_job) !== false ||
                     strpos($normalized_job, $emp_skill) !== false) {
                     $has_skill = true;
                     break;
